@@ -385,6 +385,9 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 [dir="rtl"] .ar-arrow{transform:scaleX(-1)}
 [dir="rtl"] .back-btn{transform:scaleX(-1)}
 [dir="rtl"] .modal{direction:rtl}
+/* LOGIN */
+.login-role-btn{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;width:100%}
+.login-role-btn:active{transform:scale(.98)}
 `
 
 // Inject CSS
@@ -396,6 +399,49 @@ document.head.appendChild(styleEl)
 const qrScript = document.createElement('script')
 qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 document.head.appendChild(qrScript)
+
+// ── LOGIN SCREEN ──
+function LoginScreen({ onSelect }) {
+  const roles = [
+    { r: 'patient', icon: '🧑‍💼', label: 'Espace Patient', sub: 'Karim Bensalem', color: 'rgba(0,201,141,.12)', border: 'rgba(0,201,141,.3)' },
+    { r: 'doctor', icon: '👨‍⚕️', label: 'Espace Médecin', sub: 'Dr. Meziane Fatima', color: 'rgba(77,159,236,.12)', border: 'rgba(77,159,236,.3)' },
+    { r: 'admin', icon: '🛡️', label: 'Espace Admin', sub: 'Administration VitaPass', color: 'rgba(255,209,102,.12)', border: 'rgba(255,209,102,.3)' },
+  ]
+  return (
+    <div className="splash" style={{ gap: 28 }}>
+      <div className="sp-logo">
+        <div className="sp-icon">
+          <svg width="80" height="80" viewBox="0 0 110 110" fill="none">
+            <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
+            <circle cx="55" cy="55" r="44" fill="#0A1628"/>
+            <path d="M55 82C48 76 30 66 30 51c0-8 6-14 13-14 4.5 0 8.5 2.5 12 6.5 3.5-4 7.5-6.5 12-6.5 7 0 13 6 13 14 0 15-17 25-25 31Z" fill="url(#sg3)"/>
+            <path d="M38 53l6 6 8-12 7 9 4-5 5 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            <defs><linearGradient id="sg3" x1="30" y1="37" x2="80" y2="82" gradientUnits="userSpaceOnUse"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
+          </svg>
+        </div>
+        <div className="sp-name">Vita<span>Pass</span></div>
+        <div className="sp-sub">Choisissez votre espace</div>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', padding: '0 24px' }}>
+        {roles.map(({ r, icon, label, sub, color, border }) => (
+          <div
+            key={r}
+            className="login-role-btn"
+            style={{ background: color, borderColor: border }}
+            onClick={() => onSelect(r)}
+          >
+            <span style={{ fontSize: 28 }}>{icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 15, color: 'var(--white)' }}>{label}</div>
+              <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 2 }}>{sub}</div>
+            </div>
+            <span style={{ color: 'var(--dim)', fontSize: 20 }}>›</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // ══════════════════════════════════════════════════════════
 // SCREENS
@@ -637,12 +683,12 @@ function SuiviScreen({ lang, nav, glyc, setGlyc, bp, setBp, weight, setWeight, f
       <div className="metric-card" onClick={() => { setModal('glyc'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>🩸</span><div><div className="mc-title">{t.glycTitle}</div><div className="mc-sub">{t.glycSub}</div></div></div><div><span className="mc-val">{lastGlyc ?? '--'}</span><span className="mc-unit"> %</span></div></div>
         <MiniChart data={glyc} />
-        <div className={`mc-trend${lastGlyc && lastGlyc >= 7.5 ? ' warn' : ''}`}>{lastGlyc ? (lastGlyc < 7.5 ? '↓ Dans les objectifs' : '↗ Élevé · Surveiller') : '+ Ajouter une mesure'}</div>
+        <div className={`mc-trend${lastGlyc && lastGlyc >= 7.5 ? ' warn' : ''}`}>{lastGlyc ? (lastGlyc < 7.5 ? '↓ Dans les objectifs' : '↗️ Élevé · Surveiller') : '+ Ajouter une mesure'}</div>
       </div>
       <div className="metric-card" onClick={() => { setModal('bp'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>❤️</span><div><div className="mc-title">{t.bpTitle}</div><div className="mc-sub">{t.bpSub}</div></div></div><div><span className="mc-val">{lastBp ? lastBp.s : '--'}</span><span className="mc-unit">{lastBp ? '/' + lastBp.d : ''}</span></div></div>
         <MiniChart data={bp.map(b => b.s)} />
-        <div className={`mc-trend${lastBp && lastBp.s > 130 ? ' warn' : ''}`}>{lastBp ? (lastBp.s > 130 ? '↗ Élevé · Surveiller' : '↓ Normal') : '+ Ajouter une mesure'}</div>
+        <div className={`mc-trend${lastBp && lastBp.s > 130 ? ' warn' : ''}`}>{lastBp ? (lastBp.s > 130 ? '↗️ Élevé · Surveiller' : '↓ Normal') : '+ Ajouter une mesure'}</div>
       </div>
       <div className="metric-card" onClick={() => { setModal('weight'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>⚖️</span><div><div className="mc-title">{t.weightTitle}</div><div className="mc-sub">{t.weightSub}</div></div></div><div><span className="mc-val">{lastW ?? '--'}</span><span className="mc-unit"> kg</span></div></div>
@@ -669,7 +715,7 @@ function SuiviScreen({ lang, nav, glyc, setGlyc, bp, setBp, weight, setWeight, f
   )
 }
 
-function ProfileScreen({ lang, nav, profile, setProfile, toggleLang, showToast }) {
+function ProfileScreen({ lang, nav, profile, setProfile, toggleLang, showToast, onLogout }) {
   const t = T[lang]
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState(profile)
@@ -698,7 +744,7 @@ function ProfileScreen({ lang, nav, profile, setProfile, toggleLang, showToast }
           <div key={i} className="si" onClick={fn || (() => showToast('…'))}><span className="si-icon">{icon}</span><span className="si-text">{label}</span><span className="si-arrow">›</span></div>
         ))}
       </div>
-      <div className="logout-btn" onClick={() => showToast('Au revoir 👋')}>{t.logout}</div>
+      <div className="logout-btn" onClick={onLogout}>{t.logout}</div>
 
       {modal && <Modal title={t.editProfile} onClose={() => setModal(false)}>
         <div className="form-row"><div className="form-group"><label className="form-label">{t.fnameLabel}</label><input className="form-input" defaultValue={profile.fname} onChange={e => setForm({ ...form, fname: e.target.value })} /></div><div className="form-group"><label className="form-label">{t.lnameLabel}</label><input className="form-input" defaultValue={profile.lname} onChange={e => setForm({ ...form, lname: e.target.value })} /></div></div>
@@ -718,6 +764,7 @@ function ProfileScreen({ lang, nav, profile, setProfile, toggleLang, showToast }
 // MAIN APP
 // ══════════════════════════════════════════════════════════
 export default function App() {
+  const [role, setRole] = useState(null)
   const [splash, setSplash] = useState(true)
   const [screen, setScreen] = useState('home')
   const [lang, setLang] = useState('fr')
@@ -738,10 +785,13 @@ export default function App() {
   const [family, setFamily] = useState(DEFAULTS.family)
 
   useEffect(() => {
-    setTimeout(() => setSplash(false), 2200)
     const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
     tick(); const id = setInterval(tick, 1000); return () => clearInterval(id)
   }, [])
+
+  useEffect(() => {
+    if (role) setTimeout(() => setSplash(false), 1800)
+  }, [role])
 
   useEffect(() => {
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr')
@@ -750,6 +800,7 @@ export default function App() {
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2000) }
   const toggleLang = () => setLang(l => l === 'fr' ? 'ar' : 'fr')
   const nav = s => setScreen(s)
+  const handleLogout = () => { setRole(null); setSplash(true); setScreen('home') }
   const t = T[lang]
 
   const navItems = [
@@ -761,6 +812,12 @@ export default function App() {
   ]
 
   const shared = { lang, nav, showToast }
+
+  if (!role) return (
+    <div className="phone">
+      <LoginScreen onSelect={r => { setRole(r); setSplash(true) }} />
+    </div>
+  )
 
   return (
     <div className="phone">
@@ -798,7 +855,7 @@ export default function App() {
         {screen === 'dossier' && <DossierScreen {...shared} meds={meds} setMeds={setMeds} allergies={allergies} setAllergies={setAllergies} antecedents={antecedents} setAntecedents={setAntecedents} vaccins={vaccins} setVaccins={setVaccins} docs={docs} setDocs={setDocs} />}
         {screen === 'doctors' && <DoctorsScreen {...shared} doctors={doctors} setDoctors={setDoctors} rdvs={rdvs} setRdvs={setRdvs} />}
         {screen === 'suivi' && <SuiviScreen {...shared} glyc={glyc} setGlyc={setGlyc} bp={bp} setBp={setBp} weight={weight} setWeight={setWeight} family={family} setFamily={setFamily} meds={meds} />}
-        {screen === 'profile' && <ProfileScreen {...shared} profile={profile} setProfile={setProfile} toggleLang={toggleLang} />}
+        {screen === 'profile' && <ProfileScreen {...shared} profile={profile} setProfile={setProfile} toggleLang={toggleLang} onLogout={handleLogout} />}
       </div>
 
       <div className="bnav">
