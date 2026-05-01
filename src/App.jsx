@@ -766,6 +766,68 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
 // ══════════════════════════════════════════════════════════
 // MAIN APP
 // ══════════════════════════════════════════════════════════
+function OnboardingScreen({ profile, setProfile, userId, showToast }) {
+  const [form, setForm] = useState({
+    wilaya: 'Oran', blood: 'A+', gender: 'Masculin', dob: '', cnas: '', emergency: ''
+  })
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!form.dob) { alert('Date de naissance requise'); return }
+    setSaving(true)
+    const { error } = await supabase.from('profiles').update(form).eq('id', userId)
+    if (!error) { setProfile({ ...profile, ...form }); showToast('✅ Profil complété !') }
+    setSaving(false)
+  }
+
+  return (
+    <div className="auth-screen" style={{ justifyContent: 'flex-start', paddingTop: 40, overflowY: 'auto' }}>
+      <div className="auth-logo" style={{ marginBottom: 8 }}>
+        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>
+          Complète ton <span style={{ color: 'var(--g)' }}>profil</span>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--dim)' }}>Nécessaire pour ton dossier médical</div>
+      </div>
+      <div className="auth-card" style={{ width: '100%' }}>
+        <div className="form-group">
+          <label className="form-label">Date de naissance</label>
+          <input className="form-input" type="date" onChange={e => setForm({ ...form, dob: e.target.value })} />
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label className="form-label">Groupe sanguin</label>
+            <select className="form-select" onChange={e => setForm({ ...form, blood: e.target.value })}>
+              {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b => <option key={b}>{b}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Genre</label>
+            <select className="form-select" onChange={e => setForm({ ...form, gender: e.target.value })}>
+              <option>Masculin</option><option>Féminin</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Wilaya</label>
+          <select className="form-select" onChange={e => setForm({ ...form, wilaya: e.target.value })}>
+            {WILAYAS.map(w => <option key={w}>{w}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">N° CNAS</label>
+          <input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e => setForm({ ...form, cnas: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Contact d'urgence</label>
+          <input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e => setForm({ ...form, emergency: e.target.value })} />
+        </div>
+        <button className="btn-submit" onClick={save} disabled={saving}>
+          {saving ? '⏳...' : '✅ Accéder à VitaPass'}
+        </button>
+      </div>
+    </div>
+  )
+}
 export default function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -834,7 +896,15 @@ export default function App() {
     </div>
   )
 
-  if (!session) return (
+  const profileIncomplete = session && profile && !profile.blood
+
+if (profileIncomplete) return (
+  <div className="phone">
+    <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
+  </div>
+)
+
+if (!session) return (
     <div className="phone">
       <AuthScreen onAuth={() => {}} />
     </div>
