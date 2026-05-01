@@ -254,10 +254,9 @@ function AuthScreen({ onAuth }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const roles = [
+const roles = [
     { id: 'patient', icon: '🧑‍💼', label: 'Patient', sub: 'Gérer mon dossier médical' },
     { id: 'doctor', icon: '👨‍⚕️', label: 'Médecin', sub: 'Accéder aux dossiers patients' },
-    { id: 'admin', icon: '🛡️', label: 'Administrateur', sub: 'Gestion de la plateforme' },
   ]
 
   const handleLogin = async () => {
