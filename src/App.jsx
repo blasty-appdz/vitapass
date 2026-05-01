@@ -448,6 +448,68 @@ function QRScreen({ nav, profile, dossier }) {
 
 // ── DOSSIER SCREEN ──
 function DossierScreen({ nav, dossier, onSave, showToast }) {
+  const [patientDocs, setPatientDocs] = useState([])
+  const [docsLoading, setDocsLoading] = useState(false)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const [docForm, setDocForm] = useState({ nom: '', type: 'ordonnance', date_document: new Date().toISOString().split('T')[0], medecin: '' })
+  const [docFile, setDocFile] = useState(null)
+  const [docError, setDocError] = useState('')
+  const docInputRef = useRef()
+
+  const DOC_TYPES = {
+    ordonnance: { label: 'Ordonnance', icon: '💊' },
+    analyse: { label: "Résultat d'analyse", icon: '🔬' },
+    imagerie: { label: 'Imagerie (Radio/IRM)', icon: '🫁' },
+    compte_rendu: { label: 'Compte rendu', icon: '📋' },
+    autre: { label: 'Autre', icon: '📄' },
+  }
+
+  useEffect(() => {
+    if (dossier?.patient_id) loadDocs()
+  }, [dossier?.patient_id])
+
+  const loadDocs = async () => {
+    setDocsLoading(true)
+    const { data } = await supabase.from('documents').select('*')
+      .eq('patient_id', dossier.patient_id).order('uploaded_at', { ascending: false })
+    setPatientDocs(data || [])
+    setDocsLoading(false)
+  }
+
+  const handleUpload = async () => {
+    if (!docFile) return setDocError('Sélectionne un fichier')
+    if (!docForm.nom.trim()) return setDocError('Nom requis')
+    setUploadingDoc(true); setDocError('')
+    try {
+      const ext = docFile.name.split('.').pop()
+      const path = `${dossier.patient_id}/${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage.from('documents').upload(path, docFile)
+      if (upErr) throw upErr
+      const { error: dbErr } = await supabase.from('documents').insert({
+        patient_id: dossier.patient_id, title: docForm.nom, type: docForm.type,
+        date: docForm.date_document, medecin: docForm.medecin || null,
+        storage_path: path, file_size: docFile.size, file_url: ''
+      })
+      if (dbErr) throw dbErr
+      setShowUploadModal(false); setDocFile(null)
+      setDocForm({ nom: '', type: 'ordonnance', date_document: new Date().toISOString().split('T')[0], medecin: '' })
+      showToast('Document ajouté ✅'); loadDocs()
+    } catch(e) { setDocError(e.message) }
+    setUploadingDoc(false)
+  }
+
+  const handleOpenDoc = async (doc) => {
+    const { data } = await supabase.storage.from('documents').createSignedUrl(doc.storage_path, 3600)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+  }
+
+  const handleDeleteDoc = async (doc) => {
+    if (!confirm('Supprimer ce document ?')) return
+    await supabase.storage.from('documents').remove([doc.storage_path])
+    await supabase.from('documents').delete().eq('id', doc.id)
+    showToast('Document supprimé'); loadDocs()
+  }
   const [activeTab, setActiveTab] = useState('meds')
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
@@ -501,6 +563,7 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
     { id: 'meds', label: '💊 Traitement' },
     { id: 'ant', label: '📋 Antécédents' },
     { id: 'vacc', label: '💉 Vaccins' },
+  { id: 'docs', label: '📄 Documents' },
   ]
 
   return (
@@ -561,6 +624,73 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
         <div className="add-btn" onClick={() => { setModal('vacc'); setForm({ status: 'done' }) }}>＋ Ajouter un vaccin</div>
         <div className="pad-b" />
       </>}
+      {activeTab === 'docs' && (
+        <div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+            <span style={{ fontWeight:600 }}>📄 Mes Documents ({patientDocs.length})</span>
+            <button className="add-btn" onClick={() => setShowUploadModal(true)}>+ Ajouter</button>
+          </div>
+          {docsLoading ? <p>Chargement...</p> : patientDocs.length === 0 ? (
+            <div style={{ textAlign:'center', padding:32, color:'#888' }}>
+              <div style={{ fontSize:40 }}>📂</div>
+              <div>Aucun document</div>
+              <div style={{ fontSize:12 }}>Ajoute ta première ordonnance</div>
+            </div>
+          ) : patientDocs.map(doc => (
+            <div key={doc.id} className="doc-card">
+              <div className="doc-top">
+                <span style={{ fontSize:20 }}>{DOC_TYPES[doc.type]?.icon || '📄'}</span>
+                <div style={{ flex:1, marginLeft:8 }}>
+                  <div className="doc-name">{doc.title}</div>
+                  <div className="doc-spec">{DOC_TYPES[doc.type]?.label} · {doc.date}</div>
+                  {doc.medecin && <div className="doc-loc">Dr. {doc.medecin}</div>}
+                </div>
+                <button className="doc-btn" onClick={() => handleOpenDoc(doc)}>👁</button>
+                <button className="doc-btn" style={{ marginLeft:4, background:'#fee2e2', color:'#dc2626' }} onClick={() => handleDeleteDoc(doc)}>🗑</button>
+              </div>
+            </div>
+          ))}
+
+          {showUploadModal && (
+            <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowUploadModal(false)}>
+              <div className="modal">
+                <div className="modal-handle" />
+                <div className="modal-title">Ajouter un document</div>
+                <div className="form-group">
+                  <label className="form-label">Fichier *</label>
+                  <div onClick={() => docInputRef.current.click()} style={{ border:'2px dashed #ccc', borderRadius:8, padding:16, textAlign:'center', cursor:'pointer', background: docFile ? '#f0fdf4' : '#fafafa' }}>
+                    <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display:'none' }}
+                      onChange={e => { const f = e.target.files[0]; if(f){ setDocFile(f); if(!docForm.nom) setDocForm(p => ({...p, nom: f.name.replace(/\.[^/.]+$/,'')})) }}} />
+                    {docFile ? <span>✅ {docFile.name}</span> : <span>📂 Appuie pour choisir<br/><small>PDF, JPG, PNG · max 10 Mo</small></span>}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nom *</label>
+                  <input className="form-input" value={docForm.title} onChange={e => setDocForm(p => ({...p, nom: e.target.value}))} placeholder="Ex: Ordonnance Dr. Benali" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Type</label>
+                  <select className="form-select" value={docForm.type} onChange={e => setDocForm(p => ({...p, type: e.target.value}))}>
+                    {Object.entries(DOC_TYPES).map(([k,v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Date</label>
+                  <input className="form-input" type="date" value={docForm.date} onChange={e => setDocForm(p => ({...p, date_document: e.target.value}))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Médecin (optionnel)</label>
+                  <input className="form-input" value={docForm.medecin} onChange={e => setDocForm(p => ({...p, medecin: e.target.value}))} placeholder="Dr. Benali" />
+                </div>
+                {docError && <div style={{ color:'#dc2626', fontSize:13, padding:'8px 0' }}>⚠️ {docError}</div>}
+                <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>
+                  {uploadingDoc ? '⏳ Upload...' : '⬆️ Envoyer'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {modal === 'med' && <Modal title="Ajouter un médicament" onClose={() => setModal(null)}>
         <div className="form-group"><label className="form-label">Nom</label><input className="form-input" placeholder="Metformine 850mg" onChange={e => setForm({ ...form, name: e.target.value })} /></div>
