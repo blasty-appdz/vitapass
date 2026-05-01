@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import PatientRecord from './pages/doctor/PatientRecord';
+import DoctorAppointments from './pages/doctor/DoctorAppointments';
 
 // ── UTILS ──
 const WILAYAS = ['Adrar','Chlef','Laghouat','Oum El Bouaghi','Batna','Béjaïa','Biskra','Béchar','Blida','Bouira','Tamanrasset','Tébessa','Tlemcen','Tiaret','Tizi Ouzou','Alger','Djelfa','Jijel','Sétif','Saïda','Skikda','Sidi Bel Abbès','Annaba','Guelma','Constantine','Médéa','Mostaganem','M\'Sila','Mascara','Ouargla','Oran','El Bayadh','Illizi','Bordj Bou Arréridj','Boumerdès','El Tarf','Tindouf','Tissemsilt','El Oued','Khenchela','Souk Ahras','Tipaza','Mila','Aïn Defla','Naâma','Aïn Témouchent','Ghardaïa','Relizane']
@@ -963,6 +966,7 @@ export default function App() {
   const [profile, setProfile] = useState(null)
   const [dossier, setDossier] = useState(null)
   const [screen, setScreen] = useState('home')
+  const [navParams, setNavParams] = useState({})
   const [splash, setSplash] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
@@ -994,6 +998,7 @@ export default function App() {
       supabase.from('dossiers').select('*').eq('patient_id', userId).single()
     ])
     setProfile(prof)
+    if (prof?.role === 'doctor') setScreen('doctor')
     setDossier(dos)
     setLoading(false)
   }
@@ -1010,7 +1015,7 @@ export default function App() {
   }
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2500) }
-  const nav = s => setScreen(s)
+  const nav = (s, params = {}) => { setScreen(s); setNavParams(params) }
 
   const navItems = [
     { id: 'home', icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>, label: 'Accueil' },
@@ -1076,6 +1081,9 @@ if (!session) return (
         {screen === 'doctors' && <DoctorsScreen nav={nav} showToast={showToast} />}
         {screen === 'profile' && <ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} />}
       </div>
+      {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
+{screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
+{screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
 
       <div className="bnav">
         {navItems.map(item => (
