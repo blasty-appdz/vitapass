@@ -6,6 +6,7 @@ export default function DoctorDashboard({ nav, showToast }) {
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -20,7 +21,7 @@ export default function DoctorDashboard({ nav, showToast }) {
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
     setDoctor(profile);
 
     const { data: accesses, error } = await supabase
@@ -74,33 +75,62 @@ export default function DoctorDashboard({ nav, showToast }) {
     return new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
   }
 
+  const SidebarContent = () => (
+    <>
+      <div style={styles.logo}>
+        <span style={styles.logoIcon}>VP</span>
+        <span style={styles.logoText}>VitaPass</span>
+      </div>
+      <nav style={styles.nav}>
+        <button style={{ ...styles.navItem, ...styles.navActive }} onClick={() => setSidebarOpen(false)}>
+          <span>👥</span> Mes patients
+        </button>
+        <button style={styles.navItem} onClick={() => { setSidebarOpen(false); nav("doctor-appointments"); }}>
+          <span>📅</span> Rendez-vous
+        </button>
+      </nav>
+      <div style={styles.sidebarBottom}>
+        <div style={styles.doctorCard}>
+          <div style={styles.doctorAvatar}>{getInitials(doctor)}</div>
+          <div>
+            <div style={styles.doctorName}>{getFullName(doctor)}</div>
+            <div style={styles.doctorRole}>Médecin</div>
+          </div>
+        </div>
+        <button style={styles.logoutBtn} onClick={() => supabase.auth.signOut().then(() => nav("home"))}>
+          Déconnexion
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div style={styles.page}>
-      <aside style={styles.sidebar}>
+
+      {/* MOBILE TOPBAR */}
+      <div style={styles.topbar}>
+        <button style={styles.hamburger} onClick={() => setSidebarOpen(!sidebarOpen)}>
+          ☰
+        </button>
         <div style={styles.logo}>
           <span style={styles.logoIcon}>VP</span>
           <span style={styles.logoText}>VitaPass</span>
         </div>
-        <nav style={styles.nav}>
-          <button style={{ ...styles.navItem, ...styles.navActive }}>
-            <span>👥</span> Mes patients
-          </button>
-          <button style={styles.navItem} onClick={() => nav("doctor-appointments")}>
-            <span>📅</span> Rendez-vous
-          </button>
-        </nav>
-        <div style={styles.sidebarBottom}>
-          <div style={styles.doctorCard}>
-            <div style={styles.doctorAvatar}>{getInitials(doctor)}</div>
-            <div>
-              <div style={styles.doctorName}>{getFullName(doctor)}</div>
-              <div style={styles.doctorRole}>Médecin</div>
-            </div>
-          </div>
-          <button style={styles.logoutBtn} onClick={() => supabase.auth.signOut().then(() => nav("home"))}>
-            Déconnexion
-          </button>
-        </div>
+      </div>
+
+      {/* MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div style={styles.overlay} onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* SIDEBAR MOBILE (drawer) */}
+      <aside style={{ ...styles.sidebar, ...styles.sidebarMobile, ...(sidebarOpen ? styles.sidebarMobileOpen : {}) }}>
+        <SidebarContent />
+      </aside>
+
+      {/* SIDEBAR DESKTOP */}
+      <aside style={styles.sidebarDesktop}>
+        <SidebarContent />
       </aside>
 
       <main style={styles.main}>
@@ -170,8 +200,82 @@ export default function DoctorDashboard({ nav, showToast }) {
 }
 
 const styles = {
-  page: { display: "flex", minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Segoe UI', system-ui, sans-serif" },
-  sidebar: { width: 240, background: "#0a2540", display: "flex", flexDirection: "column", padding: "24px 16px", gap: 8, position: "sticky", top: 0, height: "100vh" },
+  page: {
+    display: "flex",
+    minHeight: "100vh",
+    background: "#f0f4f8",
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    flexDirection: "row",
+  },
+
+  // TOPBAR — visible uniquement mobile
+  topbar: {
+    display: "none",
+    position: "fixed",
+    top: 0, left: 0, right: 0,
+    height: 56,
+    background: "#0a2540",
+    alignItems: "center",
+    gap: 12,
+    padding: "0 16px",
+    zIndex: 200,
+    "@media (max-width: 768px)": { display: "flex" },
+  },
+  hamburger: {
+    background: "transparent",
+    border: "none",
+    color: "#fff",
+    fontSize: 22,
+    cursor: "pointer",
+    padding: 4,
+  },
+
+  // OVERLAY mobile
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.4)",
+    zIndex: 300,
+  },
+
+  // SIDEBAR base
+  sidebar: {
+    width: 240,
+    background: "#0a2540",
+    display: "flex",
+    flexDirection: "column",
+    padding: "24px 16px",
+    gap: 8,
+  },
+
+  // SIDEBAR desktop — toujours visible
+  sidebarDesktop: {
+    width: 240,
+    background: "#0a2540",
+    display: "flex",
+    flexDirection: "column",
+    padding: "24px 16px",
+    gap: 8,
+    position: "sticky",
+    top: 0,
+    height: "100vh",
+    flexShrink: 0,
+  },
+
+  // SIDEBAR mobile — drawer depuis la gauche
+  sidebarMobile: {
+    position: "fixed",
+    top: 0, left: 0,
+    height: "100vh",
+    zIndex: 400,
+    transform: "translateX(-100%)",
+    transition: "transform 0.25s ease",
+    display: "flex",
+  },
+  sidebarMobileOpen: {
+    transform: "translateX(0)",
+  },
+
   logo: { display: "flex", alignItems: "center", gap: 10, marginBottom: 32, paddingLeft: 8 },
   logoIcon: { background: "#2dd4bf", color: "#0a2540", fontWeight: 800, fontSize: 14, borderRadius: 8, padding: "4px 7px" },
   logoText: { color: "#fff", fontWeight: 700, fontSize: 18 },
@@ -184,7 +288,13 @@ const styles = {
   doctorName: { color: "#fff", fontSize: 13, fontWeight: 600 },
   doctorRole: { color: "#8ea6c0", fontSize: 11 },
   logoutBtn: { background: "rgba(255,255,255,0.06)", border: "none", color: "#8ea6c0", borderRadius: 8, padding: "8px 12px", fontSize: 13, cursor: "pointer", textAlign: "left" },
-  main: { flex: 1, padding: "40px" },
+
+  main: {
+    flex: 1,
+    padding: "40px",
+    // Sur mobile : padding top pour laisser place à la topbar
+    paddingTop: 40,
+  },
   header: { marginBottom: 28 },
   title: { fontSize: 28, fontWeight: 700, color: "#0a2540", margin: 0 },
   subtitle: { color: "#64748b", fontSize: 14, margin: "4px 0 0" },
