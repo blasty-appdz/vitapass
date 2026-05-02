@@ -27,7 +27,7 @@ export default function PatientRecord({ nav, showToast, patientId }) {
       .select("access_level")
       .eq("doctor_id", user.id)
       .eq("patient_id", patientId)
-      .single();
+      .maybeSingle();
 
     if (!access) {
       showToast && showToast("Accès non autorisé");
@@ -39,14 +39,14 @@ export default function PatientRecord({ nav, showToast, patientId }) {
       .from("profiles")
       .select("*")
       .eq("id", patientId)
-      .single();
+      .maybeSingle();
     setPatient(profile);
 
     const { data: dos } = await supabase
       .from("dossiers")
       .select("*")
       .eq("patient_id", patientId)
-      .single();
+      .maybeSingle();
     setDossier(dos);
 
     const { data: docs } = await supabase
@@ -248,21 +248,21 @@ function TextBlock({ value }) {
 const styles = {
   page: { minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Segoe UI', system-ui, sans-serif" },
   loadingPage: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#64748b" },
-  header: { background: "#fff", padding: "16px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
+  header: { background: "#fff", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
   backBtn: { background: "none", border: "none", color: "#0a2540", fontSize: 14, fontWeight: 600, cursor: "pointer" },
   noteBtn: { background: "#0a2540", color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  content: { maxWidth: 960, margin: "0 auto", padding: "32px 24px" },
-  patientCard: { background: "#fff", borderRadius: 16, padding: 24, display: "flex", alignItems: "center", gap: 20, marginBottom: 28, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" },
-  patientAvatar: { width: 64, height: 64, borderRadius: "50%", background: "linear-gradient(135deg, #0a2540, #1e4d7b)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 22, flexShrink: 0 },
-  patientInfo: { flex: 1 },
-  patientName: { fontSize: 22, fontWeight: 700, color: "#0a2540", margin: "0 0 8px" },
-  patientMeta: { display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", fontSize: 13, color: "#64748b" },
+  content: { maxWidth: 960, margin: "0 auto", padding: "24px 16px" },
+  patientCard: { background: "#fff", borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 16, marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", flexWrap: "wrap" },
+  patientAvatar: { width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #0a2540, #1e4d7b)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 20, flexShrink: 0 },
+  patientInfo: { flex: 1, minWidth: 0 },
+  patientName: { fontSize: 20, fontWeight: 700, color: "#0a2540", margin: "0 0 8px" },
+  patientMeta: { display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", fontSize: 13, color: "#64748b" },
   bloodBadge: { background: "#fff1f2", color: "#e11d48", borderRadius: 6, padding: "2px 8px", fontWeight: 600 },
   accessBadge: { background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 },
-  tabs: { display: "flex", gap: 4, marginBottom: 24 },
-  tab: { background: "transparent", border: "none", padding: "10px 18px", borderRadius: 10, fontSize: 14, fontWeight: 500, color: "#64748b", cursor: "pointer" },
+  tabs: { display: "flex", gap: 4, marginBottom: 20, flexWrap: "wrap" },
+  tab: { background: "transparent", border: "none", padding: "10px 16px", borderRadius: 10, fontSize: 14, fontWeight: 500, color: "#64748b", cursor: "pointer" },
   tabActive: { background: "#fff", color: "#0a2540", fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" },
-  grid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 },
   section: { background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
   sectionTitle: { fontSize: 13, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 14px" },
   row: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc" },
@@ -278,8 +278,8 @@ const styles = {
   docContent: { fontSize: 14, color: "#334155", lineHeight: 1.6, margin: 0 },
   docLink: { color: "#2563eb", fontSize: 13, textDecoration: "none", fontWeight: 600 },
   empty: { textAlign: "center", color: "#94a3b8", padding: 40, fontSize: 14 },
-  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 },
-  modal: { background: "#fff", borderRadius: 20, padding: 32, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 16 },
+  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "0 16px" },
+  modal: { background: "#fff", borderRadius: 20, padding: 28, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 16 },
   modalTitle: { fontSize: 18, fontWeight: 700, color: "#0a2540", margin: 0 },
   modalInput: { border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 14, outline: "none" },
   modalTextarea: { border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 14, outline: "none", resize: "vertical", fontFamily: "inherit" },
