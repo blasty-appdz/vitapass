@@ -1023,9 +1023,6 @@ export default function App() {
         {screen === 'doctors' && <DoctorsScreen nav={nav} showToast={showToast} />}
         {screen === 'profile' && <ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} />}
       </div>
-      {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
-      {screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
-      {screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
       <div className="bnav">
         {navItems.map(item => (
           <div key={item.id} className={`ni${screen === item.id || (item.id === 'dossier' && screen === 'suivi') ? ' active' : ''}`} onClick={() => nav(item.id)}>
