@@ -4,7 +4,6 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientRecord from './pages/doctor/PatientRecord';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
 
-// ── UTILS ──
 const WILAYAS = ['Adrar','Chlef','Laghouat','Oum El Bouaghi','Batna','Béjaïa','Biskra','Béchar','Blida','Bouira','Tamanrasset','Tébessa','Tlemcen','Tiaret','Tizi Ouzou','Alger','Djelfa','Jijel','Sétif','Saïda','Skikda','Sidi Bel Abbès','Annaba','Guelma','Constantine','Médéa','Mostaganem','M\'Sila','Mascara','Ouargla','Oran','El Bayadh','Illizi','Bordj Bou Arréridj','Boumerdès','El Tarf','Tindouf','Tissemsilt','El Oued','Khenchela','Souk Ahras','Tipaza','Mila','Aïn Defla','Naâma','Aïn Témouchent','Ghardaïa','Relizane']
 
 const formatDate = d => {
@@ -13,17 +12,20 @@ const formatDate = d => {
   catch { return d }
 }
 
-// ── CSS ──
+function getAvatarEmoji(gender, role) {
+  if (role === 'doctor') return gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️';
+  return gender === 'Féminin' ? '👩' : '👨';
+}
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap');
 :root{--bg:#080E1E;--card:#0D1526;--card2:#111C2E;--g:#00C98D;--blue:#4D9FEC;--yellow:#FFD166;--red:#FF5A5A;--white:#EFF3FF;--dim:#5A6A85;--border:rgba(255,255,255,.07)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Inter',sans-serif;background:#1a1a2e}
-.phone{width:390px;height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);margin:auto}
+.phone{width:390px;min-height:844px;background:var(--bg);border-radius:44px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.08);margin:auto}
 .sbar{height:44px;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0;position:relative;z-index:10}
 .sbar-time{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--white)}
 .sbar-right{display:flex;align-items:center;gap:10px}
-.lang-toggle{background:rgba(0,201,141,.15);color:var(--g);font-family:'Syne',sans-serif;font-weight:700;font-size:11px;padding:3px 9px;border-radius:20px;cursor:pointer;border:1px solid rgba(0,201,141,.25)}
 .screens{flex:1;overflow:hidden;position:relative}
 .screen{position:absolute;inset:0;overflow-y:auto;flex-direction:column;padding:0 18px;gap:0}
 .screen::-webkit-scrollbar{display:none}
@@ -34,7 +36,6 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .ni.active{opacity:1}
 .ni.active svg{fill:var(--g)}
 .ni.active span{color:var(--g)}
-/* AUTH */
 .auth-screen{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;z-index:100;border-radius:44px;padding:24px}
 .auth-logo{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:8px}
 .auth-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--white)}
@@ -50,7 +51,8 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .role-icon{font-size:22px}
 .role-label{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white)}
 .role-sub{font-size:11px;color:var(--dim);margin-top:2px}
-/* SPLASH */
+.pwd-wrap{position:relative}
+.pwd-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;opacity:0.6;user-select:none}
 .splash{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;z-index:100;border-radius:44px}
 .sp-logo{display:flex;flex-direction:column;align-items:center;gap:12px}
 .sp-icon{animation:pulse 1.5s infinite}
@@ -61,7 +63,6 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .sp-bar{width:160px;height:3px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden}
 .sp-fill{height:100%;background:var(--g);border-radius:4px;animation:fill 2s ease-out forwards}
 @keyframes fill{from{width:0}to{width:100%}}
-/* HOME */
 .home-hdr{padding:16px 0 4px}
 .h-greet{font-size:13px;color:var(--dim)}
 .h-name{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--white);margin-top:2px}
@@ -95,7 +96,6 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .ar-text{flex:1}
 .ar-arrow{font-size:20px;color:var(--dim)}
 .pad-b{height:24px}
-/* QR */
 .screen-hdr{display:flex;align-items:center;gap:12px;padding:14px 0 8px}
 .back-btn{width:36px;height:36px;background:var(--card2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--white)}
 .shdr-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--white)}
@@ -112,12 +112,10 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .qa-btn{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
 .qa-icon{font-size:20px}
 .qa-lbl{font-size:10px;color:var(--dim);font-family:'Syne',sans-serif;font-weight:600}
-/* BADGES */
 .badge{font-size:10px;font-family:'Syne',sans-serif;font-weight:700;padding:3px 8px;border-radius:20px}
 .badge-g{background:rgba(0,201,141,.12);color:var(--g);border:1px solid rgba(0,201,141,.2)}
 .badge-r{background:rgba(255,90,90,.12);color:#FF8A8A;border:1px solid rgba(255,90,90,.2)}
 .badge-y{background:rgba(255,209,102,.12);color:var(--yellow);border:1px solid rgba(255,209,102,.2)}
-/* DOSSIER */
 .tabs{display:flex;background:var(--card);border-radius:12px;padding:4px;margin-bottom:4px;gap:2px}
 .tab{flex:1;text-align:center;padding:8px 4px;font-family:'Syne',sans-serif;font-size:10px;font-weight:700;color:var(--dim);border-radius:9px;cursor:pointer;transition:all .2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab.active{background:var(--card2);color:var(--g);box-shadow:0 2px 8px rgba(0,0,0,.3)}
@@ -135,7 +133,6 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .add-btn:active{background:rgba(0,201,141,.15)}
 .empty-state{text-align:center;padding:30px 20px;color:var(--dim)}
 .empty-icon{font-size:36px;margin-bottom:10px}
-/* PROFILE */
 .profile-hero{background:linear-gradient(180deg,rgba(0,201,141,.08) 0%,transparent 100%);padding:20px 0;display:flex;flex-direction:column;align-items:center;gap:8px;border-bottom:1px solid var(--border);margin:0 -18px;padding-left:18px;padding-right:18px}
 .p-av-wrap{position:relative}
 .p-av{width:72px;height:72px;background:rgba(0,201,141,.1);border:2px solid rgba(0,201,141,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px}
@@ -149,14 +146,7 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .pinfo-row:last-child{border-bottom:none}
 .pi-key{font-size:12px;color:var(--dim)}
 .pi-val{font-size:12px;font-weight:600;color:var(--white);font-family:'Syne',sans-serif;text-align:right;max-width:60%}
-.settings-list{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:10px}
-.si{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer}
-.si:last-child{border-bottom:none}
-.si-icon{font-size:18px;width:24px;text-align:center}
-.si-text{flex:1;font-size:14px;color:var(--white)}
-.si-arrow{color:var(--dim);font-size:18px}
 .logout-btn{background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:14px;padding:14px;text-align:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#FF8A8A;cursor:pointer;margin-bottom:24px}
-/* MODAL */
 .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;z-index:50;backdrop-filter:blur(4px)}
 .modal{background:#0D1829;border-radius:24px 24px 0 0;padding:20px 20px 32px;width:100%;max-height:85%;overflow-y:auto;border-top:1px solid rgba(255,255,255,.1)}
 .modal::-webkit-scrollbar{display:none}
@@ -170,7 +160,6 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .form-select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--white);outline:none;font-family:'Inter',sans-serif;width:100%}
 .btn-submit{width:100%;background:var(--g);color:#001A12;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;padding:14px;border-radius:12px;border:none;cursor:pointer;margin-bottom:8px}
 .btn-cancel{width:100%;background:transparent;color:var(--dim);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:10px;border-radius:12px;border:1px solid var(--border);cursor:pointer}
-/* TOAST */
 .toast{position:absolute;top:60px;left:50%;transform:translateX(-50%);background:rgba(13,21,38,.95);border:1px solid rgba(0,201,141,.3);color:var(--white);font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:10px 20px;border-radius:20px;z-index:200;white-space:nowrap;backdrop-filter:blur(8px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
 .error-msg{background:rgba(255,90,90,.1);border:1px solid rgba(255,90,90,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#FF8A8A;margin-bottom:12px;text-align:center}
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--dim);font-size:13px;padding:20px}
@@ -193,21 +182,12 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .mc-trend.warn{color:var(--yellow)}
 .doc-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px}
 .doc-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
-.doc-avatar{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .doc-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--white)}
 .doc-spec{font-size:12px;color:var(--blue);margin-top:2px}
 .doc-loc{font-size:11px;color:var(--dim);margin-top:3px}
-.doc-btns{display:flex;gap:8px}
-.doc-btn{flex:1;padding:9px;border-radius:10px;text-align:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer}
-.doc-btn-full{background:rgba(0,201,141,.1);color:var(--g);border:1px solid rgba(0,201,141,.2)}
-.doc-btn-rev{background:rgba(255,90,90,.08);color:#FF8A8A;border:1px solid rgba(255,90,90,.2)}
-.rdv-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.rdv-date{width:44px;height:44px;background:rgba(77,159,236,.1);border:1px solid rgba(77,159,236,.2);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.rdv-day{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue);line-height:1}
-.rdv-month{font-size:9px;font-family:'Syne',sans-serif;font-weight:700;color:var(--dim);text-transform:uppercase}
-.rdv-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--white)}
-.rdv-detail{font-size:11px;color:var(--dim);margin-top:3px}
+.doc-btn{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;font-size:13px}
 `
+
 const styleEl = document.createElement('style')
 styleEl.textContent = CSS
 document.head.appendChild(styleEl)
@@ -216,7 +196,6 @@ const qrScript = document.createElement('script')
 qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 document.head.appendChild(qrScript)
 
-// ── COMPONENTS ──
 function Modal({ title, children, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -229,9 +208,7 @@ function Modal({ title, children, onClose }) {
   )
 }
 
-function Toast({ msg }) {
-  return <div className="toast">{msg}</div>
-}
+function Toast({ msg }) { return <div className="toast">{msg}</div> }
 
 function MiniChart({ data }) {
   if (!data || data.length === 0) return <div className="mini-chart" />
@@ -246,18 +223,18 @@ function MiniChart({ data }) {
   )
 }
 
-// ── AUTH SCREEN ──
 function AuthScreen({ onAuth }) {
   const [tab, setTab] = useState('login')
   const [role, setRole] = useState('patient')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPwd, setShowPwd] = useState(false)
   const [fname, setFname] = useState('')
   const [lname, setLname] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-const roles = [
+  const roles = [
     { id: 'patient', icon: '🧑‍💼', label: 'Patient', sub: 'Gérer mon dossier médical' },
     { id: 'doctor', icon: '👨‍⚕️', label: 'Médecin', sub: 'Accéder aux dossiers patients' },
   ]
@@ -294,15 +271,12 @@ const roles = [
         <div className="auth-title">Vita<span>Pass</span></div>
         <div className="auth-sub">Carnet de santé digital algérien</div>
       </div>
-
       <div className="auth-card">
         <div className="auth-tabs">
           <div className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Connexion</div>
           <div className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => setTab('signup')}>Inscription</div>
         </div>
-
         {error && <div className="error-msg">{error}</div>}
-
         {tab === 'signup' && (
           <>
             <div className="sec-label" style={{ margin: '0 0 8px' }}>Je suis</div>
@@ -326,16 +300,17 @@ const roles = [
             </div>
           </>
         )}
-
         <div className="form-group">
           <label className="form-label">Email</label>
           <input className="form-input" type="email" placeholder="email@exemple.com" value={email} onChange={e => setEmail(e.target.value)} />
         </div>
         <div className="form-group">
           <label className="form-label">Mot de passe</label>
-          <input className="form-input" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+          <div className="pwd-wrap">
+            <input className="form-input" type={showPwd ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingRight: 40 }} />
+            <span className="pwd-eye" onClick={() => setShowPwd(!showPwd)}>{showPwd ? "🙈" : "👁️"}</span>
+          </div>
         </div>
-
         <button className="btn-submit" onClick={tab === 'login' ? handleLogin : handleSignup} disabled={loading}>
           {loading ? '⏳ Chargement...' : tab === 'login' ? '🔐 Se connecter' : '✨ Créer mon compte'}
         </button>
@@ -343,11 +318,8 @@ const roles = [
     </div>
   )
 }
-
-// ── HOME SCREEN ──
 function HomeScreen({ nav, profile, dossier }) {
   const meds = dossier?.meds || []
-  const doctors = [] // à charger depuis doctor_access
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
@@ -355,245 +327,239 @@ function HomeScreen({ nav, profile, dossier }) {
         <div className="h-greet">Bonjour 👋</div>
         <div className="h-name">{profile?.fname} <span>{profile?.lname}</span></div>
       </div>
-
       <div className="vitacard" onClick={() => nav('qr')}>
         <div className="vc-top">
-          <div className="vc-logo">💚 VitaPass</div>
-          <div className="vc-blood">{profile?.blood || 'N/A'}</div>
+          <span className="vc-logo">🏥 VitaPass</span>
+          {profile?.blood && <span className="vc-blood">{profile.blood}</span>}
         </div>
         <div className="vc-name">{profile?.fname} {profile?.lname}</div>
-        <div className="vc-info">Né le {formatDate(profile?.dob)} · {profile?.wilaya}</div>
+        <div className="vc-info">{profile?.wilaya} · {profile?.cnas || 'CNAS non renseigné'}</div>
         <div className="vc-bottom">
-          <div className="vc-id">VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</div>
+          <span className="vc-id">VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</span>
+          <span style={{ fontSize: 11, color: 'rgba(0,201,141,.5)' }}>Appuyer pour QR →</span>
         </div>
       </div>
-
-      {meds.length > 0 && (
-        <div className="alert-chip">
-          <div className="alert-dot" />
-          <div className="alert-txt"><strong>Rappel :</strong> Renouvellement {meds[0].name} dans 5 jours</div>
-        </div>
-      )}
-
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
-        <div className="qs" onClick={() => nav('dossier')}><div className="qs-icon">💊</div><div className="qs-val">{meds.length}</div><div className="qs-lbl">Traitements</div></div>
-        <div className="qs" onClick={() => nav('doctors')}><div className="qs-icon">👨‍⚕️</div><div className="qs-val">0</div><div className="qs-lbl">Médecins</div></div>
-        <div className="qs" onClick={() => nav('suivi')}><div className="qs-icon">📊</div><div className="qs-val">3</div><div className="qs-lbl">Métriques</div></div>
+        <div className="qs" onClick={() => nav('dossier')}>
+          <div className="qs-icon">💊</div>
+          <div className="qs-val">{meds.length}</div>
+          <div className="qs-lbl">Traitements</div>
+        </div>
+        <div className="qs" onClick={() => nav('doctors')}>
+          <div className="qs-icon">👨‍⚕️</div>
+          <div className="qs-val">0</div>
+          <div className="qs-lbl">Médecins</div>
+        </div>
+        <div className="qs" onClick={() => nav('suivi')}>
+          <div className="qs-icon">📊</div>
+          <div className="qs-val">–</div>
+          <div className="qs-lbl">Métriques</div>
+        </div>
       </div>
-
       <div className="sec-label">Accès rapide</div>
       <div className="action-list">
-        {[
-          { icon: '🔳', bg: 'rgba(0,201,141,.12)', title: 'Mon QR Pass', sub: 'Partager mes infos en urgence', screen: 'qr' },
-          { icon: '📋', bg: 'rgba(77,159,236,.12)', title: 'Mon dossier', sub: 'Médicaments, antécédents…', screen: 'dossier' },
-          { icon: '👨‍⚕️', bg: 'rgba(255,209,102,.12)', title: 'Mes médecins', sub: 'Accès & rendez-vous', screen: 'doctors' },
-          { icon: '❤️', bg: 'rgba(255,90,90,.12)', title: 'Mon suivi', sub: 'Glycémie, tension, poids', screen: 'suivi' },
-        ].map((a, i) => (
-          <div key={i} className="action-row" onClick={() => nav(a.screen)}>
-            <div className="ar-icon" style={{ background: a.bg }}>{a.icon}</div>
-            <div className="ar-text"><div className="ar-title">{a.title}</div><div className="ar-sub">{a.sub}</div></div>
-            <div className="ar-arrow">›</div>
-          </div>
-        ))}
+        <div className="action-row" onClick={() => nav('qr')}>
+          <div className="ar-icon" style={{ background: 'rgba(255,90,90,.1)' }}>🆘</div>
+          <div className="ar-text"><div className="ar-title">Mon QR Pass</div><div className="ar-sub">Partager mes infos en urgence</div></div>
+          <span className="ar-arrow">›</span>
+        </div>
+        <div className="action-row" onClick={() => nav('dossier')}>
+          <div className="ar-icon" style={{ background: 'rgba(77,159,236,.1)' }}>📋</div>
+          <div className="ar-text"><div className="ar-title">Mon dossier</div><div className="ar-sub">Médicaments, antécédents...</div></div>
+          <span className="ar-arrow">›</span>
+        </div>
+        <div className="action-row" onClick={() => nav('doctors')}>
+          <div className="ar-icon" style={{ background: 'rgba(0,201,141,.1)' }}>👨‍⚕️</div>
+          <div className="ar-text"><div className="ar-title">Mes médecins</div><div className="ar-sub">Accès & rendez-vous</div></div>
+          <span className="ar-arrow">›</span>
+        </div>
+        <div className="action-row" onClick={() => nav('suivi')}>
+          <div className="ar-icon" style={{ background: 'rgba(255,209,102,.1)' }}>❤️</div>
+          <div className="ar-text"><div className="ar-title">Mon suivi</div><div className="ar-sub">Glycémie, tension, poids</div></div>
+          <span className="ar-arrow">›</span>
+        </div>
       </div>
       <div className="pad-b" />
     </div>
   )
 }
 
-// ── QR SCREEN ──
 function QRScreen({ nav, profile, dossier }) {
   const qrRef = useRef(null)
-  const allergies = dossier?.allergies || []
-  const antecedents = dossier?.antecedents || []
+  const qrInstance = useRef(null)
 
   useEffect(() => {
     if (!qrRef.current || !profile) return
-    const try_ = () => {
-      if (window.QRCode) {
-        qrRef.current.innerHTML = ''
-        new window.QRCode(qrRef.current, {
-          text: `VitaPass|${profile.fname} ${profile.lname}|${profile.dob}|${profile.blood}`,
-          width: 170, height: 170, colorDark: '#0A1628', colorLight: '#ffffff',
-          correctLevel: window.QRCode.CorrectLevel.M
-        })
-      } else setTimeout(try_, 300)
+    if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency })) }
+    else if (window.QRCode) {
+      qrInstance.current = new window.QRCode(qrRef.current, { text: JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency }), width: 180, height: 180, colorDark: '#000', colorLight: '#fff' })
     }
-    try_()
   }, [profile])
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon QR Pass</div></div>
       <div className="qr-wrap">
-        <div className="emergency-bar"><span style={{ fontSize: 22 }}>🚨</span><div className="emg-txt">En cas d'urgence, scannez ce QR pour accéder aux informations vitales</div></div>
+        <div className="emergency-bar">
+          <span style={{ fontSize: 20 }}>🆘</span>
+          <div className="emg-txt">En cas d'urgence, ce QR code permet aux secours d'accéder à vos informations vitales</div>
+        </div>
         <div className="qr-card">
           <div className="qr-tag">URGENCE MÉDICALE</div>
-          <div className="qr-box"><div ref={qrRef} /></div>
+          <div className="qr-box" ref={qrRef} />
           <div className="qr-pname">{profile?.fname} {profile?.lname}</div>
-          <div className="qr-pinfo">{formatDate(profile?.dob)} · {profile?.blood} · {profile?.wilaya}</div>
+          <div className="qr-pinfo">{profile?.wilaya} · {profile?.cnas}</div>
           <div className="qr-chips">
-            {allergies.map((a, i) => <span key={i} className="badge badge-r">⚠️ {a}</span>)}
-            {antecedents.filter(a => a.type === 'Chronique').slice(0,2).map((a, i) => <span key={i} className="badge badge-y">{a.name}</span>)}
+            {profile?.blood && <span className="badge badge-r">🩸 {profile.blood}</span>}
+            {profile?.emergency && <span className="badge badge-g">📞 {profile.emergency}</span>}
           </div>
         </div>
-        <div className="qr-actions">
-          {[['📤','Partager'],['🖨️','Imprimer'],['📡','NFC'],['🔒','Sécurité']].map(([icon, lbl], i) => (
-            <div key={i} className="qa-btn"><div className="qa-icon">{icon}</div><div className="qa-lbl">{lbl}</div></div>
-          ))}
-        </div>
-        <div className="pad-b" />
       </div>
+      <div className="pad-b" />
     </div>
   )
 }
 
-// ── DOSSIER SCREEN ──
 function DossierScreen({ nav, dossier, onSave, showToast }) {
-  const [patientDocs, setPatientDocs] = useState([])
-  const [docsLoading, setDocsLoading] = useState(false)
-  const [showUploadModal, setShowUploadModal] = useState(false)
-  const [uploadingDoc, setUploadingDoc] = useState(false)
-  const [docForm, setDocForm] = useState({ nom: '', type: 'ordonnance', date_document: new Date().toISOString().split('T')[0], medecin: '' })
-  const [docFile, setDocFile] = useState(null)
-  const [docError, setDocError] = useState('')
-  const docInputRef = useRef()
-
-  const DOC_TYPES = {
-    ordonnance: { label: 'Ordonnance', icon: '💊' },
-    analyse: { label: "Résultat d'analyse", icon: '🔬' },
-    imagerie: { label: 'Imagerie (Radio/IRM)', icon: '🫁' },
-    compte_rendu: { label: 'Compte rendu', icon: '📋' },
-    autre: { label: 'Autre', icon: '📄' },
-  }
-
-  useEffect(() => {
-    if (dossier?.patient_id) loadDocs()
-  }, [dossier?.patient_id])
-
-  const loadDocs = async () => {
-    setDocsLoading(true)
-    const { data } = await supabase.from('documents').select('*')
-      .eq('patient_id', dossier.patient_id).order('uploaded_at', { ascending: false })
-    setPatientDocs(data || [])
-    setDocsLoading(false)
-  }
-
-  const handleUpload = async () => {
-    if (!docFile) return setDocError('Sélectionne un fichier')
-    if (!docForm.nom.trim()) return setDocError('Nom requis')
-    setUploadingDoc(true); setDocError('')
-    try {
-      const ext = docFile.name.split('.').pop()
-      const path = `${dossier.patient_id}/${Date.now()}.${ext}`
-      const { error: upErr } = await supabase.storage.from('documents').upload(path, docFile)
-      if (upErr) throw upErr
-      const { error: dbErr } = await supabase.from('documents').insert({
-        patient_id: dossier.patient_id, title: docForm.nom, type: docForm.type,
-        date: docForm.date_document, medecin: docForm.medecin || null,
-        storage_path: path, file_size: docFile.size, file_url: ''
-      })
-      if (dbErr) throw dbErr
-      setShowUploadModal(false); setDocFile(null)
-      setDocForm({ nom: '', type: 'ordonnance', date_document: new Date().toISOString().split('T')[0], medecin: '' })
-      showToast('Document ajouté ✅'); loadDocs()
-    } catch(e) { setDocError(e.message) }
-    setUploadingDoc(false)
-  }
-
-  const handleOpenDoc = async (doc) => {
-    const { data } = await supabase.storage.from('documents').createSignedUrl(doc.storage_path, 3600)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
-  }
-
-  const handleDeleteDoc = async (doc) => {
-    if (!confirm('Supprimer ce document ?')) return
-    await supabase.storage.from('documents').remove([doc.storage_path])
-    await supabase.from('documents').delete().eq('id', doc.id)
-    showToast('Document supprimé'); loadDocs()
-  }
-  const [activeTab, setActiveTab] = useState('meds')
+  const [activeTab, setActiveTab] = useState('med')
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
+  const [patientDocs, setPatientDocs] = useState([])
+  const [docsLoading, setDocsLoading] = useState(false)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [docFile, setDocFile] = useState(null)
+  const [docForm, setDocForm] = useState({ title: '', type: 'ordonnance', date: '', medecin: '' })
+  const [docError, setDocError] = useState('')
+  const [uploadingDoc, setUploadingDoc] = useState(false)
+  const docInputRef = useRef(null)
 
   const meds = dossier?.meds || []
   const allergies = dossier?.allergies || []
   const antecedents = dossier?.antecedents || []
-  const vaccins = dossier?.vaccins || []
+  const vaccins = dossier?.vaccins || [
+    { id: 1, name: 'BCG', status: 'done', date: '1990-01-01' },
+    { id: 2, name: 'Covid-19', status: 'done', date: '2021-06-15' },
+    { id: 3, name: 'Grippe saisonnière', status: 'pending', date: null },
+  ]
 
-  const save = async (field, newVal) => {
-    setSaving(true)
-    await onSave({ [field]: newVal })
-    setSaving(false)
-    setModal(null)
-    setForm({})
-    showToast('✅ Enregistré dans le cloud')
+  const DOC_TYPES = {
+    ordonnance: { label: 'Ordonnance', icon: '💊' },
+    analyse: { label: 'Analyse', icon: '🧪' },
+    radio: { label: 'Radiologie', icon: '🩻' },
+    compte_rendu: { label: 'Compte rendu', icon: '📋' },
+    autre: { label: 'Autre', icon: '📄' },
+  }
+
+  useEffect(() => { if (activeTab === 'docs') loadDocs() }, [activeTab])
+
+  const loadDocs = async () => {
+    setDocsLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data } = await supabase.from('documents').select('*').eq('patient_id', user.id).order('created_at', { ascending: false })
+    setPatientDocs(data || [])
+    setDocsLoading(false)
+  }
+
+  const handleOpenDoc = (doc) => { if (doc.file_url) window.open(doc.file_url, '_blank') }
+
+  const handleDeleteDoc = async (doc) => {
+    if (!confirm('Supprimer ce document ?')) return
+    await supabase.from('documents').delete().eq('id', doc.id)
+    loadDocs()
+    showToast('Document supprimé')
+  }
+
+  const handleUpload = async () => {
+    if (!docFile) { setDocError('Fichier requis'); return }
+    if (!docForm.title) { setDocError('Nom requis'); return }
+    setUploadingDoc(true); setDocError('')
+    const { data: { user } } = await supabase.auth.getUser()
+    const ext = docFile.name.split('.').pop()
+    const path = `${user.id}/${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage.from('documents').upload(path, docFile)
+    if (upErr) { setDocError('Erreur upload: ' + upErr.message); setUploadingDoc(false); return }
+    const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(path)
+    await supabase.from('documents').insert({ patient_id: user.id, title: docForm.title, type: docForm.type, date: docForm.date || null, medecin: docForm.medecin || null, file_url: publicUrl })
+    setShowUploadModal(false); setDocFile(null); setDocForm({ title: '', type: 'ordonnance', date: '', medecin: '' })
+    loadDocs(); showToast('✅ Document ajouté')
+    setUploadingDoc(false)
   }
 
   const addMed = async () => {
     if (!form.name) return
-    const newMeds = [...meds, { id: Date.now(), name: form.name, dose: form.dose || '', reason: form.reason || '' }]
-    await save('meds', newMeds)
-  }
-
-  const rmMed = async (id) => {
-    await save('meds', meds.filter(m => m.id !== id))
-    showToast('🗑 Supprimé')
+    setSaving(true)
+    await onSave({ meds: [...meds, { id: Date.now(), ...form }] })
+    setModal(null); setForm({}); setSaving(false); showToast('✅ Médicament ajouté')
   }
 
   const addAllergy = async () => {
     if (!form.name) return
-    await save('allergies', [...allergies, form.name])
+    setSaving(true)
+    await onSave({ allergies: [...allergies, { id: Date.now(), name: form.name }] })
+    setModal(null); setForm({}); setSaving(false); showToast('✅ Allergie ajoutée')
   }
 
-  const rmAllergy = async (i) => {
-    await save('allergies', allergies.filter((_, j) => j !== i))
+  const removeAllergy = async (id) => {
+    await onSave({ allergies: allergies.filter(a => a.id !== id) })
+    showToast('Allergie supprimée')
   }
 
   const addAnt = async () => {
     if (!form.name) return
-    await save('antecedents', [...antecedents, { id: Date.now(), name: form.name, year: form.year || '', type: form.type || 'Chronique' }])
+    setSaving(true)
+    await onSave({ antecedents: [...antecedents, { id: Date.now(), ...form }] })
+    setModal(null); setForm({}); setSaving(false); showToast('✅ Antécédent ajouté')
   }
 
   const addVacc = async () => {
     if (!form.name) return
-    await save('vaccins', [...vaccins, { id: Date.now(), name: form.name, date: form.date || '', status: form.status || 'done' }])
+    setSaving(true)
+    await onSave({ vaccins: [...vaccins, { id: Date.now(), ...form }] })
+    setModal(null); setForm({}); setSaving(false); showToast('✅ Vaccin ajouté')
   }
 
   const tabs = [
-    { id: 'meds', label: '💊 Traitement' },
-    { id: 'ant', label: '📋 Antécédents' },
+    { id: 'med', label: '💊 Médic.' },
+    { id: 'allergy', label: '⚠️ Allergies' },
+    { id: 'ant', label: '🩺 Antéc.' },
     { id: 'vacc', label: '💉 Vaccins' },
-  { id: 'docs', label: '📄 Documents' },
+    { id: 'docs', label: '📄 Docs' },
   ]
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon Dossier Médical</div></div>
-      <div className="tabs">{tabs.map(t => <div key={t.id} className={`tab${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</div>)}</div>
+      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon Dossier</div></div>
+      <div className="tabs">
+        {tabs.map(t => <div key={t.id} className={`tab${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</div>)}
+      </div>
 
-      {activeTab === 'meds' && <>
-        <div className="dsect-title">Traitements en cours</div>
+      {activeTab === 'med' && <>
+        <div className="dsect-title">Médicaments en cours</div>
         {meds.length === 0
-          ? <div className="empty-state"><div className="empty-icon">💊</div><p>Aucun traitement enregistré</p></div>
+          ? <div className="empty-state"><div className="empty-icon">💊</div><p>Aucun médicament enregistré</p></div>
           : meds.map(m => (
             <div key={m.id} className="card">
               <div className="card-row">
-                <div className="card-icon" style={{ background: 'rgba(0,201,141,.1)' }}>💊</div>
+                <div className="card-icon" style={{ background: 'rgba(77,159,236,.1)' }}>💊</div>
                 <div className="card-info"><div className="card-name">{m.name}</div><div className="card-sub">{m.dose}{m.reason ? ' · ' + m.reason : ''}</div></div>
                 <span className="badge badge-g">Actif</span>
-                <span onClick={() => rmMed(m.id)} style={{ cursor: 'pointer', color: 'var(--dim)', fontSize: 18, padding: 4 }}>✕</span>
               </div>
             </div>
           ))}
         <div className="add-btn" onClick={() => { setModal('med'); setForm({}) }}>＋ Ajouter un médicament</div>
-        <div className="dsect-title">Allergies connues</div>
+        <div className="pad-b" />
+      </>}
+
+      {activeTab === 'allergy' && <>
+        <div className="dsect-title">Mes allergies</div>
         <div className="allergy-wrap">
-          {allergies.map((a, i) => (
-            <span key={i} className="achip">⚠️ {a}<span className="achip-rm" onClick={() => rmAllergy(i)}>✕</span></span>
-          ))}
+          {allergies.length === 0
+            ? <div className="empty-state"><div className="empty-icon">⚠️</div><p>Aucune allergie enregistrée</p></div>
+            : allergies.map(a => (
+              <div key={a.id} className="achip">{a.name}<span className="achip-rm" onClick={() => removeAllergy(a.id)}>✕</span></div>
+            ))}
         </div>
         <div className="add-btn" onClick={() => { setModal('allergy'); setForm({}) }}>＋ Ajouter une allergie</div>
         <div className="pad-b" />
@@ -627,17 +593,17 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
         <div className="add-btn" onClick={() => { setModal('vacc'); setForm({ status: 'done' }) }}>＋ Ajouter un vaccin</div>
         <div className="pad-b" />
       </>}
+
       {activeTab === 'docs' && (
         <div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <span style={{ fontWeight:600 }}>📄 Mes Documents ({patientDocs.length})</span>
-            <button className="add-btn" onClick={() => setShowUploadModal(true)}>+ Ajouter</button>
+            <span style={{ fontWeight:600, color:'var(--white)' }}>📄 Mes Documents ({patientDocs.length})</span>
+            <div className="add-btn" style={{ margin:0, padding:'6px 12px' }} onClick={() => setShowUploadModal(true)}>+ Ajouter</div>
           </div>
-          {docsLoading ? <p>Chargement...</p> : patientDocs.length === 0 ? (
-            <div style={{ textAlign:'center', padding:32, color:'#888' }}>
+          {docsLoading ? <p style={{ color:'var(--dim)' }}>Chargement...</p> : patientDocs.length === 0 ? (
+            <div style={{ textAlign:'center', padding:32, color:'var(--dim)' }}>
               <div style={{ fontSize:40 }}>📂</div>
               <div>Aucun document</div>
-              <div style={{ fontSize:12 }}>Ajoute ta première ordonnance</div>
             </div>
           ) : patientDocs.map(doc => (
             <div key={doc.id} className="doc-card">
@@ -648,12 +614,11 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
                   <div className="doc-spec">{DOC_TYPES[doc.type]?.label} · {doc.date}</div>
                   {doc.medecin && <div className="doc-loc">Dr. {doc.medecin}</div>}
                 </div>
-                <button className="doc-btn" onClick={() => handleOpenDoc(doc)}>👁</button>
-                <button className="doc-btn" style={{ marginLeft:4, background:'#fee2e2', color:'#dc2626' }} onClick={() => handleDeleteDoc(doc)}>🗑</button>
+                <button className="doc-btn" style={{ background:'rgba(77,159,236,.1)', color:'var(--blue)' }} onClick={() => handleOpenDoc(doc)}>👁</button>
+                <button className="doc-btn" style={{ marginLeft:4, background:'rgba(255,90,90,.1)', color:'#FF8A8A' }} onClick={() => handleDeleteDoc(doc)}>🗑</button>
               </div>
             </div>
           ))}
-
           {showUploadModal && (
             <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowUploadModal(false)}>
               <div className="modal">
@@ -661,15 +626,14 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
                 <div className="modal-title">Ajouter un document</div>
                 <div className="form-group">
                   <label className="form-label">Fichier *</label>
-                  <div onClick={() => docInputRef.current.click()} style={{ border:'2px dashed #ccc', borderRadius:8, padding:16, textAlign:'center', cursor:'pointer', background: docFile ? '#f0fdf4' : '#fafafa' }}>
-                    <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display:'none' }}
-                      onChange={e => { const f = e.target.files[0]; if(f){ setDocFile(f); if(!docForm.nom) setDocForm(p => ({...p, nom: f.name.replace(/\.[^/.]+$/,'')})) }}} />
-                    {docFile ? <span>✅ {docFile.name}</span> : <span>📂 Appuie pour choisir<br/><small>PDF, JPG, PNG · max 10 Mo</small></span>}
+                  <div onClick={() => docInputRef.current.click()} style={{ border:'2px dashed rgba(255,255,255,.15)', borderRadius:8, padding:16, textAlign:'center', cursor:'pointer', background: docFile ? 'rgba(0,201,141,.05)' : 'transparent' }}>
+                    <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display:'none' }} onChange={e => { const f = e.target.files[0]; if(f){ setDocFile(f); if(!docForm.title) setDocForm(p => ({...p, title: f.name.replace(/\.[^/.]+$/,'')})) }}} />
+                    {docFile ? <span style={{ color:'var(--g)' }}>✅ {docFile.name}</span> : <span style={{ color:'var(--dim)' }}>📂 Appuie pour choisir<br/><small>PDF, JPG, PNG · max 10 Mo</small></span>}
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Nom *</label>
-                  <input className="form-input" value={docForm.title} onChange={e => setDocForm(p => ({...p, nom: e.target.value}))} placeholder="Ex: Ordonnance Dr. Benali" />
+                  <input className="form-input" value={docForm.title} onChange={e => setDocForm(p => ({...p, title: e.target.value}))} placeholder="Ex: Ordonnance Dr. Benali" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Type</label>
@@ -679,16 +643,14 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Date</label>
-                  <input className="form-input" type="date" value={docForm.date} onChange={e => setDocForm(p => ({...p, date_document: e.target.value}))} />
+                  <input className="form-input" type="date" value={docForm.date} onChange={e => setDocForm(p => ({...p, date: e.target.value}))} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Médecin (optionnel)</label>
                   <input className="form-input" value={docForm.medecin} onChange={e => setDocForm(p => ({...p, medecin: e.target.value}))} placeholder="Dr. Benali" />
                 </div>
-                {docError && <div style={{ color:'#dc2626', fontSize:13, padding:'8px 0' }}>⚠️ {docError}</div>}
-                <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>
-                  {uploadingDoc ? '⏳ Upload...' : '⬆️ Envoyer'}
-                </button>
+                {docError && <div style={{ color:'#FF8A8A', fontSize:13, padding:'8px 0' }}>⚠️ {docError}</div>}
+                <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>{uploadingDoc ? '⏳ Upload...' : '⬆️ Envoyer'}</button>
               </div>
             </div>
           )}
@@ -742,7 +704,6 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
   )
 }
 
-// ── SUIVI SCREEN ──
 function SuiviScreen({ nav, dossier, onSave, showToast }) {
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
@@ -765,26 +726,22 @@ function SuiviScreen({ nav, dossier, onSave, showToast }) {
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon Suivi Santé</div></div>
       <div className="sec-label">Métriques médicales</div>
-
       <div className="metric-card" onClick={() => { setModal('glyc'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>🩸</span><div><div className="mc-title">Glycémie (HbA1c)</div><div className="mc-sub">Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastGlyc ?? '--'}</span><span className="mc-unit"> %</span></div></div>
         <MiniChart data={glyc} />
         <div className={`mc-trend${lastGlyc && lastGlyc >= 7.5 ? ' warn' : ''}`}>{lastGlyc ? (lastGlyc < 7.5 ? '↓ Dans les objectifs' : '↗️ Élevé · Surveiller') : '+ Ajouter une mesure'}</div>
       </div>
-
       <div className="metric-card" onClick={() => { setModal('bp'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>❤️</span><div><div className="mc-title">Tension artérielle</div><div className="mc-sub">mmHg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastBp ? lastBp.s : '--'}</span><span className="mc-unit">{lastBp ? '/'+lastBp.d : ''}</span></div></div>
         <MiniChart data={bp.map(b => b.s)} />
         <div className={`mc-trend${lastBp && lastBp.s > 130 ? ' warn' : ''}`}>{lastBp ? (lastBp.s > 130 ? '↗️ Élevé · Surveiller' : '↓ Normal') : '+ Ajouter une mesure'}</div>
       </div>
-
       <div className="metric-card" onClick={() => { setModal('weight'); setForm({ date: today }) }}>
         <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>⚖️</span><div><div className="mc-title">Poids corporel</div><div className="mc-sub">kg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastW ?? '--'}</span><span className="mc-unit"> kg</span></div></div>
         <MiniChart data={weight} />
         <div className="mc-trend">{lastW && weight.length > 1 ? `${weight[0] > lastW ? '↓' : '↑'} ${Math.abs(weight[0] - lastW).toFixed(1)}kg` : '+ Ajouter une mesure'}</div>
       </div>
       <div className="pad-b" />
-
       {modal === 'glyc' && <Modal title="Glycémie (HbA1c)" onClose={() => setModal(null)}>
         <div className="form-group"><label className="form-label">Valeur (%)</label><input className="form-input" type="number" step="0.1" placeholder="7.2" onChange={e => setForm({ ...form, val: e.target.value })} /></div>
         <button className="btn-submit" onClick={saveMetric}>Enregistrer</button>
@@ -807,7 +764,6 @@ function SuiviScreen({ nav, dossier, onSave, showToast }) {
   )
 }
 
-// ── DOCTORS SCREEN ──
 function DoctorsScreen({ nav, showToast }) {
   return (
     <div className="screen" style={{ display: 'flex' }}>
@@ -823,7 +779,6 @@ function DoctorsScreen({ nav, showToast }) {
   )
 }
 
-// ── PROFILE SCREEN ──
 function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState(profile || {})
@@ -841,11 +796,15 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
   }
 
   const age = profile?.dob ? new Date().getFullYear() - parseInt(profile.dob.split('-')[0]) : ''
+  const avatarEmoji = getAvatarEmoji(profile?.gender, 'patient')
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="profile-hero">
-        <div className="p-av-wrap"><div className="p-av">👨</div><div className="p-badge">✅</div></div>
+        <div className="p-av-wrap">
+          <div className="p-av">{avatarEmoji}</div>
+          <div className="p-badge">✅</div>
+        </div>
         <div className="p-name">{profile?.fname} {profile?.lname}</div>
         <div className="p-id">ID : VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</div>
         <div className="p-chips">
@@ -863,7 +822,6 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
       </div>
       <div className="add-btn" onClick={() => { setForm(profile || {}); setModal(true) }}>✏️ Modifier mon profil</div>
       <div className="logout-btn" onClick={onLogout}>🚪 Se déconnecter</div>
-
       {modal && <Modal title="Modifier mon profil" onClose={() => setModal(false)}>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Prénom</label><input className="form-input" defaultValue={profile?.fname} onChange={e => setForm({ ...form, fname: e.target.value })} /></div>
@@ -896,13 +854,8 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
   )
 }
 
-// ══════════════════════════════════════════════════════════
-// MAIN APP
-// ══════════════════════════════════════════════════════════
 function OnboardingScreen({ profile, setProfile, userId, showToast }) {
-  const [form, setForm] = useState({
-    wilaya: 'Oran', blood: 'A+', gender: 'Masculin', dob: '', cnas: '', emergency: ''
-  })
+  const [form, setForm] = useState({ wilaya: 'Oran', blood: 'A+', gender: 'Masculin', dob: '', cnas: '', emergency: '' })
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -922,45 +875,32 @@ function OnboardingScreen({ profile, setProfile, userId, showToast }) {
         <div style={{ fontSize: 12, color: 'var(--dim)' }}>Nécessaire pour ton dossier médical</div>
       </div>
       <div className="auth-card" style={{ width: '100%' }}>
-        <div className="form-group">
-          <label className="form-label">Date de naissance</label>
-          <input className="form-input" type="date" onChange={e => setForm({ ...form, dob: e.target.value })} />
-        </div>
+        <div className="form-group"><label className="form-label">Date de naissance</label><input className="form-input" type="date" onChange={e => setForm({ ...form, dob: e.target.value })} /></div>
         <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">Groupe sanguin</label>
+          <div className="form-group"><label className="form-label">Groupe sanguin</label>
             <select className="form-select" onChange={e => setForm({ ...form, blood: e.target.value })}>
               {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b => <option key={b}>{b}</option>)}
             </select>
           </div>
-          <div className="form-group">
-            <label className="form-label">Genre</label>
+          <div className="form-group"><label className="form-label">Genre</label>
             <select className="form-select" onChange={e => setForm({ ...form, gender: e.target.value })}>
               <option>Masculin</option><option>Féminin</option>
             </select>
           </div>
         </div>
-        <div className="form-group">
-          <label className="form-label">Wilaya</label>
+        <div className="form-group"><label className="form-label">Wilaya</label>
           <select className="form-select" onChange={e => setForm({ ...form, wilaya: e.target.value })}>
             {WILAYAS.map(w => <option key={w}>{w}</option>)}
           </select>
         </div>
-        <div className="form-group">
-          <label className="form-label">N° CNAS</label>
-          <input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e => setForm({ ...form, cnas: e.target.value })} />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Contact d'urgence</label>
-          <input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e => setForm({ ...form, emergency: e.target.value })} />
-        </div>
-        <button className="btn-submit" onClick={save} disabled={saving}>
-          {saving ? '⏳...' : '✅ Accéder à VitaPass'}
-        </button>
+        <div className="form-group"><label className="form-label">N° CNAS</label><input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e => setForm({ ...form, cnas: e.target.value })} /></div>
+        <div className="form-group"><label className="form-label">Contact d'urgence</label><input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e => setForm({ ...form, emergency: e.target.value })} /></div>
+        <button className="btn-submit" onClick={save} disabled={saving}>{saving ? '⏳...' : '✅ Accéder à VitaPass'}</button>
       </div>
     </div>
   )
 }
+
 export default function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -994,8 +934,8 @@ export default function App() {
   const loadUserData = async (userId) => {
     setLoading(true)
     const [{ data: prof }, { data: dos }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('dossiers').select('*').eq('patient_id', userId).single()
+      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+      supabase.from('dossiers').select('*').eq('patient_id', userId).maybeSingle()
     ])
     setProfile(prof)
     if (prof?.role === 'doctor') setScreen('doctor')
@@ -1005,15 +945,11 @@ export default function App() {
 
   const saveDossier = async (updates) => {
     if (!dossier) return
-    const { data, error } = await supabase.from('dossiers').update({ ...updates, updated_at: new Date().toISOString() }).eq('patient_id', session.user.id).select().single()
+    const { data, error } = await supabase.from('dossiers').update({ ...updates, updated_at: new Date().toISOString() }).eq('patient_id', session.user.id).select().maybeSingle()
     if (!error && data) setDossier(data)
   }
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    setScreen('home')
-  }
-
+  const handleLogout = async () => { await supabase.auth.signOut(); setScreen('home') }
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2500) }
   const nav = (s, params = {}) => { setScreen(s); setNavParams(params) }
 
@@ -1031,18 +967,26 @@ export default function App() {
     </div>
   )
 
-  const profileIncomplete = session && profile && !profile.blood
+  const profileIncomplete = session && profile && !profile.blood && profile.role !== 'doctor'
 
-if (profileIncomplete) return (
-  <div className="phone">
-    <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
-  </div>
-)
+  if (profileIncomplete) return (
+    <div className="phone">
+      <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
+    </div>
+  )
 
-if (!session) return (
+  if (!session) return (
     <div className="phone">
       <AuthScreen onAuth={() => {}} />
     </div>
+  )
+  if (profile?.role === 'doctor') return (
+    <>
+      {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
+      {screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
+      {screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
+      {toast && <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:'rgba(13,21,38,.95)',border:'1px solid rgba(0,201,141,.3)',color:'#EFF3FF',padding:'10px 20px',borderRadius:20,zIndex:999,fontSize:13,fontWeight:600}}>{toast}</div>}
+    </>
   )
 
   return (
@@ -1064,7 +1008,6 @@ if (!session) return (
           <div className="sp-bar"><div className="sp-fill" /></div>
         </div>
       )}
-
       <div className="sbar">
         <span className="sbar-time">{clock}</span>
         <div className="sbar-right">
@@ -1072,7 +1015,6 @@ if (!session) return (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
         </div>
       </div>
-
       <div className="screens">
         {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
@@ -1082,9 +1024,8 @@ if (!session) return (
         {screen === 'profile' && <ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} />}
       </div>
       {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
-{screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
-{screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
-
+      {screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
+      {screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
       <div className="bnav">
         {navItems.map(item => (
           <div key={item.id} className={`ni${screen === item.id || (item.id === 'dossier' && screen === 'suivi') ? ' active' : ''}`} onClick={() => nav(item.id)}>
@@ -1093,7 +1034,6 @@ if (!session) return (
           </div>
         ))}
       </div>
-
       {toast && <Toast msg={toast} />}
     </div>
   )
