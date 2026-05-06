@@ -1160,10 +1160,6 @@ export default function App() {
     setProfile(prof)
     if (prof?.role === 'doctor') setScreen('doctor')
    setDossier(dos)
-if (prof?.role !== 'doctor') {
-  const { count } = await supabase.from('doctor_access').select('*', { count: 'exact', head: true }).eq('patient_id', userId).eq('status', 'active')
-  setDoctorCount(count || 0)
-}
 setLoading(false)
   }
 
