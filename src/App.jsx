@@ -327,7 +327,7 @@ function AuthScreen({ onAuth }) {
   )
 }
 
-function HomeScreen({ nav, profile, dossier }) {
+function HomeScreen({ nav, profile, dossier, doctorCount }) {
   const meds = dossier?.meds || []
 
   return (
@@ -357,7 +357,8 @@ function HomeScreen({ nav, profile, dossier }) {
         </div>
         <div className="qs" onClick={() => nav('doctors')}>
           <div className="qs-icon">👨‍⚕️</div>
-          <div className="qs-val">0</div>
+          <div className="qs-val">{doctorCount}</div>
+          <div className="qs-lbl">Médecins</div>
           <div className="qs-lbl">Médecins</div>
         </div>
         <div className="qs" onClick={() => nav('suivi')}>
@@ -1235,7 +1236,7 @@ export default function App() {
         </div>
       </div>
       <div className="screens">
-        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} />}
+        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} />}
         {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
