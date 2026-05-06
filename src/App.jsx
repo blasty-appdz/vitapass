@@ -186,6 +186,14 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .doc-spec{font-size:12px;color:var(--blue);margin-top:2px}
 .doc-loc{font-size:11px;color:var(--dim);margin-top:3px}
 .doc-btn{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;font-size:13px}
+.doctor-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px}
+.doctor-card-row{display:flex;align-items:center;gap:12px}
+.doctor-av{width:44px;height:44px;border-radius:50%;background:rgba(77,159,236,.1);border:1px solid rgba(77,159,236,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.doctor-info{flex:1}
+.doctor-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white)}
+.doctor-spec{font-size:11px;color:var(--blue);margin-top:2px}
+.doctor-email{font-size:11px;color:var(--dim);margin-top:2px}
+.revoke-btn{background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:8px;padding:6px 10px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:#FF8A8A;cursor:pointer}
 `
 
 const styleEl = document.createElement('style')
@@ -318,6 +326,7 @@ function AuthScreen({ onAuth }) {
     </div>
   )
 }
+
 function HomeScreen({ nav, profile, dossier }) {
   const meds = dossier?.meds || []
 
@@ -764,17 +773,228 @@ function SuiviScreen({ nav, dossier, onSave, showToast }) {
   )
 }
 
+// ============================================================
+// DOCTORS SCREEN — FONCTIONNELLE
+// ============================================================
 function DoctorsScreen({ nav, showToast }) {
+  const [doctors, setDoctors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [email, setEmail] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [foundDoctor, setFoundDoctor] = useState(null)
+  const [searchError, setSearchError] = useState('')
+  const [adding, setAdding] = useState(false)
+
+  useEffect(() => { loadDoctors() }, [])
+
+  const loadDoctors = async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    // Charger les accès actifs
+    const { data: accesses } = await supabase
+      .from('doctor_access')
+      .select('id, doctor_id, status, created_at')
+      .eq('patient_id', user.id)
+      .eq('status', 'active')
+
+    if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
+
+    // Charger les profils des médecins un par un (pas de join)
+    const doctorProfiles = []
+    for (const access of accesses) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('id, fname, lname, gender, specialite, numero_ordre')
+        .eq('id', access.doctor_id)
+        .maybeSingle()
+      if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.created_at })
+    }
+    setDoctors(doctorProfiles)
+    setLoading(false)
+  }
+
+  const searchDoctor = async () => {
+    if (!email.trim()) { setSearchError("Entrez un email"); return }
+    setSearching(true); setSearchError(''); setFoundDoctor(null)
+
+    // Chercher le profil par email via auth — on cherche dans profiles
+    // On filtre par role=doctor uniquement
+    const { data: results } = await supabase
+      .from('profiles')
+      .select('id, fname, lname, gender, specialite, numero_ordre, role')
+      .eq('role', 'doctor')
+
+    // Filtrer côté client car email est dans auth.users, pas profiles
+    // On contourne : on cherche l'user par email via une fonction RPC ou on stocke l'email dans profiles
+    // Solution pragmatique : chercher dans auth via admin (non dispo côté client)
+    // → On ajoute une colonne email dans profiles OU on utilise une approche différente
+    // Pour l'instant on cherche par email stocké dans profiles si disponible
+    // Sinon on affiche un message d'erreur utile
+
+    if (!results || results.length === 0) {
+      setSearchError("Aucun médecin trouvé avec cet email")
+      setSearching(false); return
+    }
+
+    // Chercher le médecin dont l'email correspond
+    // On va chercher via supabase auth admin — pas dispo côté client
+    // Solution : ajouter colonne email dans profiles
+    // Pour l'instant : chercher directement si profiles a email
+    const { data: doctorByEmail } = await supabase
+      .from('profiles')
+      .select('id, fname, lname, gender, specialite, numero_ordre, role')
+      .eq('role', 'doctor')
+      .ilike('id', '%') // placeholder — voir note ci-dessous
+      .maybeSingle()
+
+    setSearchError("Pour activer la recherche par email, une colonne email doit être ajoutée à la table profiles. Voir instructions.")
+    setSearching(false)
+  }
+
+  // Vraie implémentation search doctor — utilise RPC
+  const searchDoctorReal = async () => {
+    if (!email.trim()) { setSearchError("Entrez un email"); return }
+    setSearching(true); setSearchError(''); setFoundDoctor(null)
+
+    const { data, error } = await supabase.rpc('find_doctor_by_email', { p_email: email.trim().toLowerCase() })
+
+    if (error || !data || data.length === 0) {
+      setSearchError("Aucun médecin VitaPass trouvé avec cet email")
+      setSearching(false); return
+    }
+
+    const doc = data[0]
+    if (doc.role !== 'doctor') {
+      setSearchError("Cet utilisateur n'est pas un médecin")
+      setSearching(false); return
+    }
+
+    // Vérifier si déjà autorisé
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: existing } = await supabase
+      .from('doctor_access')
+      .select('id')
+      .eq('patient_id', user.id)
+      .eq('doctor_id', doc.id)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (existing) {
+      setSearchError("Ce médecin a déjà accès à votre dossier")
+      setSearching(false); return
+    }
+
+    setFoundDoctor(doc)
+    setSearching(false)
+  }
+
+  const authorizeDoctor = async () => {
+    if (!foundDoctor) return
+    setAdding(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const { error } = await supabase.from('doctor_access').insert({
+      patient_id: user.id,
+      doctor_id: foundDoctor.id,
+      status: 'active'
+    })
+    if (error) { showToast('❌ Erreur: ' + error.message); setAdding(false); return }
+    showToast('✅ Médecin autorisé !')
+    setShowModal(false); setEmail(''); setFoundDoctor(null)
+    loadDoctors()
+    setAdding(false)
+  }
+
+  const revokeDoctor = async (accessId, name) => {
+    if (!confirm(`Révoquer l'accès du Dr. ${name} ?`)) return
+    await supabase.from('doctor_access').update({ status: 'revoked' }).eq('id', accessId)
+    showToast('Accès révoqué')
+    loadDoctors()
+  }
+
   return (
     <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Médecins & Accès</div></div>
-      <div className="empty-state" style={{ marginTop: 40 }}>
-        <div className="empty-icon">👨‍⚕️</div>
-        <p>Aucun médecin autorisé</p>
-        <p style={{ marginTop: 8, fontSize: 12 }}>Les médecins que vous autorisez pourront accéder à votre dossier</p>
+      <div className="screen-hdr">
+        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="shdr-title">Médecins & Accès</div>
       </div>
-      <div className="add-btn" onClick={() => showToast('🚧 Bientôt disponible')}>＋ Autoriser un médecin</div>
+
+      <div style={{ background:'rgba(77,159,236,.06)', border:'1px solid rgba(77,159,236,.15)', borderRadius:12, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,255,255,.6)', lineHeight:1.5 }}>
+        🔒 Les médecins autorisés peuvent consulter votre dossier médical complet. Vous pouvez révoquer l'accès à tout moment.
+      </div>
+
+      {loading ? (
+        <div className="loading">⏳ Chargement...</div>
+      ) : doctors.length === 0 ? (
+        <div className="empty-state" style={{ marginTop: 24 }}>
+          <div className="empty-icon">👨‍⚕️</div>
+          <p>Aucun médecin autorisé</p>
+          <p style={{ marginTop: 8, fontSize: 12 }}>Ajoutez un médecin VitaPass pour lui donner accès à votre dossier</p>
+        </div>
+      ) : (
+        doctors.map(doc => (
+          <div key={doc.id} className="doctor-card">
+            <div className="doctor-card-row">
+              <div className="doctor-av">{doc.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}</div>
+              <div className="doctor-info">
+                <div className="doctor-name">Dr. {doc.fname} {doc.lname}</div>
+                {doc.specialite && <div className="doctor-spec">{doc.specialite}</div>}
+                <div className="doctor-email">Depuis le {formatDate(doc.since)}</div>
+              </div>
+              <div className="revoke-btn" onClick={() => revokeDoctor(doc.access_id, `${doc.fname} ${doc.lname}`)}>Révoquer</div>
+            </div>
+          </div>
+        ))
+      )}
+
+      <div className="add-btn" onClick={() => { setShowModal(true); setEmail(''); setFoundDoctor(null); setSearchError('') }}>
+        ＋ Autoriser un médecin
+      </div>
       <div className="pad-b" />
+
+      {showModal && (
+        <Modal title="Autoriser un médecin" onClose={() => setShowModal(false)}>
+          <div style={{ fontSize:12, color:'var(--dim)', marginBottom:14, lineHeight:1.5 }}>
+            Entrez l'email du médecin inscrit sur VitaPass. Il aura accès à votre dossier complet.
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email du médecin</label>
+            <input
+              className="form-input"
+              type="email"
+              placeholder="docteur@exemple.com"
+              value={email}
+              onChange={e => { setEmail(e.target.value); setFoundDoctor(null); setSearchError('') }}
+            />
+          </div>
+
+          {searchError && (
+            <div className="error-msg" style={{ marginBottom:12 }}>{searchError}</div>
+          )}
+
+          {foundDoctor && (
+            <div style={{ background:'rgba(0,201,141,.06)', border:'1px solid rgba(0,201,141,.2)', borderRadius:12, padding:14, marginBottom:14, display:'flex', alignItems:'center', gap:12 }}>
+              <span style={{ fontSize:28 }}>{foundDoctor.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}</span>
+              <div>
+                <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--white)' }}>Dr. {foundDoctor.fname} {foundDoctor.lname}</div>
+                {foundDoctor.specialite && <div style={{ fontSize:12, color:'var(--blue)', marginTop:2 }}>{foundDoctor.specialite}</div>}
+                {foundDoctor.numero_ordre && <div style={{ fontSize:11, color:'var(--dim)', marginTop:2 }}>N° Ordre : {foundDoctor.numero_ordre}</div>}
+              </div>
+            </div>
+          )}
+
+          {!foundDoctor ? (
+            <button className="btn-submit" onClick={searchDoctorReal} disabled={searching}>
+              {searching ? '🔍 Recherche...' : '🔍 Rechercher'}
+            </button>
+          ) : (
+            <button className="btn-submit" onClick={authorizeDoctor} disabled={adding}>
+              {adding ? '⏳...' : '✅ Autoriser ce médecin'}
+            </button>
+          )}
+          <button className="btn-cancel" onClick={() => setShowModal(false)}>Annuler</button>
+        </Modal>
+      )}
     </div>
   )
 }
