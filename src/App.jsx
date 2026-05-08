@@ -327,7 +327,7 @@ function AuthScreen({ onAuth }) {
   )
 }
 
-function HomeScreen({ nav, profile, dossier, doctorCount }) {
+function HomeScreen({ nav, profile, dossier }) {
   const meds = dossier?.meds || []
 
   return (
@@ -357,8 +357,7 @@ function HomeScreen({ nav, profile, dossier, doctorCount }) {
         </div>
         <div className="qs" onClick={() => nav('doctors')}>
           <div className="qs-icon">👨‍⚕️</div>
-          <div className="qs-val">{doctorCount}</div>
-          <div className="qs-lbl">Médecins</div>
+          <div className="qs-val">0</div>
           <div className="qs-lbl">Médecins</div>
         </div>
         <div className="qs" onClick={() => nav('suivi')}>
@@ -789,30 +788,31 @@ function DoctorsScreen({ nav, showToast }) {
 
   useEffect(() => { loadDoctors() }, [])
 
-const loadDoctors = async () => {
-  setLoading(true)
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: accesses } = await supabase
-    .from('doctor_access')
-    .select('id, doctor_id, status, granted_at')
-    .eq('patient_id', user.id)
-    .eq('status', 'active')
-  
-  if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
-  
-  const doctorIds = accesses.map(a => a.doctor_id)
-  const { data: profs } = await supabase
-    .from('profiles')
-    .select('id, fname, lname, gender, specialite, numero_ordre')
-    .in('id', doctorIds)
-  
-  const result = accesses.map(a => {
-    const prof = profs?.find(p => p.id === a.doctor_id) || {}
-    return { ...prof, access_id: a.id, since: a.granted_at }
-  })
-  setDoctors(result)
-  setLoading(false)
-}
+  const loadDoctors = async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    // Charger les accès actifs
+    const { data: accesses } = await supabase
+      .from('doctor_access')
+      .select('id, doctor_id, status, created_at')
+      .eq('patient_id', user.id)
+      .eq('status', 'active')
+
+    if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
+
+    // Charger les profils des médecins un par un (pas de join)
+    const doctorProfiles = []
+    for (const access of accesses) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('id, fname, lname, gender, specialite, numero_ordre')
+        .eq('id', access.doctor_id)
+        .maybeSingle()
+      if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.created_at })
+    }
+    setDoctors(doctorProfiles)
+    setLoading(false)
+  }
 
   const searchDoctor = async () => {
     if (!email.trim()) { setSearchError("Entrez un email"); return }
@@ -1159,8 +1159,8 @@ export default function App() {
     ])
     setProfile(prof)
     if (prof?.role === 'doctor') setScreen('doctor')
-   setDossier(dos)
-setLoading(false)
+    setDossier(dos)
+    setLoading(false)
   }
 
   const saveDossier = async (updates) => {
@@ -1169,7 +1169,7 @@ setLoading(false)
     if (!error && data) setDossier(data)
   }
 
-  const handleLogout = async () => { await supabase.auth.signOut(); localStorage.clear(); sessionStorage.clear(); window.location.href = '/' }
+  const handleLogout = async () => { await supabase.auth.signOut(); setScreen('home') }
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2500) }
   const nav = (s, params = {}) => { setScreen(s); setNavParams(params) }
 
@@ -1236,7 +1236,7 @@ setLoading(false)
         </div>
       </div>
       <div className="screens">
-        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} />}
+        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
