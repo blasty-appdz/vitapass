@@ -327,7 +327,7 @@ function AuthScreen({ onAuth }) {
   )
 }
 
-function HomeScreen({ nav, profile, dossier }) {
+function HomeScreen({ nav, profile, dossier, doctorCount = 0 }) {
   const meds = dossier?.meds || []
 
   return (
@@ -357,7 +357,7 @@ function HomeScreen({ nav, profile, dossier }) {
         </div>
         <div className="qs" onClick={() => nav('doctors')}>
           <div className="qs-icon">👨‍⚕️</div>
-          <div className="qs-val">0</div>
+          <div className="qs-val">{doctorCount}</div>
           <div className="qs-lbl">Médecins</div>
         </div>
         <div className="qs" onClick={() => nav('suivi')}>
@@ -1129,8 +1129,9 @@ export default function App() {
   const [navParams, setNavParams] = useState({})
   const [splash, setSplash] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [toast, setToast] = useState(null)
+const [toast, setToast] = useState(null)
   const [clock, setClock] = useState('')
+  const [doctorCount, setDoctorCount] = useState(0)
 
   useEffect(() => {
     const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
@@ -1151,15 +1152,17 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
-  const loadUserData = async (userId) => {
+const loadUserData = async (userId) => {
     setLoading(true)
-    const [{ data: prof }, { data: dos }] = await Promise.all([
+    const [{ data: prof }, { data: dos }, { count: docCount }] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('dossiers').select('*').eq('patient_id', userId).maybeSingle()
+      supabase.from('dossiers').select('*').eq('patient_id', userId).maybeSingle(),
+      supabase.from('doctor_access').select('*', { count: 'exact', head: true }).eq('patient_id', userId).eq('status', 'active')
     ])
     setProfile(prof)
     if (prof?.role === 'doctor') setScreen('doctor')
     setDossier(dos)
+    setDoctorCount(docCount || 0)
     setLoading(false)
   }
 
@@ -1236,7 +1239,7 @@ export default function App() {
         </div>
       </div>
       <div className="screens">
-        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} />}
+        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} />}
         {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
