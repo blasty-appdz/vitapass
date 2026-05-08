@@ -811,7 +811,7 @@ function DoctorsScreen({ nav, showToast }) {
       .eq('id', access.doctor_id)
       .maybeSingle()
     console.log('PROF:', prof, 'ERR:', profErr)
-    if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.created_at })
+    if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.granted_at })
   }
   setDoctors(doctorProfiles)
   setLoading(false)
