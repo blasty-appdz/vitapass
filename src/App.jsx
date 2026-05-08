@@ -794,10 +794,10 @@ function DoctorsScreen({ nav, showToast }) {
   console.log('USER ID:', user?.id)
 
   const { data: accesses, error: accErr } = await supabase
-    .from('doctor_access')
-    .select('id, doctor_id, status, created_at')
-    .eq('patient_id', user.id)
-    .eq('status', 'active')
+  .from('doctor_access')
+  .select('*')
+  .eq('patient_id', user.id)
+  .eq('status', 'active')
 
   console.log('ACCESSES:', accesses, 'ERR:', accErr)
 
