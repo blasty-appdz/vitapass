@@ -788,31 +788,34 @@ function DoctorsScreen({ nav, showToast }) {
 
   useEffect(() => { loadDoctors() }, [])
 
-  const loadDoctors = async () => {
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    // Charger les accès actifs
-    const { data: accesses } = await supabase
-      .from('doctor_access')
-      .select('id, doctor_id, status, created_at')
-      .eq('patient_id', user.id)
-      .eq('status', 'active')
+ const loadDoctors = async () => {
+  setLoading(true)
+  const { data: { user } } = await supabase.auth.getUser()
+  console.log('USER ID:', user?.id)
 
-    if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
+  const { data: accesses, error: accErr } = await supabase
+    .from('doctor_access')
+    .select('id, doctor_id, status, created_at')
+    .eq('patient_id', user.id)
+    .eq('status', 'active')
 
-    // Charger les profils des médecins un par un (pas de join)
-    const doctorProfiles = []
-    for (const access of accesses) {
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('id, fname, lname, gender, specialite, numero_ordre')
-        .eq('id', access.doctor_id)
-        .maybeSingle()
-      if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.created_at })
-    }
-    setDoctors(doctorProfiles)
-    setLoading(false)
+  console.log('ACCESSES:', accesses, 'ERR:', accErr)
+
+  if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
+
+  const doctorProfiles = []
+  for (const access of accesses) {
+    const { data: prof, error: profErr } = await supabase
+      .from('profiles')
+      .select('id, fname, lname, gender, specialite, numero_ordre')
+      .eq('id', access.doctor_id)
+      .maybeSingle()
+    console.log('PROF:', prof, 'ERR:', profErr)
+    if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.created_at })
   }
+  setDoctors(doctorProfiles)
+  setLoading(false)
+}
 
   const searchDoctor = async () => {
     if (!email.trim()) { setSearchError("Entrez un email"); return }
