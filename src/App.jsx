@@ -239,8 +239,9 @@ function AuthScreen({ onAuth }) {
   const [showPwd, setShowPwd] = useState(false)
   const [fname, setFname] = useState('')
   const [lname, setLname] = useState('')
-  const [loading, setLoading] = useState(false)
+const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [numeroOrdre, setNumeroOrdre] = useState('')
 
   const roles = [
     { id: 'patient', icon: '🧑‍💼', label: 'Patient', sub: 'Gérer mon dossier médical' },
@@ -260,7 +261,7 @@ function AuthScreen({ onAuth }) {
     setLoading(true); setError('')
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { data: { role, fname, lname } }
+      options: { data: { role, fname, lname, numero_ordre: numeroOrdre } }
     })
     if (error) setError(error.message)
     else setError('✅ Compte créé ! Vérifiez votre email pour confirmer.')
@@ -296,8 +297,15 @@ function AuthScreen({ onAuth }) {
                 </div>
               ))}
             </div>
+            {role === 'doctor' && (
+              <div className="form-group">
+                <label className="form-label">N° Ordre national</label>
+                <input className="form-input" placeholder="Ex: 12345" value={numeroOrdre} onChange={e => setNumeroOrdre(e.target.value)} />
+              </div>
+            )}
             <div className="form-row">
               <div className="form-group">
+                <label className="form-label">Prénom</label>
                 <label className="form-label">Prénom</label>
                 <input className="form-input" placeholder="Karim" value={fname} onChange={e => setFname(e.target.value)} />
               </div>
@@ -1206,6 +1214,20 @@ const loadUserData = async (userId) => {
       <AuthScreen onAuth={() => {}} />
     </div>
   )
+  if (profile?.role === 'doctor' && profile?.validated === false) return (
+    <div className="phone">
+      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32, gap:20, background:'var(--bg)' }}>
+        <div style={{ fontSize:64 }}>⏳</div>
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:'var(--white)', textAlign:'center' }}>Compte en attente</div>
+        <div style={{ fontSize:14, color:'var(--dim)', textAlign:'center', lineHeight:1.6 }}>Votre compte médecin est en cours de validation par l'équipe VitaPass. Vous recevrez un accès sous 24h.</div>
+        <div style={{ background:'rgba(0,201,141,.08)', border:'1px solid rgba(0,201,141,.2)', borderRadius:14, padding:16, width:'100%', textAlign:'center' }}>
+          <div style={{ fontSize:12, color:'var(--g)', fontFamily:"'Syne',sans-serif", fontWeight:700 }}>N° Ordre : {profile?.numero_ordre || 'Non renseigné'}</div>
+        </div>
+        <div className="logout-btn" style={{ width:'100%' }} onClick={handleLogout}>🚪 Se déconnecter</div>
+      </div>
+    </div>
+  )
+
   if (profile?.role === 'doctor') return (
     <>
       {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
