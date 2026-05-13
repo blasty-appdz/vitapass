@@ -193,6 +193,13 @@ body{font-family:'Inter',sans-serif;background:#1a1a2e}
 .doctor-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white)}
 .doctor-spec{font-size:11px;color:var(--blue);margin-top:2px}
 .doctor-email{font-size:11px;color:var(--dim);margin-top:2px}
+.notif-bar{background:rgba(255,209,102,.06);border:1px solid rgba(255,209,102,.2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer}
+.notif-bar.green{background:rgba(0,201,141,.06);border-color:rgba(0,201,141,.2)}
+.notif-bar.red{background:rgba(255,90,90,.06);border-color:rgba(255,90,90,.2)}
+.notif-dot{width:6px;height:6px;border-radius:50%;background:var(--yellow);flex-shrink:0}
+.notif-dot.green{background:var(--g)}
+.notif-dot.red{background:var(--red)}
+.notif-txt{font-size:12px;color:rgba(255,255,255,.75);line-height:1.4;flex:1}
 .revoke-btn{background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:8px;padding:6px 10px;font-size:11px;font-family:'Syne',sans-serif;font-weight:700;color:#FF8A8A;cursor:pointer}
 `
 
@@ -335,7 +342,8 @@ const [loading, setLoading] = useState(false)
   )
 }
 
-function HomeScreen({ nav, profile, dossier, doctorCount = 0 }) {
+function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
+  const meds = dossier?.meds || []
   const meds = dossier?.meds || []
 
   return (
@@ -356,6 +364,17 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0 }) {
           <span style={{ fontSize: 11, color: 'rgba(0,201,141,.5)' }}>Appuyer pour QR →</span>
         </div>
       </div>
+      {notifs.length > 0 && <>
+        <div className="sec-label">Notifications</div>
+        {notifs.map(n => (
+          <div key={n.id} className={`notif-bar${n.color ? ' ' + n.color : ''}`} onClick={() => nav(n.screen)}>
+            <span style={{ fontSize: 16 }}>{n.icon}</span>
+            <div className={`notif-dot${n.color ? ' ' + n.color : ''}`} />
+            <span className="notif-txt">{n.txt}</span>
+            <span style={{ color: 'var(--dim)', fontSize: 16 }}>›</span>
+          </div>
+        ))}
+      </>}
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
         <div className="qs" onClick={() => nav('dossier')}>
@@ -1143,6 +1162,7 @@ export default function App() {
 const [toast, setToast] = useState(null)
   const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
+  const [notifs, setNotifs] = useState([])
 
   useEffect(() => {
     const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
@@ -1175,6 +1195,21 @@ const loadUserData = async (userId) => {
     setDossier(dos)
     setDoctorCount(docCount || 0)
     setLoading(false)
+    buildNotifs(dos, docCount || 0)
+  }
+
+  const buildNotifs = (dos, docCount) => {
+    const alerts = []
+    const meds = dos?.meds || []
+    if (meds.length > 0) alerts.push({ id: 'med', icon: '💊', txt: `Rappel : prenez votre traitement (${meds[0].name}${meds.length > 1 ? ` +${meds.length - 1}` : ''})`, color: 'green', screen: 'dossier' })
+    const glyc = dos?.glyc || []
+    const bp = dos?.bp || []
+    const lastGlyc = glyc[glyc.length - 1]
+    if (lastGlyc && lastGlyc >= 7.5) alerts.push({ id: 'glyc', icon: '🩸', txt: `Glycémie élevée (${lastGlyc}%) — consultez votre médecin`, color: 'red', screen: 'suivi' })
+    if (glyc.length === 0) alerts.push({ id: 'glyc0', icon: '📊', txt: 'Pensez à saisir votre glycémie aujourd\'hui', color: '', screen: 'suivi' })
+    if (bp.length === 0) alerts.push({ id: 'bp0', icon: '❤️', txt: 'Pensez à mesurer votre tension aujourd\'hui', color: '', screen: 'suivi' })
+    if (docCount > 0) alerts.push({ id: 'doc', icon: '👨‍⚕️', txt: `${docCount} médecin(s) ont accès à votre dossier`, color: 'green', screen: 'doctors' })
+    setNotifs(alerts.slice(0, 3))
   }
 
   const saveDossier = async (updates) => {
@@ -1264,7 +1299,7 @@ const loadUserData = async (userId) => {
         </div>
       </div>
       <div className="screens">
-        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} />}
+        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} />}
         {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
         {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
