@@ -364,6 +364,7 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
           <span style={{ fontSize: 11, color: 'rgba(0,201,141,.5)' }}>Appuyer pour QR →</span>
         </div>
       </div>
+      <div>
       {notifs.map(n => (
   <div key={n.id} onClick={() => nav(n.screen)} style={{background:'rgba(255,209,102,.06)',border:'1px solid rgba(255,209,102,.2)',borderRadius:12,padding:'10px 14px',display:'flex',alignItems:'center',gap:10,marginBottom:8,cursor:'pointer'}}>
     <span>{n.icon}</span>
@@ -371,6 +372,7 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
     <span>›</span>
   </div>
 ))}
+      </div>
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
         <div className="qs" onClick={() => nav('dossier')}>
