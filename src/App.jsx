@@ -1162,7 +1162,9 @@ export default function App() {
 const [toast, setToast] = useState(null)
   const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
-  const [notifs, setNotifs] = useState([])
+  const [notifs, setNotifs] = useState([
+    { id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous médical', color: '', screen: 'doctors' }
+  ])
 
   useEffect(() => {
     const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
