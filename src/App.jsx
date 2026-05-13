@@ -364,17 +364,13 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
           <span style={{ fontSize: 11, color: 'rgba(0,201,141,.5)' }}>Appuyer pour QR →</span>
         </div>
       </div>
-      {notifs.length > 0 && <>
-        <div className="sec-label">Notifications</div>
-        {notifs.map(n => (
-          <div key={n.id} className={`notif-bar${n.color ? ' ' + n.color : ''}`} onClick={() => nav(n.screen)}>
-            <span style={{ fontSize: 16 }}>{n.icon}</span>
-            <div className={`notif-dot${n.color ? ' ' + n.color : ''}`} />
-            <span className="notif-txt">{n.txt}</span>
-            <span style={{ color: 'var(--dim)', fontSize: 16 }}>›</span>
-          </div>
-        ))}
-      </>}
+      {notifs.map(n => (
+  <div key={n.id} onClick={() => nav(n.screen)} style={{background:'rgba(255,209,102,.06)',border:'1px solid rgba(255,209,102,.2)',borderRadius:12,padding:'10px 14px',display:'flex',alignItems:'center',gap:10,marginBottom:8,cursor:'pointer'}}>
+    <span>{n.icon}</span>
+    <span style={{fontSize:12,color:'rgba(255,255,255,.75)',flex:1}}>{n.txt}</span>
+    <span>›</span>
+  </div>
+))}
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
         <div className="qs" onClick={() => nav('dossier')}>
