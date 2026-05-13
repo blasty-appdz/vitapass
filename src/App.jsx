@@ -1195,7 +1195,7 @@ const loadUserData = async (userId) => {
     setDossier(dos)
     setDoctorCount(docCount || 0)
     setLoading(false)
-    buildNotifs(dos, docCount || 0)
+    if (prof?.role === 'patient') buildNotifs(dos, docCount || 0)
   }
 
   const buildNotifs = (dos, docCount) => {
@@ -1209,6 +1209,7 @@ const loadUserData = async (userId) => {
     if (glyc.length === 0) alerts.push({ id: 'glyc0', icon: '📊', txt: 'Pensez à saisir votre glycémie aujourd\'hui', color: '', screen: 'suivi' })
     if (bp.length === 0) alerts.push({ id: 'bp0', icon: '❤️', txt: 'Pensez à mesurer votre tension aujourd\'hui', color: '', screen: 'suivi' })
     if (docCount > 0) alerts.push({ id: 'doc', icon: '👨‍⚕️', txt: `${docCount} médecin(s) ont accès à votre dossier`, color: 'green', screen: 'doctors' })
+    alerts.push({ id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous médical', color: '', screen: 'doctors' })
     setNotifs(alerts.slice(0, 3))
   }
 
