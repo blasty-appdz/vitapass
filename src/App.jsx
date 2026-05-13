@@ -1159,7 +1159,8 @@ const [toast, setToast] = useState(null)
   const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
   const [notifs, setNotifs] = useState([
-    { id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous médical', color: '', screen: 'doctors' }
+    { id: 'rdv', icon: '📅', txt: 'Test notification visible', color: '', screen: 'doctors' },
+    { id: 'med', icon: '💊', txt: 'Rappel médicament', color: 'green', screen: 'dossier' }
   ])
 
   useEffect(() => {
