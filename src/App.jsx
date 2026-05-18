@@ -321,6 +321,22 @@ function AuthScreen({ onAuth }) {
         <button className="btn-submit" onClick={tab === 'login' ? handleLogin : handleSignup} disabled={loading}>
           {loading ? '⏳ Chargement...' : tab === 'login' ? '🔐 Se connecter' : '✨ Créer mon compte'}
         </button>
+        {tab === 'login' && (
+          <div style={{textAlign:'center', marginTop:'12px'}}>
+            <span
+              onClick={async () => {
+                if (!email) { alert('Entre ton email d\'abord'); return; }
+                const { supabase } = await import('./supabase.js');
+                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://vitapass.app' });
+                if (error) alert('Erreur : ' + error.message);
+                else alert('Email envoyé ! Vérifie ta boîte mail.');
+              }}
+              style={{color:'#00D4A0', fontSize:'13px', cursor:'pointer', textDecoration:'underline'}}
+            >
+              Mot de passe oublié ?
+            </span>
+          </div>
+        )}
       </div>
     </div>
   )
