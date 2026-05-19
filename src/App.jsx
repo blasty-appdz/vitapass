@@ -970,10 +970,10 @@ function LandingScreen() {
         <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(0,201,141,0.08)', border:'1px solid rgba(0,201,141,0.18)', borderRadius:20, padding:'6px 16px', fontSize:11, fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--g)', letterSpacing:'1.5px', textTransform:'uppercase', marginBottom:32 }}>
           <span style={{ width:6, height:6, background:'var(--g)', borderRadius:'50%', display:'inline-block', animation:'none' }}>·</span> Disponible maintenant · Gratuit
         </div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'5vw', fontWeight:800, lineHeight:1.05, maxWidth:820px, marginBottom:24 }}>
-          Votre santé,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
+        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'5vw', fontWeight:800, lineHeight:1.05, maxWidth:'820px', marginBottom:24 }}>
+          Votre sant&#233;,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
         </h1>
-        <p style={{ fontSize:17, color:'var(--dim2,#8A9AB5)', maxWidth:520px, lineHeight:1.75, marginBottom:44 }}>
+        <p style={{ fontSize:17, color:'#8A9AB5', maxWidth:'520px', lineHeight:1.75, marginBottom:44 }}>
           VitaPass centralise tout votre dossier médical dans une application sécurisée, accessible en un scan QR — même en urgence.
         </p>
         <div style={{ display:'flex', gap:14, flexWrap:'wrap', justifyContent:'center' }}>
@@ -995,7 +995,7 @@ function LandingScreen() {
       </div>
 
       {/* FEATURES */}
-      <div style={{ padding:'80px 24px', maxWidth:1100, margin:'0 auto' }}>
+      <div style={{ padding:'80px 24px', maxWidth:'1100px', margin:'0 auto' }}>
         <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
         <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'4vw', fontWeight:800, marginBottom:48 }}>Tout ce dont vous <span style={{color:'var(--g)'}}>avez besoin</span></div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(270px,1fr))', gap:1, background:'rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)' }}>
@@ -1017,7 +1017,7 @@ function LandingScreen() {
       </div>
 
       {/* FOR WHO */}
-      <div style={{ padding:'80px 24px', maxWidth:1100, margin:'0 auto' }}>
+      <div style={{ padding:'80px 24px', maxWidth:'1100px', margin:'0 auto' }}>
         <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
         <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'4vw', fontWeight:800, marginBottom:40 }}>Conçu pour <span style={{color:'var(--g)'}}>tous</span></div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
@@ -1042,12 +1042,12 @@ function LandingScreen() {
 
       {/* CTA */}
       <div style={{ padding:'100px 24px', textAlign:'center', position:'relative' }}>
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,201,141,0.05), transparent 70%)', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,201,141,0.05), transparent)', pointerEvents:'none' }} />
         <div style={{ width:44, height:2, background:'var(--g)', margin:'0 auto 18px' }} />
-        <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:'4.5vw', fontWeight:800, lineHeight:1.1, maxWidth:680px, margin:'0 auto 20px' }}>
+        <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:'4.5vw', fontWeight:800, lineHeight:1.1, maxWidth:'680px', margin:'0 auto 20px' }}>
           Prêt à prendre soin<br/>de votre <span style={{color:'var(--g)'}}>santé ?</span>
         </h2>
-        <p style={{ fontSize:16, color:'#8A9AB5', maxWidth:460px, margin:'0 auto 40px', lineHeight:1.7 }}>
+        <p style={{ fontSize:16, color:'#8A9AB5', maxWidth:'460px', margin:'0 auto 40px', lineHeight:1.7 }}>
           Rejoignez les Algériens qui font confiance à VitaPass pour gérer leur santé au quotidien.
         </p>
         <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
@@ -1185,7 +1185,7 @@ export default function App() {
       <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32, gap:20, background:'var(--bg)' }}>
         <div style={{ fontSize:64 }}>⏳</div>
         <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:'var(--white)', textAlign:'center' }}>Compte en attente</div>
-        <div style={{ fontSize:14, color:'var(--dim)', textAlign:'center', lineHeight:1.6 }}>Votre compte médecin est en cours de validation par l'équipe VitaPass. Vous recevrez un accès sous 24h.</div>
+        <div style={{ fontSize:14, color:'var(--dim)', textAlign:'center', lineHeight:1.6 }}>Votre compte médecin est en cours de validation par l&apos;équipe VitaPass. Vous recevrez un accès sous 24h.</div>
         <div style={{ background:'rgba(0,201,141,.08)', border:'1px solid rgba(0,201,141,.2)', borderRadius:14, padding:16, width:'100%', textAlign:'center' }}>
           <div style={{ fontSize:12, color:'var(--g)', fontFamily:"'Syne',sans-serif", fontWeight:700 }}>N° Ordre : {profile?.numero_ordre || 'Non renseigné'}</div>
         </div>
