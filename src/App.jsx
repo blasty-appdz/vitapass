@@ -196,34 +196,90 @@ const qrScript = document.createElement('script')
 qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 document.head.appendChild(qrScript)
 
-function Modal({ title, children, onClose }) {
-  function ResetPasswordScreen() {
-  const [pwd, setPwd] = useState('');
-  const [done, setDone] = useState(false);
-  const [loading, setLoading] = useState(false);
+// ─── MODIFICATION 1 : ResetPasswordScreen AVANT Modal() ─────────────────────
+function ResetPasswordScreen() {
+  const [pwd, setPwd] = useState('')
+  const [done, setDone] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [err, setErr] = useState('')
+
   const handleReset = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: pwd });
-    if (error) alert('Erreur : ' + error.message);
-    else setDone(true);
-    setLoading(false);
-  };
+    setLoading(true)
+    setErr('')
+    const { error } = await supabase.auth.updateUser({ password: pwd })
+    if (error) { setErr(error.message); setLoading(false); return }
+    window.history.replaceState(null, '', window.location.pathname)
+    setDone(true)
+    setLoading(false)
+  }
+
+  const base = {
+    position: 'fixed', inset: 0, background: '#080E1E', zIndex: 9999,
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    justifyContent: 'center', gap: 16, padding: 24,
+  }
+  const inputStyle = {
+    width: '100%', maxWidth: 340,
+    background: 'rgba(255,255,255,0.07)',
+    border: '1px solid rgba(255,255,255,0.12)',
+    borderRadius: 12, padding: '13px 16px',
+    color: '#EFF3FF', fontSize: 14, outline: 'none',
+  }
+  const btn = (disabled) => ({
+    width: '100%', maxWidth: 340,
+    background: disabled ? 'rgba(0,201,141,0.35)' : '#00C98D',
+    color: '#001A12', border: 'none', borderRadius: 12,
+    padding: 14, fontWeight: 700, fontSize: 14,
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    fontFamily: "'Syne',sans-serif",
+  })
+
   if (done) return (
-    <div style={{position:'fixed',inset:0,background:'#080E1E',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:24}}>
-      <div style={{fontSize:48}}>✅</div>
-      <div style={{color:'#EFF3FF',fontSize:20,fontWeight:700}}>Mot de passe modifié !</div>
-      <button onClick={()=>window.location.href='https://vitapass.app'} style={{marginTop:16,background:'#00C98D',color:'#001A12',border:'none',borderRadius:12,padding:'12px 28px',fontWeight:700,cursor:'pointer'}}>Se connecter</button>
+    <div style={base}>
+      <div style={{ fontSize: 56 }}>✅</div>
+      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif", textAlign: 'center' }}>
+        Mot de passe modifié !
+      </div>
+      <div style={{ color: '#5A6A85', fontSize: 13, textAlign: 'center' }}>
+        Tu peux maintenant te connecter avec ton nouveau mot de passe.
+      </div>
+      <button onClick={() => window.location.href = window.location.origin + window.location.pathname} style={{ ...btn(false), marginTop: 8 }}>
+        Se connecter →
+      </button>
     </div>
-  );
+  )
+
   return (
-    <div style={{position:'fixed',inset:0,background:'#080E1E',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:24}}>
-      <div style={{fontSize:40}}>🔐</div>
-      <div style={{color:'#EFF3FF',fontSize:20,fontWeight:700}}>Nouveau mot de passe</div>
-      <input type='password' placeholder='Minimum 6 caractères' value={pwd} onChange={e=>setPwd(e.target.value)} style={{width:'100%',maxWidth:340,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:12,padding:'12px 16px',color:'#EFF3FF',fontSize:14,outline:'none'}} />
-      <button onClick={handleReset} disabled={loading||pwd.length<6} style={{width:'100%',maxWidth:340,background:'#00C98D',color:'#001A12',border:'none',borderRadius:12,padding:14,fontWeight:700,fontSize:14,cursor:'pointer'}}>{loading?'En cours...':'Valider'}</button>
+    <div style={base}>
+      <div style={{ fontSize: 48 }}>🔐</div>
+      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif" }}>
+        Nouveau mot de passe
+      </div>
+      <div style={{ color: '#5A6A85', fontSize: 13, textAlign: 'center' }}>
+        Choisis un mot de passe sécurisé (min. 6 caractères)
+      </div>
+      <input
+        type="password"
+        placeholder="••••••••"
+        value={pwd}
+        onChange={e => setPwd(e.target.value)}
+        style={inputStyle}
+        onKeyDown={e => e.key === 'Enter' && pwd.length >= 6 && handleReset()}
+      />
+      {err && (
+        <div style={{ color: '#FF8A8A', fontSize: 12, background: 'rgba(255,90,90,.1)', border: '1px solid rgba(255,90,90,.2)', borderRadius: 8, padding: '8px 14px', maxWidth: 340, width: '100%', textAlign: 'center' }}>
+          ⚠️ {err}
+        </div>
+      )}
+      <button onClick={handleReset} disabled={loading || pwd.length < 6} style={btn(loading || pwd.length < 6)}>
+        {loading ? '⏳ En cours...' : 'Valider le nouveau mot de passe'}
+      </button>
     </div>
-  );
+  )
 }
+// ─────────────────────────────────────────────────────────────────────────────
+
+function Modal({ title, children, onClose }) {
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
@@ -287,6 +343,17 @@ function AuthScreen({ onAuth }) {
     setLoading(false)
   }
 
+  const handleForgotPassword = async () => {
+    if (!email) { setError("Entre ton email d'abord puis clique sur Mot de passe oublié"); return }
+    setLoading(true); setError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://www.vitapass.app/auth/callback',
+    })
+    if (error) setError(error.message)
+    else setError('✅ Email envoyé ! Vérifie ta boîte mail.')
+    setLoading(false)
+  }
+
   return (
     <div className="auth-screen">
       <div className="auth-logo">
@@ -301,8 +368,8 @@ function AuthScreen({ onAuth }) {
       </div>
       <div className="auth-card">
         <div className="auth-tabs">
-          <div className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => setTab('login')}>Connexion</div>
-          <div className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => setTab('signup')}>Inscription</div>
+          <div className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => { setTab('login'); setError('') }}>Connexion</div>
+          <div className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => { setTab('signup'); setError('') }}>Inscription</div>
         </div>
         {error && <div className="error-msg">{error}</div>}
         {tab === 'signup' && (
@@ -341,25 +408,16 @@ function AuthScreen({ onAuth }) {
         <div className="form-group">
           <label className="form-label">Mot de passe</label>
           <div className="pwd-wrap">
-            <input className="form-input" type={showPwd ? "text" : "password"} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingRight: 40 }} />
-            <span className="pwd-eye" onClick={() => setShowPwd(!showPwd)}>{showPwd ? "🙈" : "👁️"}</span>
+            <input className="form-input" type={showPwd ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingRight: 40 }} />
+            <span className="pwd-eye" onClick={() => setShowPwd(!showPwd)}>{showPwd ? '🙈' : '👁️'}</span>
           </div>
         </div>
         <button className="btn-submit" onClick={tab === 'login' ? handleLogin : handleSignup} disabled={loading}>
           {loading ? '⏳ Chargement...' : tab === 'login' ? '🔐 Se connecter' : '✨ Créer mon compte'}
         </button>
         {tab === 'login' && (
-          <div style={{textAlign:'center', marginTop:'12px'}}>
-            <span
-              onClick={async () => {
-                if (!email) { alert('Entre ton email d\'abord'); return; }
-                const { supabase } = await import('./supabase.js');
-                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://www.vitapass.app/auth/callback',
-                if (error) alert('Erreur : ' + error.message);
-                else alert('Email envoyé ! Vérifie ta boîte mail.');
-              }}
-              style={{color:'#00D4A0', fontSize:'13px', cursor:'pointer', textDecoration:'underline'}}
-            >
+          <div style={{ textAlign: 'center', marginTop: 12 }}>
+            <span onClick={handleForgotPassword} style={{ color: '#00D4A0', fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>
               Mot de passe oublié ?
             </span>
           </div>
@@ -398,56 +456,30 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
       ))}
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
-        <div className="qs" onClick={() => nav('dossier')}>
-          <div className="qs-icon">💊</div>
-          <div className="qs-val">{meds.length}</div>
-          <div className="qs-lbl">Traitements</div>
-        </div>
-        <div className="qs" onClick={() => nav('doctors')}>
-          <div className="qs-icon">👨‍⚕️</div>
-          <div className="qs-val">{doctorCount}</div>
-          <div className="qs-lbl">Médecins</div>
-        </div>
-        <div className="qs" onClick={() => nav('suivi')}>
-          <div className="qs-icon">📊</div>
-          <div className="qs-val">–</div>
-          <div className="qs-lbl">Métriques</div>
-        </div>
+        <div className="qs" onClick={() => nav('dossier')}><div className="qs-icon">💊</div><div className="qs-val">{meds.length}</div><div className="qs-lbl">Traitements</div></div>
+        <div className="qs" onClick={() => nav('doctors')}><div className="qs-icon">👨‍⚕️</div><div className="qs-val">{doctorCount}</div><div className="qs-lbl">Médecins</div></div>
+        <div className="qs" onClick={() => nav('suivi')}><div className="qs-icon">📊</div><div className="qs-val">–</div><div className="qs-lbl">Métriques</div></div>
       </div>
       <div className="sec-label">Accès rapide</div>
       <div className="action-list">
-        <div className="action-row" onClick={() => nav('qr')}>
-          <div className="ar-icon" style={{ background: 'rgba(255,90,90,.1)' }}>🆘</div>
-          <div className="ar-text"><div className="ar-title">Mon QR Pass</div><div className="ar-sub">Partager mes infos en urgence</div></div>
-          <span className="ar-arrow">›</span>
-        </div>
-        <div className="action-row" onClick={() => nav('dossier')}>
-          <div className="ar-icon" style={{ background: 'rgba(77,159,236,.1)' }}>📋</div>
-          <div className="ar-text"><div className="ar-title">Mon dossier</div><div className="ar-sub">Médicaments, antécédents...</div></div>
-          <span className="ar-arrow">›</span>
-        </div>
-        <div className="action-row" onClick={() => nav('doctors')}>
-          <div className="ar-icon" style={{ background: 'rgba(0,201,141,.1)' }}>👨‍⚕️</div>
-          <div className="ar-text"><div className="ar-title">Mes médecins</div><div className="ar-sub">Accès & rendez-vous</div></div>
-          <span className="ar-arrow">›</span>
-        </div>
-        <div className="action-row" onClick={() => nav('suivi')}>
-          <div className="ar-icon" style={{ background: 'rgba(255,209,102,.1)' }}>❤️</div>
-          <div className="ar-text"><div className="ar-title">Mon suivi</div><div className="ar-sub">Glycémie, tension, poids</div></div>
-          <span className="ar-arrow">›</span>
-        </div>
+        <div className="action-row" onClick={() => nav('qr')}><div className="ar-icon" style={{ background: 'rgba(255,90,90,.1)' }}>🆘</div><div className="ar-text"><div className="ar-title">Mon QR Pass</div><div className="ar-sub">Partager mes infos en urgence</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={() => nav('dossier')}><div className="ar-icon" style={{ background: 'rgba(77,159,236,.1)' }}>📋</div><div className="ar-text"><div className="ar-title">Mon dossier</div><div className="ar-sub">Médicaments, antécédents...</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={() => nav('doctors')}><div className="ar-icon" style={{ background: 'rgba(0,201,141,.1)' }}>👨‍⚕️</div><div className="ar-text"><div className="ar-title">Mes médecins</div><div className="ar-sub">Accès & rendez-vous</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={() => nav('suivi')}><div className="ar-icon" style={{ background: 'rgba(255,209,102,.1)' }}>❤️</div><div className="ar-text"><div className="ar-title">Mon suivi</div><div className="ar-sub">Glycémie, tension, poids</div></div><span className="ar-arrow">›</span></div>
       </div>
       <div className="pad-b" />
     </div>
   )
 }
-function QRScreen({ nav, profile, dossier }) {
+
+function QRScreen({ nav, profile }) {
   const qrRef = useRef(null)
   const qrInstance = useRef(null)
   useEffect(() => {
     if (!qrRef.current || !profile) return
-    if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency })) }
-    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current, { text: JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency }), width: 180, height: 180, colorDark: '#000', colorLight: '#fff' }) }
+    const text = JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency })
+    if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(text) }
+    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current, { text, width: 180, height: 180, colorDark: '#000', colorLight: '#fff' }) }
   }, [profile])
   return (
     <div className="screen" style={{ display: 'flex' }}>
@@ -734,15 +766,15 @@ function DoctorsScreen({ nav, showToast }) {
     setDoctors(doctorProfiles); setLoading(false)
   }
   const searchDoctorReal = async () => {
-    if (!email.trim()) { setSearchError("Entrez un email"); return }
+    if (!email.trim()) { setSearchError('Entrez un email'); return }
     setSearching(true); setSearchError(''); setFoundDoctor(null)
     const { data, error } = await supabase.rpc('find_doctor_by_email', { p_email: email.trim().toLowerCase() })
-    if (error || !data || data.length === 0) { setSearchError("Aucun médecin VitaPass trouvé avec cet email"); setSearching(false); return }
+    if (error || !data || data.length === 0) { setSearchError('Aucun médecin VitaPass trouvé avec cet email'); setSearching(false); return }
     const doc = data[0]
     if (doc.role !== 'doctor') { setSearchError("Cet utilisateur n'est pas un médecin"); setSearching(false); return }
     const { data: { user } } = await supabase.auth.getUser()
     const { data: existing } = await supabase.from('doctor_access').select('id').eq('patient_id', user.id).eq('doctor_id', doc.id).eq('status', 'active').maybeSingle()
-    if (existing) { setSearchError("Ce médecin a déjà accès à votre dossier"); setSearching(false); return }
+    if (existing) { setSearchError('Ce médecin a déjà accès à votre dossier'); setSearching(false); return }
     setFoundDoctor(doc); setSearching(false)
   }
   const authorizeDoctor = async () => {
@@ -795,7 +827,8 @@ function DoctorsScreen({ nav, showToast }) {
               </div>
             </div>
           )}
-          {!foundDoctor ? <button className="btn-submit" onClick={searchDoctorReal} disabled={searching}>{searching ? '🔍 Recherche...' : '🔍 Rechercher'}</button>
+          {!foundDoctor
+            ? <button className="btn-submit" onClick={searchDoctorReal} disabled={searching}>{searching ? '🔍 Recherche...' : '🔍 Rechercher'}</button>
             : <button className="btn-submit" onClick={authorizeDoctor} disabled={adding}>{adding ? '⏳...' : '✅ Autoriser ce médecin'}</button>}
           <button className="btn-cancel" onClick={() => setShowModal(false)}>Annuler</button>
         </Modal>
@@ -884,6 +917,7 @@ function OnboardingScreen({ profile, setProfile, userId, showToast }) {
   )
 }
 
+// ─── APP PRINCIPAL ───────────────────────────────────────────────────────────
 export default function App() {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
@@ -895,10 +929,12 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
-  const [notifs, setNotifs] = useState([
-    { id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous', color: '', screen: 'doctors' },
-    { id: 'med', icon: '💊', txt: 'Rappel : prenez vos médicaments', color: 'green', screen: 'dossier' }
-  ])
+  const [notifs, setNotifs] = useState([])
+
+  // ── MODIFICATION 2 : détection lien recovery dans l'URL au chargement ──────
+  const [isRecovery, setIsRecovery] = useState(() => {
+    return window.location.hash.includes('type=recovery')
+  })
 
   useEffect(() => {
     const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
@@ -906,6 +942,8 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (isRecovery) { setLoading(false); return }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) loadUserData(session.user.id)
@@ -917,7 +955,7 @@ export default function App() {
       else { setProfile(null); setDossier(null); setLoading(false) }
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [isRecovery])
 
   const loadUserData = async (userId) => {
     setLoading(true)
@@ -940,8 +978,8 @@ export default function App() {
     if (meds.length > 0) alerts.push({ id: 'med', icon: '💊', txt: `Rappel : prenez votre traitement (${meds[0].name})`, color: 'green', screen: 'dossier' })
     const glyc = dos?.glyc || []
     const bp = dos?.bp || []
-    if (glyc.length === 0) alerts.push({ id: 'glyc0', icon: '📊', txt: 'Pensez à saisir votre glycémie aujourd\'hui', color: '', screen: 'suivi' })
-    if (bp.length === 0) alerts.push({ id: 'bp0', icon: '❤️', txt: 'Pensez à mesurer votre tension aujourd\'hui', color: '', screen: 'suivi' })
+    if (glyc.length === 0) alerts.push({ id: 'glyc0', icon: '📊', txt: "Pensez à saisir votre glycémie aujourd'hui", color: '', screen: 'suivi' })
+    if (bp.length === 0) alerts.push({ id: 'bp0', icon: '❤️', txt: "Pensez à mesurer votre tension aujourd'hui", color: '', screen: 'suivi' })
     if (docCount > 0) alerts.push({ id: 'doc', icon: '👨‍⚕️', txt: `${docCount} médecin(s) ont accès à votre dossier`, color: 'green', screen: 'doctors' })
     alerts.push({ id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous', color: '', screen: 'doctors' })
     setNotifs(alerts.slice(0, 3))
@@ -965,11 +1003,23 @@ export default function App() {
     { id: 'profile', icon: <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>, label: 'Profil' },
   ]
 
-  if (loading) return (<div className="phone" style={{ alignItems: 'center', justifyContent: 'center' }}><div className="loading">⏳ Chargement...</div></div>)
+  // ── PRIORITÉ ABSOLUE : mode récupération mot de passe ────────────────────
+  if (isRecovery) return <ResetPasswordScreen />
+
+  if (loading) return (
+    <div className="phone" style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <div className="loading">⏳ Chargement...</div>
+    </div>
+  )
 
   const profileIncomplete = session && profile && !profile.blood && profile.role !== 'doctor'
-  if (profileIncomplete) return (<div className="phone"><OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} /></div>)
-  if (!session) return (<div className="phone"><AuthScreen onAuth={() => {}} /></div>)
+  if (profileIncomplete) return (
+    <div className="phone">
+      <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
+    </div>
+  )
+
+  if (!session) return <div className="phone"><AuthScreen onAuth={() => {}} /></div>
 
   if (profile?.role === 'doctor' && profile?.validated === false) return (
     <div className="phone">
@@ -1022,7 +1072,7 @@ export default function App() {
       </div>
       <div className="screens">
         {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} />}
-        {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossier={dossier} />}
+        {screen === 'qr' && <QRScreen nav={nav} profile={profile} />}
         {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
         {screen === 'doctors' && <DoctorsScreen nav={nav} showToast={showToast} />}
