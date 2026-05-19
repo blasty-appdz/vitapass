@@ -917,6 +917,165 @@ function OnboardingScreen({ profile, setProfile, userId, showToast }) {
   )
 }
 
+// ─── LANDING SCREEN ──────────────────────────────────────────────────────────
+function LandingScreen() {
+  const [showAuth, setShowAuth] = useState(false)
+  const [authTab, setAuthTab] = useState('login')
+
+  if (showAuth) return (
+    <div className="phone">
+      <div style={{ position:'absolute', inset:0, background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24, zIndex:100, padding:24, overflowY:'auto' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginBottom:8 }}>
+          <svg width="56" height="56" viewBox="0 0 110 110" fill="none">
+            <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
+            <circle cx="55" cy="55" r="44" fill="#0A1628"/>
+            <path d="M55 82C48 76 30 66 30 51c0-8 6-14 13-14 4.5 0 8.5 2.5 12 6.5 3.5-4 7.5-6.5 12-6.5 7 0 13 6 13 14 0 15-17 25-25 31Z" fill="url(#sg2)"/>
+            <defs><linearGradient id="sg2" x1="30" y1="37" x2="80" y2="82" gradientUnits="userSpaceOnUse"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
+          </svg>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:26, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
+        </div>
+        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:20, width:'100%' }}>
+          <div style={{ display:'flex', background:'var(--card2)', borderRadius:10, padding:3, marginBottom:16, gap:2 }}>
+            <div onClick={() => setAuthTab('login')} style={{ flex:1, textAlign:'center', padding:8, fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color: authTab==='login' ? '#001A12' : 'var(--dim)', background: authTab==='login' ? 'var(--g)' : 'transparent', borderRadius:8, cursor:'pointer' }}>Connexion</div>
+            <div onClick={() => setAuthTab('signup')} style={{ flex:1, textAlign:'center', padding:8, fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color: authTab==='signup' ? '#001A12' : 'var(--dim)', background: authTab==='signup' ? 'var(--g)' : 'transparent', borderRadius:8, cursor:'pointer' }}>Inscription</div>
+          </div>
+          <AuthScreen tab={authTab} />
+        </div>
+        <div onClick={() => setShowAuth(false)} style={{ fontSize:13, color:'var(--dim)', cursor:'pointer', textDecoration:'underline' }}>← Retour à l'accueil</div>
+      </div>
+    </div>
+  )
+
+  return (
+    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--white)', fontFamily:"'Inter',sans-serif", overflowX:'hidden' }}>
+      {/* NAV */}
+      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(8,14,30,0.92)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="19" fill="rgba(0,201,141,0.08)" stroke="rgba(0,201,141,0.25)" strokeWidth="1"/>
+            <path d="M20 32C17 29 9 24 9 17c0-4 3-7 6.5-7 2 0 3.8 1.2 4.5 3 .7-1.8 2.5-3 4.5-3C28 10 31 13 31 17c0 7-9 12-11 15Z" fill="url(#lg1)"/>
+            <defs><linearGradient id="lg1" x1="9" y1="10" x2="31" y2="32"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
+          </svg>
+          <span style={{ fontFamily:"'Syne',sans-serif", fontSize:19, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></span>
+        </div>
+        <div style={{ display:'flex', gap:12 }}>
+          <button onClick={() => { setAuthTab('login'); setShowAuth(true) }} style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:8, padding:'9px 20px', fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700, cursor:'pointer' }}>Connexion</button>
+          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:8, padding:'9px 20px', fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700, cursor:'pointer' }}>Créer un compte</button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'120px 24px 80px', position:'relative' }}>
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,201,141,0.07) 0%, transparent 65%)', pointerEvents:'none' }} />
+        <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(0,201,141,0.08)', border:'1px solid rgba(0,201,141,0.18)', borderRadius:20, padding:'6px 16px', fontSize:11, fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--g)', letterSpacing:'1.5px', textTransform:'uppercase', marginBottom:32 }}>
+          <span style={{ width:6, height:6, background:'var(--g)', borderRadius:'50%', display:'inline-block', animation:'none' }}>·</span> Disponible maintenant · Gratuit
+        </div>
+        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'clamp(40px,6vw,76px)', fontWeight:800, lineHeight:1.05, maxWidth:820px, marginBottom:24 }}>
+          Votre santé,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
+        </h1>
+        <p style={{ fontSize:17, color:'var(--dim2,#8A9AB5)', maxWidth:520px, lineHeight:1.75, marginBottom:44 }}>
+          VitaPass centralise tout votre dossier médical dans une application sécurisée, accessible en un scan QR — même en urgence.
+        </p>
+        <div style={{ display:'flex', gap:14, flexWrap:'wrap', justifyContent:'center' }}>
+          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:10, padding:'16px 40px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, cursor:'pointer' }}>
+            Créer mon dossier gratuit
+          </button>
+          <button onClick={() => { setAuthTab('login'); setShowAuth(true) }} style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'16px 36px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:600, cursor:'pointer' }}>
+            Se connecter →
+          </button>
+        </div>
+        <div style={{ display:'flex', gap:48, marginTop:72, paddingTop:48, borderTop:'1px solid rgba(255,255,255,0.07)', flexWrap:'wrap', justifyContent:'center' }}>
+          {[['100%','Gratuit pour toujours'],['🔒','Chiffré & sécurisé'],['DZ','Made in Algeria 🇩🇿']].map(([n,l]) => (
+            <div key={l} style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:34, fontWeight:800, color:'var(--g)', lineHeight:1 }}>{n}</div>
+              <div style={{ fontSize:13, color:'#8A9AB5', marginTop:6 }}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FEATURES */}
+      <div style={{ padding:'80px 24px', maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'clamp(28px,4vw,48px)', fontWeight:800, marginBottom:48 }}>Tout ce dont vous <span style={{color:'var(--g)'}}>avez besoin</span></div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(270px,1fr))', gap:1, background:'rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)' }}>
+          {[
+            ['🆘','QR Pass Urgence','Un QR code contenant vos infos vitales — groupe sanguin, allergies, contact — accessible instantanément par les secours.'],
+            ['📋','Dossier médical complet','Médicaments, antécédents, allergies, vaccins, documents — tout en un seul endroit, organisé et sécurisé.'],
+            ['📊','Suivi santé personnalisé','Surveillez votre glycémie, tension et poids avec des graphiques clairs. Idéal pour les patients diabétiques ou hypertendus.'],
+            ['👨‍⚕️','Accès médecin sécurisé','Autorisez vos médecins à consulter votre dossier en un clic. Vous gardez le contrôle total.'],
+            ['📄','Documents médicaux','Stockez ordonnances, analyses et radios. Fini les papiers perdus — tout est dans votre poche.'],
+            ['📱','Application mobile PWA','Installez VitaPass sur votre téléphone comme une vraie app iOS ou Android, sans passer par un store.'],
+          ].map(([ico,titre,desc]) => (
+            <div key={titre} style={{ background:'var(--card)', padding:'28px 24px' }}>
+              <div style={{ width:44, height:44, background:'rgba(0,201,141,0.07)', border:'1px solid rgba(0,201,141,0.15)', borderRadius:11, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, marginBottom:16 }}>{ico}</div>
+              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:700, color:'var(--white)', marginBottom:8 }}>{titre}</div>
+              <p style={{ fontSize:13, color:'#8A9AB5', lineHeight:1.7 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FOR WHO */}
+      <div style={{ padding:'80px 24px', maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'clamp(28px,4vw,48px)', fontWeight:800, marginBottom:40 }}>Conçu pour <span style={{color:'var(--g)'}}>tous</span></div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
+          {[
+            ['🧑‍💼','Patients',['Centralisez tout votre historique médical','Partagez vos infos en urgence via QR code','Suivez vos constantes au quotidien','Ne perdez plus jamais une ordonnance','Gérez vos médecins autorisés']],
+            ['👨‍⚕️','Médecins',['Accédez au dossier complet de vos patients','Historique médicaments et antécédents instantané','Profil validé par l\'équipe VitaPass','Interface dédiée et optimisée','Accès sécurisé et révocable par le patient']],
+          ].map(([ico,titre,liste]) => (
+            <div key={titre} style={{ background:'var(--card)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'40px 32px' }}>
+              <div style={{ fontSize:42, marginBottom:18 }}>{ico}</div>
+              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:'var(--white)', marginBottom:18 }}>{titre}</div>
+              <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:10 }}>
+                {liste.map(item => (
+                  <li key={item} style={{ display:'flex', alignItems:'flex-start', gap:10, fontSize:14, color:'#8A9AB5', lineHeight:1.5 }}>
+                    <span style={{ color:'var(--g)', fontSize:9, marginTop:4, flexShrink:0 }}>✦</span>{item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{ padding:'100px 24px', textAlign:'center', position:'relative' }}>
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,201,141,0.05), transparent 70%)', pointerEvents:'none' }} />
+        <div style={{ width:44, height:2, background:'var(--g)', margin:'0 auto 18px' }} />
+        <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:'clamp(32px,5vw,58px)', fontWeight:800, lineHeight:1.1, maxWidth:680px, margin:'0 auto 20px' }}>
+          Prêt à prendre soin<br/>de votre <span style={{color:'var(--g)'}}>santé ?</span>
+        </h2>
+        <p style={{ fontSize:16, color:'#8A9AB5', maxWidth:460px, margin:'0 auto 40px', lineHeight:1.7 }}>
+          Rejoignez les Algériens qui font confiance à VitaPass pour gérer leur santé au quotidien.
+        </p>
+        <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
+          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:10, padding:'16px 40px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, cursor:'pointer' }}>
+            Créer mon compte gratuit →
+          </button>
+          <a href="mailto:contact@vitapass.app" style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'16px 36px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:600, textDecoration:'none', display:'inline-flex', alignItems:'center' }}>
+            Nous contacter
+          </a>
+        </div>
+        <p style={{ fontSize:12, color:'var(--dim)', marginTop:16 }}>Gratuit · Sans publicité · 100% algérien 🇩🇿</p>
+      </div>
+
+      {/* FOOTER */}
+      <div style={{ padding:'32px 24px', borderTop:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:17, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
+        <div style={{ display:'flex', gap:24 }}>
+          {[['contact@vitapass.app','Contact'],['mailto:contact@vitapass.app','Médecins']].map(([href,label]) => (
+            <a key={label} href={href} style={{ fontSize:13, color:'#8A9AB5', textDecoration:'none' }}>{label}</a>
+          ))}
+        </div>
+        <div style={{ fontSize:12, color:'var(--dim)' }}>© 2026 VitaPass · Algérie 🇩🇿</div>
+      </div>
+    </div>
+  )
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── APP PRINCIPAL ───────────────────────────────────────────────────────────
 export default function App() {
   const [session, setSession] = useState(null)
@@ -1019,7 +1178,7 @@ export default function App() {
     </div>
   )
 
-  if (!session) return <div className="phone"><AuthScreen onAuth={() => {}} /></div>
+  if (!session) return <LandingScreen />
 
   if (profile?.role === 'doctor' && profile?.validated === false) return (
     <div className="phone">
