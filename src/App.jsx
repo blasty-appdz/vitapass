@@ -923,8 +923,7 @@ function LandingScreen() {
   const [authTab, setAuthTab] = useState('login')
 
   if (showAuth) return (
-    <div className="phone">
-      <div style={{ position:'absolute', inset:0, background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24, zIndex:100, padding:24, overflowY:'auto' }}>
+    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24, padding:24, overflowY:'auto' }}>
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginBottom:8 }}>
           <svg width="56" height="56" viewBox="0 0 110 110" fill="none">
             <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
@@ -941,8 +940,7 @@ function LandingScreen() {
           </div>
           <AuthScreen tab={authTab} />
         </div>
-        <div onClick={() => setShowAuth(false)} style={{ fontSize:13, color:'var(--dim)', cursor:'pointer', textDecoration:'underline' }}>← Retour à l'accueil</div>
-      </div>
+        <div onClick={() => setShowAuth(false)} style={{ fontSize:13, color:'var(--dim)', cursor:'pointer', textDecoration:'underline' }}>← Retour à l&apos;accueil</div>
     </div>
   )
 
@@ -970,7 +968,7 @@ function LandingScreen() {
         <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(0,201,141,0.08)', border:'1px solid rgba(0,201,141,0.18)', borderRadius:20, padding:'6px 16px', fontSize:11, fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--g)', letterSpacing:'1.5px', textTransform:'uppercase', marginBottom:32 }}>
           <span style={{ width:6, height:6, background:'var(--g)', borderRadius:'50%', display:'inline-block', animation:'none' }}>·</span> Disponible maintenant · Gratuit
         </div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'5vw', fontWeight:800, lineHeight:1.05, maxWidth:'820px', marginBottom:24 }}>
+        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'3.5vw', fontWeight:800, lineHeight:1.05, maxWidth:'820px', marginBottom:24 }}>
           Votre sant&#233;,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
         </h1>
         <p style={{ fontSize:17, color:'#8A9AB5', maxWidth:'520px', lineHeight:1.75, marginBottom:44 }}>
