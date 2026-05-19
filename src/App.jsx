@@ -354,7 +354,7 @@ function AuthScreen({ onAuth }) {
               onClick={async () => {
                 if (!email) { alert('Entre ton email d\'abord'); return; }
                 const { supabase } = await import('./supabase.js');
-                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://vitapass.app' });
+                const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: 'https://www.vitapass.app/auth/callback',
                 if (error) alert('Erreur : ' + error.message);
                 else alert('Email envoyé ! Vérifie ta boîte mail.');
               }}
