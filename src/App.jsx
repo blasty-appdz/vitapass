@@ -1,8 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
+import { useTranslation } from 'react-i18next'
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientRecord from './pages/doctor/PatientRecord';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
+import SearchScreen from './pages/patient/SearchScreen';
+import ProProfileScreen from './pages/patient/ProProfileScreen';
+import BookingScreen from './pages/patient/BookingScreen';
+import AppointmentsScreen from './pages/patient/AppointmentsScreen';
 
 const WILAYAS = ['Adrar','Chlef','Laghouat','Oum El Bouaghi','Batna','Béjaïa','Biskra','Béchar','Blida','Bouira','Tamanrasset','Tébessa','Tlemcen','Tiaret','Tizi Ouzou','Alger','Djelfa','Jijel','Sétif','Saïda','Skikda','Sidi Bel Abbès','Annaba','Guelma','Constantine','Médéa','Mostaganem','M\'Sila','Mascara','Ouargla','Oran','El Bayadh','Illizi','Bordj Bou Arréridj','Boumerdès','El Tarf','Tindouf','Tissemsilt','El Oued','Khenchela','Souk Ahras','Tipaza','Mila','Aïn Defla','Naâma','Aïn Témouchent','Ghardaïa','Relizane']
 
@@ -196,7 +201,6 @@ const qrScript = document.createElement('script')
 qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
 document.head.appendChild(qrScript)
 
-// ─── MODIFICATION 1 : ResetPasswordScreen AVANT Modal() ─────────────────────
 function ResetPasswordScreen() {
   const [pwd, setPwd] = useState('')
   const [done, setDone] = useState(false)
@@ -204,84 +208,41 @@ function ResetPasswordScreen() {
   const [err, setErr] = useState('')
 
   const handleReset = async () => {
-    setLoading(true)
-    setErr('')
+    setLoading(true); setErr('')
     const { error } = await supabase.auth.updateUser({ password: pwd })
     if (error) { setErr(error.message); setLoading(false); return }
     window.history.replaceState(null, '', window.location.pathname)
-    setDone(true)
-    setLoading(false)
+    setDone(true); setLoading(false)
   }
 
-  const base = {
-    position: 'fixed', inset: 0, background: '#080E1E', zIndex: 9999,
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    justifyContent: 'center', gap: 16, padding: 24,
-  }
-  const inputStyle = {
-    width: '100%', maxWidth: 340,
-    background: 'rgba(255,255,255,0.07)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 12, padding: '13px 16px',
-    color: '#EFF3FF', fontSize: 14, outline: 'none',
-  }
-  const btn = (disabled) => ({
-    width: '100%', maxWidth: 340,
-    background: disabled ? 'rgba(0,201,141,0.35)' : '#00C98D',
-    color: '#001A12', border: 'none', borderRadius: 12,
-    padding: 14, fontWeight: 700, fontSize: 14,
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    fontFamily: "'Syne',sans-serif",
-  })
+  const base = { position:'fixed',inset:0,background:'#080E1E',zIndex:9999,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:16,padding:24 }
+  const inputStyle = { width:'100%',maxWidth:340,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:12,padding:'13px 16px',color:'#EFF3FF',fontSize:14,outline:'none' }
+  const btn = (disabled) => ({ width:'100%',maxWidth:340,background:disabled?'rgba(0,201,141,0.35)':'#00C98D',color:'#001A12',border:'none',borderRadius:12,padding:14,fontWeight:700,fontSize:14,cursor:disabled?'not-allowed':'pointer',fontFamily:"'Syne',sans-serif" })
 
   if (done) return (
     <div style={base}>
-      <div style={{ fontSize: 56 }}>✅</div>
-      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif", textAlign: 'center' }}>
-        Mot de passe modifié !
-      </div>
-      <div style={{ color: '#5A6A85', fontSize: 13, textAlign: 'center' }}>
-        Tu peux maintenant te connecter avec ton nouveau mot de passe.
-      </div>
-      <button onClick={() => window.location.href = window.location.origin + window.location.pathname} style={{ ...btn(false), marginTop: 8 }}>
-        Se connecter →
-      </button>
+      <div style={{fontSize:56}}>✅</div>
+      <div style={{color:'#EFF3FF',fontSize:22,fontWeight:800,fontFamily:"'Syne',sans-serif",textAlign:'center'}}>Mot de passe modifié !</div>
+      <div style={{color:'#5A6A85',fontSize:13,textAlign:'center'}}>Tu peux maintenant te connecter avec ton nouveau mot de passe.</div>
+      <button onClick={() => window.location.href = window.location.origin + window.location.pathname} style={{...btn(false),marginTop:8}}>Se connecter →</button>
     </div>
   )
 
   return (
     <div style={base}>
-      <div style={{ fontSize: 48 }}>🔐</div>
-      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif" }}>
-        Nouveau mot de passe
-      </div>
-      <div style={{ color: '#5A6A85', fontSize: 13, textAlign: 'center' }}>
-        Choisis un mot de passe sécurisé (min. 6 caractères)
-      </div>
-      <input
-        type="password"
-        placeholder="••••••••"
-        value={pwd}
-        onChange={e => setPwd(e.target.value)}
-        style={inputStyle}
-        onKeyDown={e => e.key === 'Enter' && pwd.length >= 6 && handleReset()}
-      />
-      {err && (
-        <div style={{ color: '#FF8A8A', fontSize: 12, background: 'rgba(255,90,90,.1)', border: '1px solid rgba(255,90,90,.2)', borderRadius: 8, padding: '8px 14px', maxWidth: 340, width: '100%', textAlign: 'center' }}>
-          ⚠️ {err}
-        </div>
-      )}
-      <button onClick={handleReset} disabled={loading || pwd.length < 6} style={btn(loading || pwd.length < 6)}>
-        {loading ? '⏳ En cours...' : 'Valider le nouveau mot de passe'}
-      </button>
+      <div style={{fontSize:48}}>🔐</div>
+      <div style={{color:'#EFF3FF',fontSize:22,fontWeight:800,fontFamily:"'Syne',sans-serif"}}>Nouveau mot de passe</div>
+      <div style={{color:'#5A6A85',fontSize:13,textAlign:'center'}}>Choisis un mot de passe sécurisé (min. 6 caractères)</div>
+      <input type="password" placeholder="••••••••" value={pwd} onChange={e=>setPwd(e.target.value)} style={inputStyle} onKeyDown={e=>e.key==='Enter'&&pwd.length>=6&&handleReset()} />
+      {err && <div style={{color:'#FF8A8A',fontSize:12,background:'rgba(255,90,90,.1)',border:'1px solid rgba(255,90,90,.2)',borderRadius:8,padding:'8px 14px',maxWidth:340,width:'100%',textAlign:'center'}}>⚠️ {err}</div>}
+      <button onClick={handleReset} disabled={loading||pwd.length<6} style={btn(loading||pwd.length<6)}>{loading?'⏳ En cours...':'Valider le nouveau mot de passe'}</button>
     </div>
   )
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 function Modal({ title, children, onClose }) {
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="modal-handle" />
         <div className="modal-title">{title}</div>
@@ -300,9 +261,23 @@ function MiniChart({ data }) {
   return (
     <div className="mini-chart">
       {data.map((v, i) => (
-        <div key={i} className={`bar${i === data.length - 1 ? ' hi' : ''}`} style={{ height: `${20 + ((v - min) / range) * 70}%` }} />
+        <div key={i} className={`bar${i===data.length-1?' hi':''}`} style={{height:`${20+((v-min)/range)*70}%`}} />
       ))}
     </div>
+  )
+}
+
+function LanguageSwitcher() {
+  const { i18n } = useTranslation()
+  const toggle = () => {
+    const next = i18n.language === 'fr' ? 'ar' : 'fr'
+    i18n.changeLanguage(next)
+    localStorage.setItem('vitapass_lang', next)
+  }
+  return (
+    <button onClick={toggle} style={{background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.12)',borderRadius:8,padding:'4px 10px',color:'#EFF3FF',fontFamily:"'Syne',sans-serif",fontSize:11,fontWeight:700,cursor:'pointer'}}>
+      {i18n.language === 'fr' ? 'ع' : 'FR'}
+    </button>
   )
 }
 
@@ -319,8 +294,8 @@ function AuthScreen({ onAuth }) {
   const [numeroOrdre, setNumeroOrdre] = useState('')
 
   const roles = [
-    { id: 'patient', icon: '🧑‍💼', label: 'Patient', sub: 'Gérer mon dossier médical' },
-    { id: 'doctor', icon: '👨‍⚕️', label: 'Médecin', sub: 'Accéder aux dossiers patients' },
+    { id:'patient', icon:'🧑‍💼', label:'Patient', sub:'Gérer mon dossier médical' },
+    { id:'doctor',  icon:'👨‍⚕️', label:'Médecin', sub:'Accéder aux dossiers patients' },
   ]
 
   const handleLogin = async () => {
@@ -331,13 +306,10 @@ function AuthScreen({ onAuth }) {
   }
 
   const handleSignup = async () => {
-    if (!fname || !lname || !email || !password) { setError('Tous les champs sont requis'); return }
+    if (!fname||!lname||!email||!password) { setError('Tous les champs sont requis'); return }
     if (password.length < 6) { setError('Mot de passe minimum 6 caractères'); return }
     setLoading(true); setError('')
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { data: { role, fname, lname, numero_ordre: numeroOrdre } }
-    })
+    const { error } = await supabase.auth.signUp({ email, password, options:{ data:{ role, fname, lname, numero_ordre:numeroOrdre } } })
     if (error) setError(error.message)
     else setError('✅ Compte créé ! Vérifiez votre email pour confirmer.')
     setLoading(false)
@@ -346,9 +318,7 @@ function AuthScreen({ onAuth }) {
   const handleForgotPassword = async () => {
     if (!email) { setError("Entre ton email d'abord puis clique sur Mot de passe oublié"); return }
     setLoading(true); setError('')
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://www.vitapass.app/auth/callback',
-    })
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo:'https://www.vitapass.app/auth/callback' })
     if (error) setError(error.message)
     else setError('✅ Email envoyé ! Vérifie ta boîte mail.')
     setLoading(false)
@@ -368,58 +338,47 @@ function AuthScreen({ onAuth }) {
       </div>
       <div className="auth-card">
         <div className="auth-tabs">
-          <div className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => { setTab('login'); setError('') }}>Connexion</div>
-          <div className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => { setTab('signup'); setError('') }}>Inscription</div>
+          <div className={`auth-tab${tab==='login'?' active':''}`} onClick={()=>{setTab('login');setError('')}}>Connexion</div>
+          <div className={`auth-tab${tab==='signup'?' active':''}`} onClick={()=>{setTab('signup');setError('')}}>Inscription</div>
         </div>
         {error && <div className="error-msg">{error}</div>}
-        {tab === 'signup' && (
+        {tab==='signup' && (
           <>
-            <div className="sec-label" style={{ margin: '0 0 8px' }}>Je suis</div>
+            <div className="sec-label" style={{margin:'0 0 8px'}}>Je suis</div>
             <div className="role-select">
               {roles.map(r => (
-                <div key={r.id} className={`role-btn${role === r.id ? ' selected' : ''}`} onClick={() => setRole(r.id)}>
+                <div key={r.id} className={`role-btn${role===r.id?' selected':''}`} onClick={()=>setRole(r.id)}>
                   <span className="role-icon">{r.icon}</span>
                   <div><div className="role-label">{r.label}</div><div className="role-sub">{r.sub}</div></div>
                 </div>
               ))}
             </div>
-            {role === 'doctor' && (
+            {role==='doctor' && (
               <div className="form-group">
                 <label className="form-label">N° Ordre national</label>
-                <input className="form-input" placeholder="Ex: 12345" value={numeroOrdre} onChange={e => setNumeroOrdre(e.target.value)} />
+                <input className="form-input" placeholder="Ex: 12345" value={numeroOrdre} onChange={e=>setNumeroOrdre(e.target.value)} />
               </div>
             )}
             <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Prénom</label>
-                <input className="form-input" placeholder="Karim" value={fname} onChange={e => setFname(e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nom</label>
-                <input className="form-input" placeholder="Bensalem" value={lname} onChange={e => setLname(e.target.value)} />
-              </div>
+              <div className="form-group"><label className="form-label">Prénom</label><input className="form-input" placeholder="Karim" value={fname} onChange={e=>setFname(e.target.value)} /></div>
+              <div className="form-group"><label className="form-label">Nom</label><input className="form-input" placeholder="Bensalem" value={lname} onChange={e=>setLname(e.target.value)} /></div>
             </div>
           </>
         )}
-        <div className="form-group">
-          <label className="form-label">Email</label>
-          <input className="form-input" type="email" placeholder="email@exemple.com" value={email} onChange={e => setEmail(e.target.value)} />
-        </div>
+        <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="email@exemple.com" value={email} onChange={e=>setEmail(e.target.value)} /></div>
         <div className="form-group">
           <label className="form-label">Mot de passe</label>
           <div className="pwd-wrap">
-            <input className="form-input" type={showPwd ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} style={{ paddingRight: 40 }} />
-            <span className="pwd-eye" onClick={() => setShowPwd(!showPwd)}>{showPwd ? '🙈' : '👁️'}</span>
+            <input className="form-input" type={showPwd?'text':'password'} placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} style={{paddingRight:40}} />
+            <span className="pwd-eye" onClick={()=>setShowPwd(!showPwd)}>{showPwd?'🙈':'👁️'}</span>
           </div>
         </div>
-        <button className="btn-submit" onClick={tab === 'login' ? handleLogin : handleSignup} disabled={loading}>
-          {loading ? '⏳ Chargement...' : tab === 'login' ? '🔐 Se connecter' : '✨ Créer mon compte'}
+        <button className="btn-submit" onClick={tab==='login'?handleLogin:handleSignup} disabled={loading}>
+          {loading?'⏳ Chargement...':tab==='login'?'🔐 Se connecter':'✨ Créer mon compte'}
         </button>
-        {tab === 'login' && (
-          <div style={{ textAlign: 'center', marginTop: 12 }}>
-            <span onClick={handleForgotPassword} style={{ color: '#00D4A0', fontSize: 13, cursor: 'pointer', textDecoration: 'underline' }}>
-              Mot de passe oublié ?
-            </span>
+        {tab==='login' && (
+          <div style={{textAlign:'center',marginTop:12}}>
+            <span onClick={handleForgotPassword} style={{color:'#00D4A0',fontSize:13,cursor:'pointer',textDecoration:'underline'}}>Mot de passe oublié ?</span>
           </div>
         )}
       </div>
@@ -427,28 +386,28 @@ function AuthScreen({ onAuth }) {
   )
 }
 
-function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
+function HomeScreen({ nav, profile, dossier, doctorCount=0, notifs=[] }) {
   const meds = dossier?.meds || []
   return (
-    <div className="screen" style={{ display: 'flex' }}>
+    <div className="screen" style={{display:'flex'}}>
       <div className="home-hdr">
         <div className="h-greet">Bonjour 👋</div>
         <div className="h-name">{profile?.fname} <span>{profile?.lname}</span></div>
       </div>
-      <div className="vitacard" onClick={() => nav('qr')}>
+      <div className="vitacard" onClick={()=>nav('qr')}>
         <div className="vc-top">
           <span className="vc-logo">🏥 VitaPass</span>
           {profile?.blood && <span className="vc-blood">{profile.blood}</span>}
         </div>
         <div className="vc-name">{profile?.fname} {profile?.lname}</div>
-        <div className="vc-info">{profile?.wilaya} · {profile?.cnas || 'CNAS non renseigné'}</div>
+        <div className="vc-info">{profile?.wilaya} · {profile?.cnas||'CNAS non renseigné'}</div>
         <div className="vc-bottom">
           <span className="vc-id">VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</span>
-          <span style={{ fontSize: 11, color: 'rgba(0,201,141,.5)' }}>Appuyer pour QR →</span>
+          <span style={{fontSize:11,color:'rgba(0,201,141,.5)'}}>Appuyer pour QR →</span>
         </div>
       </div>
       {notifs.map(n => (
-        <div key={n.id} onClick={() => nav(n.screen)} style={{background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.25)',borderRadius:12,padding:'10px 14px',display:'flex',alignItems:'center',gap:10,marginBottom:8,cursor:'pointer'}}>
+        <div key={n.id} onClick={()=>nav(n.screen)} style={{background:'rgba(255,209,102,.08)',border:'1px solid rgba(255,209,102,.25)',borderRadius:12,padding:'10px 14px',display:'flex',alignItems:'center',gap:10,marginBottom:8,cursor:'pointer'}}>
           <span style={{fontSize:16}}>{n.icon}</span>
           <span style={{fontSize:12,color:'rgba(255,255,255,.8)',flex:1,lineHeight:1.4}}>{n.txt}</span>
           <span style={{color:'#5A6A85',fontSize:16}}>›</span>
@@ -456,16 +415,17 @@ function HomeScreen({ nav, profile, dossier, doctorCount = 0, notifs = [] }) {
       ))}
       <div className="sec-label">Mon résumé santé</div>
       <div className="qstats">
-        <div className="qs" onClick={() => nav('dossier')}><div className="qs-icon">💊</div><div className="qs-val">{meds.length}</div><div className="qs-lbl">Traitements</div></div>
-        <div className="qs" onClick={() => nav('doctors')}><div className="qs-icon">👨‍⚕️</div><div className="qs-val">{doctorCount}</div><div className="qs-lbl">Médecins</div></div>
-        <div className="qs" onClick={() => nav('suivi')}><div className="qs-icon">📊</div><div className="qs-val">–</div><div className="qs-lbl">Métriques</div></div>
+        <div className="qs" onClick={()=>nav('dossier')}><div className="qs-icon">💊</div><div className="qs-val">{meds.length}</div><div className="qs-lbl">Traitements</div></div>
+        <div className="qs" onClick={()=>nav('doctors')}><div className="qs-icon">👨‍⚕️</div><div className="qs-val">{doctorCount}</div><div className="qs-lbl">Médecins</div></div>
+        <div className="qs" onClick={()=>nav('suivi')}><div className="qs-icon">📊</div><div className="qs-val">–</div><div className="qs-lbl">Métriques</div></div>
       </div>
       <div className="sec-label">Accès rapide</div>
       <div className="action-list">
-        <div className="action-row" onClick={() => nav('qr')}><div className="ar-icon" style={{ background: 'rgba(255,90,90,.1)' }}>🆘</div><div className="ar-text"><div className="ar-title">Mon QR Pass</div><div className="ar-sub">Partager mes infos en urgence</div></div><span className="ar-arrow">›</span></div>
-        <div className="action-row" onClick={() => nav('dossier')}><div className="ar-icon" style={{ background: 'rgba(77,159,236,.1)' }}>📋</div><div className="ar-text"><div className="ar-title">Mon dossier</div><div className="ar-sub">Médicaments, antécédents...</div></div><span className="ar-arrow">›</span></div>
-        <div className="action-row" onClick={() => nav('doctors')}><div className="ar-icon" style={{ background: 'rgba(0,201,141,.1)' }}>👨‍⚕️</div><div className="ar-text"><div className="ar-title">Mes médecins</div><div className="ar-sub">Accès & rendez-vous</div></div><span className="ar-arrow">›</span></div>
-        <div className="action-row" onClick={() => nav('suivi')}><div className="ar-icon" style={{ background: 'rgba(255,209,102,.1)' }}>❤️</div><div className="ar-text"><div className="ar-title">Mon suivi</div><div className="ar-sub">Glycémie, tension, poids</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={()=>nav('qr')}><div className="ar-icon" style={{background:'rgba(255,90,90,.1)'}}>🆘</div><div className="ar-text"><div className="ar-title">Mon QR Pass</div><div className="ar-sub">Partager mes infos en urgence</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={()=>nav('search')}><div className="ar-icon" style={{background:'rgba(0,201,141,.1)'}}>📅</div><div className="ar-text"><div className="ar-title">Prendre RDV</div><div className="ar-sub">Trouver un professionnel de santé</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={()=>nav('dossier')}><div className="ar-icon" style={{background:'rgba(77,159,236,.1)'}}>📋</div><div className="ar-text"><div className="ar-title">Mon dossier</div><div className="ar-sub">Médicaments, antécédents...</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={()=>nav('doctors')}><div className="ar-icon" style={{background:'rgba(0,201,141,.1)'}}>👨‍⚕️</div><div className="ar-text"><div className="ar-title">Mes médecins</div><div className="ar-sub">Accès & rendez-vous</div></div><span className="ar-arrow">›</span></div>
+        <div className="action-row" onClick={()=>nav('suivi')}><div className="ar-icon" style={{background:'rgba(255,209,102,.1)'}}>❤️</div><div className="ar-text"><div className="ar-title">Mon suivi</div><div className="ar-sub">Glycémie, tension, poids</div></div><span className="ar-arrow">›</span></div>
       </div>
       <div className="pad-b" />
     </div>
@@ -476,16 +436,16 @@ function QRScreen({ nav, profile }) {
   const qrRef = useRef(null)
   const qrInstance = useRef(null)
   useEffect(() => {
-    if (!qrRef.current || !profile) return
-    const text = JSON.stringify({ id: profile.id, name: `${profile.fname} ${profile.lname}`, blood: profile.blood, emergency: profile.emergency })
+    if (!qrRef.current||!profile) return
+    const text = JSON.stringify({ id:profile.id, name:`${profile.fname} ${profile.lname}`, blood:profile.blood, emergency:profile.emergency })
     if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(text) }
-    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current, { text, width: 180, height: 180, colorDark: '#000', colorLight: '#fff' }) }
+    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current,{text,width:180,height:180,colorDark:'#000',colorLight:'#fff'}) }
   }, [profile])
   return (
-    <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon QR Pass</div></div>
+    <div className="screen" style={{display:'flex'}}>
+      <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">Mon QR Pass</div></div>
       <div className="qr-wrap">
-        <div className="emergency-bar"><span style={{ fontSize: 20 }}>🆘</span><div className="emg-txt">En cas d'urgence, ce QR code permet aux secours d'accéder à vos informations vitales</div></div>
+        <div className="emergency-bar"><span style={{fontSize:20}}>🆘</span><div className="emg-txt">En cas d'urgence, ce QR code permet aux secours d'accéder à vos informations vitales</div></div>
         <div className="qr-card">
           <div className="qr-tag">URGENCE MÉDICALE</div>
           <div className="qr-box" ref={qrRef} />
@@ -511,190 +471,187 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
   const [docsLoading, setDocsLoading] = useState(false)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [docFile, setDocFile] = useState(null)
-  const [docForm, setDocForm] = useState({ title: '', type: 'ordonnance', date: '', medecin: '' })
+  const [docForm, setDocForm] = useState({title:'',type:'ordonnance',date:'',medecin:''})
   const [docError, setDocError] = useState('')
   const [uploadingDoc, setUploadingDoc] = useState(false)
   const docInputRef = useRef(null)
-  const meds = dossier?.meds || []
-  const allergies = dossier?.allergies || []
-  const antecedents = dossier?.antecedents || []
-  const vaccins = dossier?.vaccins || [
-    { id: 1, name: 'BCG', status: 'done', date: '1990-01-01' },
-    { id: 2, name: 'Covid-19', status: 'done', date: '2021-06-15' },
-    { id: 3, name: 'Grippe saisonnière', status: 'pending', date: null },
+  const meds = dossier?.meds||[]
+  const allergies = dossier?.allergies||[]
+  const antecedents = dossier?.antecedents||[]
+  const vaccins = dossier?.vaccins||[
+    {id:1,name:'BCG',status:'done',date:'1990-01-01'},
+    {id:2,name:'Covid-19',status:'done',date:'2021-06-15'},
+    {id:3,name:'Grippe saisonnière',status:'pending',date:null},
   ]
   const DOC_TYPES = {
-    ordonnance: { label: 'Ordonnance', icon: '💊' },
-    analyse: { label: 'Analyse', icon: '🧪' },
-    radio: { label: 'Radiologie', icon: '🩻' },
-    compte_rendu: { label: 'Compte rendu', icon: '📋' },
-    autre: { label: 'Autre', icon: '📄' },
+    ordonnance:{label:'Ordonnance',icon:'💊'},
+    analyse:{label:'Analyse',icon:'🧪'},
+    radio:{label:'Radiologie',icon:'🩻'},
+    compte_rendu:{label:'Compte rendu',icon:'📋'},
+    autre:{label:'Autre',icon:'📄'},
   }
-  useEffect(() => { if (activeTab === 'docs') loadDocs() }, [activeTab])
+  useEffect(()=>{ if(activeTab==='docs') loadDocs() },[activeTab])
   const loadDocs = async () => {
     setDocsLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data } = await supabase.from('documents').select('*').eq('patient_id', user.id).order('created_at', { ascending: false })
-    setPatientDocs(data || [])
+    const {data:{user}} = await supabase.auth.getUser()
+    const {data} = await supabase.from('documents').select('*').eq('patient_id',user.id).order('created_at',{ascending:false})
+    setPatientDocs(data||[])
     setDocsLoading(false)
   }
-  const handleOpenDoc = (doc) => { if (doc.file_url) window.open(doc.file_url, '_blank') }
+  const handleOpenDoc = (doc) => { if(doc.file_url) window.open(doc.file_url,'_blank') }
   const handleDeleteDoc = async (doc) => {
-    if (!confirm('Supprimer ce document ?')) return
-    await supabase.from('documents').delete().eq('id', doc.id)
+    if(!confirm('Supprimer ce document ?')) return
+    await supabase.from('documents').delete().eq('id',doc.id)
     loadDocs(); showToast('Document supprimé')
   }
   const handleUpload = async () => {
-    if (!docFile) { setDocError('Fichier requis'); return }
-    if (!docForm.title) { setDocError('Nom requis'); return }
+    if(!docFile){setDocError('Fichier requis');return}
+    if(!docForm.title){setDocError('Nom requis');return}
     setUploadingDoc(true); setDocError('')
-    const { data: { user } } = await supabase.auth.getUser()
+    const {data:{user}} = await supabase.auth.getUser()
     const ext = docFile.name.split('.').pop()
     const path = `${user.id}/${Date.now()}.${ext}`
-    const { error: upErr } = await supabase.storage.from('documents').upload(path, docFile)
-    if (upErr) { setDocError('Erreur upload: ' + upErr.message); setUploadingDoc(false); return }
-    const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(path)
-    await supabase.from('documents').insert({ patient_id: user.id, title: docForm.title, type: docForm.type, date: docForm.date || null, medecin: docForm.medecin || null, file_url: publicUrl })
-    setShowUploadModal(false); setDocFile(null); setDocForm({ title: '', type: 'ordonnance', date: '', medecin: '' })
+    const {error:upErr} = await supabase.storage.from('documents').upload(path,docFile)
+    if(upErr){setDocError('Erreur upload: '+upErr.message);setUploadingDoc(false);return}
+    const {data:{publicUrl}} = supabase.storage.from('documents').getPublicUrl(path)
+    await supabase.from('documents').insert({patient_id:user.id,title:docForm.title,type:docForm.type,date:docForm.date||null,medecin:docForm.medecin||null,file_url:publicUrl})
+    setShowUploadModal(false); setDocFile(null); setDocForm({title:'',type:'ordonnance',date:'',medecin:''})
     loadDocs(); showToast('✅ Document ajouté'); setUploadingDoc(false)
   }
   const addMed = async () => {
-    if (!form.name) return; setSaving(true)
-    await onSave({ meds: [...meds, { id: Date.now(), ...form }] })
+    if(!form.name) return; setSaving(true)
+    await onSave({meds:[...meds,{id:Date.now(),...form}]})
     setModal(null); setForm({}); setSaving(false); showToast('✅ Médicament ajouté')
   }
   const addAllergy = async () => {
-    if (!form.name) return; setSaving(true)
-    await onSave({ allergies: [...allergies, { id: Date.now(), name: form.name }] })
+    if(!form.name) return; setSaving(true)
+    await onSave({allergies:[...allergies,{id:Date.now(),name:form.name}]})
     setModal(null); setForm({}); setSaving(false); showToast('✅ Allergie ajoutée')
   }
-  const removeAllergy = async (id) => { await onSave({ allergies: allergies.filter(a => a.id !== id) }); showToast('Allergie supprimée') }
+  const removeAllergy = async (id) => { await onSave({allergies:allergies.filter(a=>a.id!==id)}); showToast('Allergie supprimée') }
   const addAnt = async () => {
-    if (!form.name) return; setSaving(true)
-    await onSave({ antecedents: [...antecedents, { id: Date.now(), ...form }] })
+    if(!form.name) return; setSaving(true)
+    await onSave({antecedents:[...antecedents,{id:Date.now(),...form}]})
     setModal(null); setForm({}); setSaving(false); showToast('✅ Antécédent ajouté')
   }
   const addVacc = async () => {
-    if (!form.name) return; setSaving(true)
-    await onSave({ vaccins: [...vaccins, { id: Date.now(), ...form }] })
+    if(!form.name) return; setSaving(true)
+    await onSave({vaccins:[...vaccins,{id:Date.now(),...form}]})
     setModal(null); setForm({}); setSaving(false); showToast('✅ Vaccin ajouté')
   }
   const tabs = [
-    { id: 'med', label: '💊 Médic.' },
-    { id: 'allergy', label: '⚠️ Allergies' },
-    { id: 'ant', label: '🩺 Antéc.' },
-    { id: 'vacc', label: '💉 Vaccins' },
-    { id: 'docs', label: '📄 Docs' },
+    {id:'med',label:'💊 Médic.'},{id:'allergy',label:'⚠️ Allergies'},
+    {id:'ant',label:'🩺 Antéc.'},{id:'vacc',label:'💉 Vaccins'},{id:'docs',label:'📄 Docs'},
   ]
   return (
-    <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon Dossier</div></div>
-      <div className="tabs">{tabs.map(t => <div key={t.id} className={`tab${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>{t.label}</div>)}</div>
-      {activeTab === 'med' && <>
+    <div className="screen" style={{display:'flex'}}>
+      <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">Mon Dossier</div></div>
+      <div className="tabs">{tabs.map(t=><div key={t.id} className={`tab${activeTab===t.id?' active':''}`} onClick={()=>setActiveTab(t.id)}>{t.label}</div>)}</div>
+      {activeTab==='med' && <>
         <div className="dsect-title">Médicaments en cours</div>
-        {meds.length === 0 ? <div className="empty-state"><div className="empty-icon">💊</div><p>Aucun médicament enregistré</p></div>
-          : meds.map(m => (<div key={m.id} className="card"><div className="card-row"><div className="card-icon" style={{ background: 'rgba(77,159,236,.1)' }}>💊</div><div className="card-info"><div className="card-name">{m.name}</div><div className="card-sub">{m.dose}{m.reason ? ' · ' + m.reason : ''}</div></div><span className="badge badge-g">Actif</span></div></div>))}
-        <div className="add-btn" onClick={() => { setModal('med'); setForm({}) }}>＋ Ajouter un médicament</div>
+        {meds.length===0?<div className="empty-state"><div className="empty-icon">💊</div><p>Aucun médicament enregistré</p></div>
+          :meds.map(m=>(<div key={m.id} className="card"><div className="card-row"><div className="card-icon" style={{background:'rgba(77,159,236,.1)'}}>💊</div><div className="card-info"><div className="card-name">{m.name}</div><div className="card-sub">{m.dose}{m.reason?' · '+m.reason:''}</div></div><span className="badge badge-g">Actif</span></div></div>))}
+        <div className="add-btn" onClick={()=>{setModal('med');setForm({})}}>＋ Ajouter un médicament</div>
         <div className="pad-b" />
       </>}
-      {activeTab === 'allergy' && <>
+      {activeTab==='allergy' && <>
         <div className="dsect-title">Mes allergies</div>
         <div className="allergy-wrap">
-          {allergies.length === 0 ? <div className="empty-state"><div className="empty-icon">⚠️</div><p>Aucune allergie enregistrée</p></div>
-            : allergies.map(a => (<div key={a.id} className="achip">{a.name}<span className="achip-rm" onClick={() => removeAllergy(a.id)}>✕</span></div>))}
+          {allergies.length===0?<div className="empty-state"><div className="empty-icon">⚠️</div><p>Aucune allergie enregistrée</p></div>
+            :allergies.map(a=>(<div key={a.id} className="achip">{a.name}<span className="achip-rm" onClick={()=>removeAllergy(a.id)}>✕</span></div>))}
         </div>
-        <div className="add-btn" onClick={() => { setModal('allergy'); setForm({}) }}>＋ Ajouter une allergie</div>
+        <div className="add-btn" onClick={()=>{setModal('allergy');setForm({})}}>＋ Ajouter une allergie</div>
         <div className="pad-b" />
       </>}
-      {activeTab === 'ant' && <>
+      {activeTab==='ant' && <>
         <div className="dsect-title">Antécédents médicaux</div>
-        {antecedents.length === 0 ? <div className="empty-state"><div className="empty-icon">📋</div><p>Aucun antécédent enregistré</p></div>
-          : antecedents.map(a => (<div key={a.id} className="card"><div className="card-row"><div className="card-icon" style={{ background: 'rgba(255,209,102,.1)' }}>🩺</div><div className="card-info"><div className="card-name">{a.name}</div><div className="card-sub">{a.type}{a.year ? ' · ' + a.year : ''}</div></div><span className="badge badge-r">{a.type}</span></div></div>))}
-        <div className="add-btn" onClick={() => { setModal('ant'); setForm({ type: 'Chronique' }) }}>＋ Ajouter un antécédent</div>
+        {antecedents.length===0?<div className="empty-state"><div className="empty-icon">📋</div><p>Aucun antécédent enregistré</p></div>
+          :antecedents.map(a=>(<div key={a.id} className="card"><div className="card-row"><div className="card-icon" style={{background:'rgba(255,209,102,.1)'}}>🩺</div><div className="card-info"><div className="card-name">{a.name}</div><div className="card-sub">{a.type}{a.year?' · '+a.year:''}</div></div><span className="badge badge-r">{a.type}</span></div></div>))}
+        <div className="add-btn" onClick={()=>{setModal('ant');setForm({type:'Chronique'})}}>＋ Ajouter un antécédent</div>
         <div className="pad-b" />
       </>}
-      {activeTab === 'vacc' && <>
+      {activeTab==='vacc' && <>
         <div className="dsect-title">Carnet vaccinal</div>
-        {vaccins.map(v => (<div key={v.id} className="vacc-row"><div><div className="vacc-name">{v.name}</div><div className="vacc-date">{v.date ? formatDate(v.date) : 'Recommandé'}</div></div><div className="vacc-ico" style={{ background: v.status === 'done' ? 'rgba(0,201,141,.15)' : 'rgba(255,209,102,.15)' }}>{v.status === 'done' ? '✅' : '⏳'}</div></div>))}
-        <div className="add-btn" onClick={() => { setModal('vacc'); setForm({ status: 'done' }) }}>＋ Ajouter un vaccin</div>
+        {vaccins.map(v=>(<div key={v.id} className="vacc-row"><div><div className="vacc-name">{v.name}</div><div className="vacc-date">{v.date?formatDate(v.date):'Recommandé'}</div></div><div className="vacc-ico" style={{background:v.status==='done'?'rgba(0,201,141,.15)':'rgba(255,209,102,.15)'}}>{v.status==='done'?'✅':'⏳'}</div></div>))}
+        <div className="add-btn" onClick={()=>{setModal('vacc');setForm({status:'done'})}}>＋ Ajouter un vaccin</div>
         <div className="pad-b" />
       </>}
-      {activeTab === 'docs' && (
+      {activeTab==='docs' && (
         <div>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-            <span style={{ fontWeight:600, color:'var(--white)' }}>📄 Mes Documents ({patientDocs.length})</span>
-            <div className="add-btn" style={{ margin:0, padding:'6px 12px' }} onClick={() => setShowUploadModal(true)}>+ Ajouter</div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+            <span style={{fontWeight:600,color:'var(--white)'}}>📄 Mes Documents ({patientDocs.length})</span>
+            <div className="add-btn" style={{margin:0,padding:'6px 12px'}} onClick={()=>setShowUploadModal(true)}>+ Ajouter</div>
           </div>
-          {docsLoading ? <p style={{ color:'var(--dim)' }}>Chargement...</p> : patientDocs.length === 0 ? (
-            <div style={{ textAlign:'center', padding:32, color:'var(--dim)' }}><div style={{ fontSize:40 }}>📂</div><div>Aucun document</div></div>
-          ) : patientDocs.map(doc => (
+          {docsLoading?<p style={{color:'var(--dim)'}}>Chargement...</p>:patientDocs.length===0?(
+            <div style={{textAlign:'center',padding:32,color:'var(--dim)'}}><div style={{fontSize:40}}>📂</div><div>Aucun document</div></div>
+          ):patientDocs.map(doc=>(
             <div key={doc.id} className="doc-card">
               <div className="doc-top">
-                <span style={{ fontSize:20 }}>{DOC_TYPES[doc.type]?.icon || '📄'}</span>
-                <div style={{ flex:1, marginLeft:8 }}>
+                <span style={{fontSize:20}}>{DOC_TYPES[doc.type]?.icon||'📄'}</span>
+                <div style={{flex:1,marginLeft:8}}>
                   <div className="doc-name">{doc.title}</div>
                   <div className="doc-spec">{DOC_TYPES[doc.type]?.label} · {doc.date}</div>
-                  {doc.medecin && <div className="doc-loc">Dr. {doc.medecin}</div>}
+                  {doc.medecin&&<div className="doc-loc">Dr. {doc.medecin}</div>}
                 </div>
-                <button className="doc-btn" style={{ background:'rgba(77,159,236,.1)', color:'var(--blue)' }} onClick={() => handleOpenDoc(doc)}>👁</button>
-                <button className="doc-btn" style={{ marginLeft:4, background:'rgba(255,90,90,.1)', color:'#FF8A8A' }} onClick={() => handleDeleteDoc(doc)}>🗑</button>
+                <button className="doc-btn" style={{background:'rgba(77,159,236,.1)',color:'var(--blue)'}} onClick={()=>handleOpenDoc(doc)}>👁</button>
+                <button className="doc-btn" style={{marginLeft:4,background:'rgba(255,90,90,.1)',color:'#FF8A8A'}} onClick={()=>handleDeleteDoc(doc)}>🗑</button>
               </div>
             </div>
           ))}
           {showUploadModal && (
-            <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowUploadModal(false)}>
+            <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowUploadModal(false)}>
               <div className="modal">
                 <div className="modal-handle" />
                 <div className="modal-title">Ajouter un document</div>
                 <div className="form-group">
                   <label className="form-label">Fichier *</label>
-                  <div onClick={() => docInputRef.current.click()} style={{ border:'2px dashed rgba(255,255,255,.15)', borderRadius:8, padding:16, textAlign:'center', cursor:'pointer', background: docFile ? 'rgba(0,201,141,.05)' : 'transparent' }}>
-                    <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display:'none' }} onChange={e => { const f = e.target.files[0]; if(f){ setDocFile(f); if(!docForm.title) setDocForm(p => ({...p, title: f.name.replace(/\.[^/.]+$/,'')})) }}} />
-                    {docFile ? <span style={{ color:'var(--g)' }}>✅ {docFile.name}</span> : <span style={{ color:'var(--dim)' }}>📂 Appuie pour choisir<br/><small>PDF, JPG, PNG · max 10 Mo</small></span>}
+                  <div onClick={()=>docInputRef.current.click()} style={{border:'2px dashed rgba(255,255,255,.15)',borderRadius:8,padding:16,textAlign:'center',cursor:'pointer',background:docFile?'rgba(0,201,141,.05)':'transparent'}}>
+                    <input ref={docInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{display:'none'}} onChange={e=>{const f=e.target.files[0];if(f){setDocFile(f);if(!docForm.title)setDocForm(p=>({...p,title:f.name.replace(/\.[^/.]+$/,'')})) }}} />
+                    {docFile?<span style={{color:'var(--g)'}}>✅ {docFile.name}</span>:<span style={{color:'var(--dim)'}}>📂 Appuie pour choisir<br/><small>PDF, JPG, PNG · max 10 Mo</small></span>}
                   </div>
                 </div>
-                <div className="form-group"><label className="form-label">Nom *</label><input className="form-input" value={docForm.title} onChange={e => setDocForm(p => ({...p, title: e.target.value}))} placeholder="Ex: Ordonnance Dr. Benali" /></div>
-                <div className="form-group"><label className="form-label">Type</label><select className="form-select" value={docForm.type} onChange={e => setDocForm(p => ({...p, type: e.target.value}))}>{Object.entries(DOC_TYPES).map(([k,v]) => <option key={k} value={k}>{v.icon} {v.label}</option>)}</select></div>
-                <div className="form-group"><label className="form-label">Date</label><input className="form-input" type="date" value={docForm.date} onChange={e => setDocForm(p => ({...p, date: e.target.value}))} /></div>
-                <div className="form-group"><label className="form-label">Médecin (optionnel)</label><input className="form-input" value={docForm.medecin} onChange={e => setDocForm(p => ({...p, medecin: e.target.value}))} placeholder="Dr. Benali" /></div>
-                {docError && <div style={{ color:'#FF8A8A', fontSize:13, padding:'8px 0' }}>⚠️ {docError}</div>}
-                <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>{uploadingDoc ? '⏳ Upload...' : '⬆️ Envoyer'}</button>
+                <div className="form-group"><label className="form-label">Nom *</label><input className="form-input" value={docForm.title} onChange={e=>setDocForm(p=>({...p,title:e.target.value}))} placeholder="Ex: Ordonnance Dr. Benali" /></div>
+                <div className="form-group"><label className="form-label">Type</label><select className="form-select" value={docForm.type} onChange={e=>setDocForm(p=>({...p,type:e.target.value}))}>{Object.entries(DOC_TYPES).map(([k,v])=><option key={k} value={k}>{v.icon} {v.label}</option>)}</select></div>
+                <div className="form-group"><label className="form-label">Date</label><input className="form-input" type="date" value={docForm.date} onChange={e=>setDocForm(p=>({...p,date:e.target.value}))} /></div>
+                <div className="form-group"><label className="form-label">Médecin (optionnel)</label><input className="form-input" value={docForm.medecin} onChange={e=>setDocForm(p=>({...p,medecin:e.target.value}))} placeholder="Dr. Benali" /></div>
+                {docError&&<div style={{color:'#FF8A8A',fontSize:13,padding:'8px 0'}}>⚠️ {docError}</div>}
+                <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>{uploadingDoc?'⏳ Upload...':'⬆️ Envoyer'}</button>
               </div>
             </div>
           )}
         </div>
       )}
-      {modal === 'med' && <Modal title="Ajouter un médicament" onClose={() => setModal(null)}>
-        <div className="form-group"><label className="form-label">Nom</label><input className="form-input" placeholder="Metformine 850mg" onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+      {modal==='med'&&<Modal title="Ajouter un médicament" onClose={()=>setModal(null)}>
+        <div className="form-group"><label className="form-label">Nom</label><input className="form-input" placeholder="Metformine 850mg" onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Posologie</label><input className="form-input" placeholder="2x/jour" onChange={e => setForm({ ...form, dose: e.target.value })} /></div>
-          <div className="form-group"><label className="form-label">Indication</label><input className="form-input" placeholder="Diabète" onChange={e => setForm({ ...form, reason: e.target.value })} /></div>
+          <div className="form-group"><label className="form-label">Posologie</label><input className="form-input" placeholder="2x/jour" onChange={e=>setForm({...form,dose:e.target.value})} /></div>
+          <div className="form-group"><label className="form-label">Indication</label><input className="form-input" placeholder="Diabète" onChange={e=>setForm({...form,reason:e.target.value})} /></div>
         </div>
-        <button className="btn-submit" onClick={addMed} disabled={saving}>{saving ? '⏳...' : 'Enregistrer'}</button>
-        <button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button>
+        <button className="btn-submit" onClick={addMed} disabled={saving}>{saving?'⏳...':'Enregistrer'}</button>
+        <button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button>
       </Modal>}
-      {modal === 'allergy' && <Modal title="Ajouter une allergie" onClose={() => setModal(null)}>
-        <div className="form-group"><label className="form-label">Allergie</label><input className="form-input" placeholder="Pénicilline" onChange={e => setForm({ ...form, name: e.target.value })} /></div>
-        <button className="btn-submit" onClick={addAllergy} disabled={saving}>{saving ? '⏳...' : 'Enregistrer'}</button>
-        <button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button>
+      {modal==='allergy'&&<Modal title="Ajouter une allergie" onClose={()=>setModal(null)}>
+        <div className="form-group"><label className="form-label">Allergie</label><input className="form-input" placeholder="Pénicilline" onChange={e=>setForm({...form,name:e.target.value})} /></div>
+        <button className="btn-submit" onClick={addAllergy} disabled={saving}>{saving?'⏳...':'Enregistrer'}</button>
+        <button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button>
       </Modal>}
-      {modal === 'ant' && <Modal title="Ajouter un antécédent" onClose={() => setModal(null)}>
-        <div className="form-group"><label className="form-label">Condition</label><input className="form-input" placeholder="Diabète de type 2" onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+      {modal==='ant'&&<Modal title="Ajouter un antécédent" onClose={()=>setModal(null)}>
+        <div className="form-group"><label className="form-label">Condition</label><input className="form-input" placeholder="Diabète de type 2" onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Année</label><input className="form-input" type="number" placeholder="2018" onChange={e => setForm({ ...form, year: e.target.value })} /></div>
-          <div className="form-group"><label className="form-label">Type</label><select className="form-select" onChange={e => setForm({ ...form, type: e.target.value })}>{['Chronique','Hospitalisation','Chirurgie','Autre'].map(o => <option key={o}>{o}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Année</label><input className="form-input" type="number" placeholder="2018" onChange={e=>setForm({...form,year:e.target.value})} /></div>
+          <div className="form-group"><label className="form-label">Type</label><select className="form-select" onChange={e=>setForm({...form,type:e.target.value})}>{['Chronique','Hospitalisation','Chirurgie','Autre'].map(o=><option key={o}>{o}</option>)}</select></div>
         </div>
-        <button className="btn-submit" onClick={addAnt} disabled={saving}>{saving ? '⏳...' : 'Enregistrer'}</button>
-        <button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button>
+        <button className="btn-submit" onClick={addAnt} disabled={saving}>{saving?'⏳...':'Enregistrer'}</button>
+        <button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button>
       </Modal>}
-      {modal === 'vacc' && <Modal title="Ajouter un vaccin" onClose={() => setModal(null)}>
-        <div className="form-group"><label className="form-label">Vaccin</label><input className="form-input" placeholder="BCG, Covid-19..." onChange={e => setForm({ ...form, name: e.target.value })} /></div>
+      {modal==='vacc'&&<Modal title="Ajouter un vaccin" onClose={()=>setModal(null)}>
+        <div className="form-group"><label className="form-label">Vaccin</label><input className="form-input" placeholder="BCG, Covid-19..." onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Date</label><input className="form-input" type="date" onChange={e => setForm({ ...form, date: e.target.value })} /></div>
-          <div className="form-group"><label className="form-label">Statut</label><select className="form-select" onChange={e => setForm({ ...form, status: e.target.value })}><option value="done">✅ Fait</option><option value="pending">⏳ À faire</option></select></div>
+          <div className="form-group"><label className="form-label">Date</label><input className="form-input" type="date" onChange={e=>setForm({...form,date:e.target.value})} /></div>
+          <div className="form-group"><label className="form-label">Statut</label><select className="form-select" onChange={e=>setForm({...form,status:e.target.value})}><option value="done">✅ Fait</option><option value="pending">⏳ À faire</option></select></div>
         </div>
-        <button className="btn-submit" onClick={addVacc} disabled={saving}>{saving ? '⏳...' : 'Enregistrer'}</button>
-        <button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button>
+        <button className="btn-submit" onClick={addVacc} disabled={saving}>{saving?'⏳...':'Enregistrer'}</button>
+        <button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button>
       </Modal>}
     </div>
   )
@@ -703,42 +660,42 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
 function SuiviScreen({ nav, dossier, onSave, showToast }) {
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
-  const glyc = dossier?.glyc || []
-  const bp = dossier?.bp || []
-  const weight = dossier?.weight || []
-  const lastGlyc = glyc.length > 0 ? glyc[glyc.length - 1] : null
-  const lastBp = bp.length > 0 ? bp[bp.length - 1] : null
-  const lastW = weight.length > 0 ? weight[weight.length - 1] : null
+  const glyc = dossier?.glyc||[]
+  const bp = dossier?.bp||[]
+  const weight = dossier?.weight||[]
+  const lastGlyc = glyc.length>0?glyc[glyc.length-1]:null
+  const lastBp = bp.length>0?bp[bp.length-1]:null
+  const lastW = weight.length>0?weight[weight.length-1]:null
   const today = new Date().toISOString().split('T')[0]
   const saveMetric = async () => {
-    if (modal === 'glyc') { const v = parseFloat(form.val); if (!v) return; await onSave({ glyc: [...glyc, v].slice(-7) }) }
-    else if (modal === 'bp') { const s = parseInt(form.s), d = parseInt(form.d); if (!s||!d) return; await onSave({ bp: [...bp, {s,d}].slice(-7) }) }
-    else if (modal === 'weight') { const v = parseFloat(form.val); if (!v) return; await onSave({ weight: [...weight, v].slice(-7) }) }
+    if(modal==='glyc'){const v=parseFloat(form.val);if(!v)return;await onSave({glyc:[...glyc,v].slice(-7)})}
+    else if(modal==='bp'){const s=parseInt(form.s),d=parseInt(form.d);if(!s||!d)return;await onSave({bp:[...bp,{s,d}].slice(-7)})}
+    else if(modal==='weight'){const v=parseFloat(form.val);if(!v)return;await onSave({weight:[...weight,v].slice(-7)})}
     setModal(null); setForm({}); showToast('✅ Mesure sauvegardée')
   }
   return (
-    <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Mon Suivi Santé</div></div>
+    <div className="screen" style={{display:'flex'}}>
+      <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">Mon Suivi Santé</div></div>
       <div className="sec-label">Métriques médicales</div>
-      <div className="metric-card" onClick={() => { setModal('glyc'); setForm({ date: today }) }}>
-        <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>🩸</span><div><div className="mc-title">Glycémie (HbA1c)</div><div className="mc-sub">Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastGlyc ?? '--'}</span><span className="mc-unit"> %</span></div></div>
+      <div className="metric-card" onClick={()=>{setModal('glyc');setForm({date:today})}}>
+        <div className="mc-hdr"><div className="mc-left"><span style={{fontSize:22}}>🩸</span><div><div className="mc-title">Glycémie (HbA1c)</div><div className="mc-sub">Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastGlyc??'--'}</span><span className="mc-unit"> %</span></div></div>
         <MiniChart data={glyc} />
-        <div className={`mc-trend${lastGlyc && lastGlyc >= 7.5 ? ' warn' : ''}`}>{lastGlyc ? (lastGlyc < 7.5 ? '↓ Dans les objectifs' : '↗️ Élevé · Surveiller') : '+ Ajouter une mesure'}</div>
+        <div className={`mc-trend${lastGlyc&&lastGlyc>=7.5?' warn':''}`}>{lastGlyc?(lastGlyc<7.5?'↓ Dans les objectifs':'↗️ Élevé · Surveiller'):'+ Ajouter une mesure'}</div>
       </div>
-      <div className="metric-card" onClick={() => { setModal('bp'); setForm({ date: today }) }}>
-        <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>❤️</span><div><div className="mc-title">Tension artérielle</div><div className="mc-sub">mmHg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastBp ? lastBp.s : '--'}</span><span className="mc-unit">{lastBp ? '/'+lastBp.d : ''}</span></div></div>
-        <MiniChart data={bp.map(b => b.s)} />
-        <div className={`mc-trend${lastBp && lastBp.s > 130 ? ' warn' : ''}`}>{lastBp ? (lastBp.s > 130 ? '↗️ Élevé · Surveiller' : '↓ Normal') : '+ Ajouter une mesure'}</div>
+      <div className="metric-card" onClick={()=>{setModal('bp');setForm({date:today})}}>
+        <div className="mc-hdr"><div className="mc-left"><span style={{fontSize:22}}>❤️</span><div><div className="mc-title">Tension artérielle</div><div className="mc-sub">mmHg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastBp?lastBp.s:'--'}</span><span className="mc-unit">{lastBp?'/'+lastBp.d:''}</span></div></div>
+        <MiniChart data={bp.map(b=>b.s)} />
+        <div className={`mc-trend${lastBp&&lastBp.s>130?' warn':''}`}>{lastBp?(lastBp.s>130?'↗️ Élevé · Surveiller':'↓ Normal'):'+ Ajouter une mesure'}</div>
       </div>
-      <div className="metric-card" onClick={() => { setModal('weight'); setForm({ date: today }) }}>
-        <div className="mc-hdr"><div className="mc-left"><span style={{ fontSize: 22 }}>⚖️</span><div><div className="mc-title">Poids corporel</div><div className="mc-sub">kg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastW ?? '--'}</span><span className="mc-unit"> kg</span></div></div>
+      <div className="metric-card" onClick={()=>{setModal('weight');setForm({date:today})}}>
+        <div className="mc-hdr"><div className="mc-left"><span style={{fontSize:22}}>⚖️</span><div><div className="mc-title">Poids corporel</div><div className="mc-sub">kg · Appuyer pour ajouter</div></div></div><div><span className="mc-val">{lastW??'--'}</span><span className="mc-unit"> kg</span></div></div>
         <MiniChart data={weight} />
-        <div className="mc-trend">{lastW && weight.length > 1 ? `${weight[0] > lastW ? '↓' : '↑'} ${Math.abs(weight[0] - lastW).toFixed(1)}kg` : '+ Ajouter une mesure'}</div>
+        <div className="mc-trend">{lastW&&weight.length>1?`${weight[0]>lastW?'↓':'↑'} ${Math.abs(weight[0]-lastW).toFixed(1)}kg`:'+ Ajouter une mesure'}</div>
       </div>
       <div className="pad-b" />
-      {modal === 'glyc' && <Modal title="Glycémie (HbA1c)" onClose={() => setModal(null)}><div className="form-group"><label className="form-label">Valeur (%)</label><input className="form-input" type="number" step="0.1" placeholder="7.2" onChange={e => setForm({ ...form, val: e.target.value })} /></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button></Modal>}
-      {modal === 'bp' && <Modal title="Tension artérielle" onClose={() => setModal(null)}><div className="form-row"><div className="form-group"><label className="form-label">Systolique</label><input className="form-input" type="number" placeholder="128" onChange={e => setForm({ ...form, s: e.target.value })} /></div><div className="form-group"><label className="form-label">Diastolique</label><input className="form-input" type="number" placeholder="82" onChange={e => setForm({ ...form, d: e.target.value })} /></div></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button></Modal>}
-      {modal === 'weight' && <Modal title="Poids corporel" onClose={() => setModal(null)}><div className="form-group"><label className="form-label">Poids (kg)</label><input className="form-input" type="number" step="0.1" placeholder="82" onChange={e => setForm({ ...form, val: e.target.value })} /></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={() => setModal(null)}>Annuler</button></Modal>}
+      {modal==='glyc'&&<Modal title="Glycémie (HbA1c)" onClose={()=>setModal(null)}><div className="form-group"><label className="form-label">Valeur (%)</label><input className="form-input" type="number" step="0.1" placeholder="7.2" onChange={e=>setForm({...form,val:e.target.value})} /></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button></Modal>}
+      {modal==='bp'&&<Modal title="Tension artérielle" onClose={()=>setModal(null)}><div className="form-row"><div className="form-group"><label className="form-label">Systolique</label><input className="form-input" type="number" placeholder="128" onChange={e=>setForm({...form,s:e.target.value})} /></div><div className="form-group"><label className="form-label">Diastolique</label><input className="form-input" type="number" placeholder="82" onChange={e=>setForm({...form,d:e.target.value})} /></div></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button></Modal>}
+      {modal==='weight'&&<Modal title="Poids corporel" onClose={()=>setModal(null)}><div className="form-group"><label className="form-label">Poids (kg)</label><input className="form-input" type="number" step="0.1" placeholder="82" onChange={e=>setForm({...form,val:e.target.value})} /></div><button className="btn-submit" onClick={saveMetric}>Enregistrer</button><button className="btn-cancel" onClick={()=>setModal(null)}>Annuler</button></Modal>}
     </div>
   )
 }
@@ -752,85 +709,83 @@ function DoctorsScreen({ nav, showToast }) {
   const [foundDoctor, setFoundDoctor] = useState(null)
   const [searchError, setSearchError] = useState('')
   const [adding, setAdding] = useState(false)
-  useEffect(() => { loadDoctors() }, [])
+  useEffect(()=>{loadDoctors()},[])
   const loadDoctors = async () => {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: accesses } = await supabase.from('doctor_access').select('*').eq('patient_id', user.id).eq('status', 'active')
-    if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
+    const {data:{user}} = await supabase.auth.getUser()
+    const {data:accesses} = await supabase.from('doctor_access').select('*').eq('patient_id',user.id).eq('status','active')
+    if(!accesses||accesses.length===0){setDoctors([]);setLoading(false);return}
     const doctorProfiles = []
-    for (const access of accesses) {
-      const { data: prof } = await supabase.from('profiles').select('id, fname, lname, gender, specialite, numero_ordre').eq('id', access.doctor_id).maybeSingle()
-      if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.granted_at })
+    for(const access of accesses){
+      const {data:prof} = await supabase.from('profiles').select('id,fname,lname,gender,specialite,numero_ordre').eq('id',access.doctor_id).maybeSingle()
+      if(prof) doctorProfiles.push({...prof,access_id:access.id,since:access.granted_at})
     }
     setDoctors(doctorProfiles); setLoading(false)
   }
   const searchDoctorReal = async () => {
-    if (!email.trim()) { setSearchError('Entrez un email'); return }
+    if(!email.trim()){setSearchError('Entrez un email');return}
     setSearching(true); setSearchError(''); setFoundDoctor(null)
-    const { data, error } = await supabase.rpc('find_doctor_by_email', { p_email: email.trim().toLowerCase() })
-    if (error || !data || data.length === 0) { setSearchError('Aucun médecin VitaPass trouvé avec cet email'); setSearching(false); return }
+    const {data,error} = await supabase.rpc('find_doctor_by_email',{p_email:email.trim().toLowerCase()})
+    if(error||!data||data.length===0){setSearchError('Aucun médecin VitaPass trouvé avec cet email');setSearching(false);return}
     const doc = data[0]
-    if (doc.role !== 'doctor') { setSearchError("Cet utilisateur n'est pas un médecin"); setSearching(false); return }
-    const { data: { user } } = await supabase.auth.getUser()
-    const { data: existing } = await supabase.from('doctor_access').select('id').eq('patient_id', user.id).eq('doctor_id', doc.id).eq('status', 'active').maybeSingle()
-    if (existing) { setSearchError('Ce médecin a déjà accès à votre dossier'); setSearching(false); return }
+    if(doc.role!=='doctor'){setSearchError("Cet utilisateur n'est pas un médecin");setSearching(false);return}
+    const {data:{user}} = await supabase.auth.getUser()
+    const {data:existing} = await supabase.from('doctor_access').select('id').eq('patient_id',user.id).eq('doctor_id',doc.id).eq('status','active').maybeSingle()
+    if(existing){setSearchError('Ce médecin a déjà accès à votre dossier');setSearching(false);return}
     setFoundDoctor(doc); setSearching(false)
   }
   const authorizeDoctor = async () => {
-    if (!foundDoctor) return; setAdding(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('doctor_access').insert({ patient_id: user.id, doctor_id: foundDoctor.id, status: 'active' })
-    if (error) { showToast('❌ Erreur: ' + error.message); setAdding(false); return }
+    if(!foundDoctor) return; setAdding(true)
+    const {data:{user}} = await supabase.auth.getUser()
+    const {error} = await supabase.from('doctor_access').insert({patient_id:user.id,doctor_id:foundDoctor.id,status:'active'})
+    if(error){showToast('❌ Erreur: '+error.message);setAdding(false);return}
     showToast('✅ Médecin autorisé !'); setShowModal(false); setEmail(''); setFoundDoctor(null); loadDoctors(); setAdding(false)
   }
   const revokeDoctor = async (accessId, name) => {
-    if (!confirm(`Révoquer l'accès du Dr. ${name} ?`)) return
-    await supabase.from('doctor_access').update({ status: 'revoked' }).eq('id', accessId)
+    if(!confirm(`Révoquer l'accès du Dr. ${name} ?`)) return
+    await supabase.from('doctor_access').update({status:'revoked'}).eq('id',accessId)
     showToast('Accès révoqué'); loadDoctors()
   }
   return (
-    <div className="screen" style={{ display: 'flex' }}>
-      <div className="screen-hdr"><div className="back-btn" onClick={() => nav('home')}>←</div><div className="shdr-title">Médecins & Accès</div></div>
-      <div style={{ background:'rgba(77,159,236,.06)', border:'1px solid rgba(77,159,236,.15)', borderRadius:12, padding:'10px 14px', marginBottom:14, fontSize:12, color:'rgba(255,255,255,.6)', lineHeight:1.5 }}>
-        🔒 Les médecins autorisés peuvent consulter votre dossier médical complet. Vous pouvez révoquer l'accès à tout moment.
+    <div className="screen" style={{display:'flex'}}>
+      <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">Médecins & Accès</div></div>
+      <div style={{background:'rgba(77,159,236,.06)',border:'1px solid rgba(77,159,236,.15)',borderRadius:12,padding:'10px 14px',marginBottom:14,fontSize:12,color:'rgba(255,255,255,.6)',lineHeight:1.5}}>
+        🔒 Les médecins autorisés peuvent consulter votre dossier médical complet.
       </div>
-      {loading ? <div className="loading">⏳ Chargement...</div>
-        : doctors.length === 0 ? <div className="empty-state" style={{ marginTop: 24 }}><div className="empty-icon">👨‍⚕️</div><p>Aucun médecin autorisé</p><p style={{ marginTop: 8, fontSize: 12 }}>Ajoutez un médecin VitaPass pour lui donner accès à votre dossier</p></div>
-        : doctors.map(doc => (
+      {loading?<div className="loading">⏳ Chargement...</div>
+        :doctors.length===0?<div className="empty-state" style={{marginTop:24}}><div className="empty-icon">👨‍⚕️</div><p>Aucun médecin autorisé</p></div>
+        :doctors.map(doc=>(
           <div key={doc.id} className="doctor-card">
             <div className="doctor-card-row">
-              <div className="doctor-av">{doc.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}</div>
+              <div className="doctor-av">{doc.gender==='Féminin'?'👩‍⚕️':'👨‍⚕️'}</div>
               <div className="doctor-info">
                 <div className="doctor-name">Dr. {doc.fname} {doc.lname}</div>
-                {doc.specialite && <div className="doctor-spec">{doc.specialite}</div>}
+                {doc.specialite&&<div className="doctor-spec">{doc.specialite}</div>}
                 <div className="doctor-email">Depuis le {formatDate(doc.since)}</div>
               </div>
-              <div className="revoke-btn" onClick={() => revokeDoctor(doc.access_id, `${doc.fname} ${doc.lname}`)}>Révoquer</div>
+              <div className="revoke-btn" onClick={()=>revokeDoctor(doc.access_id,`${doc.fname} ${doc.lname}`)}>Révoquer</div>
             </div>
           </div>
         ))}
-      <div className="add-btn" onClick={() => { setShowModal(true); setEmail(''); setFoundDoctor(null); setSearchError('') }}>＋ Autoriser un médecin</div>
+      <div className="add-btn" onClick={()=>{setShowModal(true);setEmail('');setFoundDoctor(null);setSearchError('')}}>＋ Autoriser un médecin</div>
       <div className="pad-b" />
-      {showModal && (
-        <Modal title="Autoriser un médecin" onClose={() => setShowModal(false)}>
-          <div style={{ fontSize:12, color:'var(--dim)', marginBottom:14, lineHeight:1.5 }}>Entrez l'email du médecin inscrit sur VitaPass.</div>
-          <div className="form-group"><label className="form-label">Email du médecin</label><input className="form-input" type="email" placeholder="docteur@exemple.com" value={email} onChange={e => { setEmail(e.target.value); setFoundDoctor(null); setSearchError('') }} /></div>
-          {searchError && <div className="error-msg" style={{ marginBottom:12 }}>{searchError}</div>}
-          {foundDoctor && (
-            <div style={{ background:'rgba(0,201,141,.06)', border:'1px solid rgba(0,201,141,.2)', borderRadius:12, padding:14, marginBottom:14, display:'flex', alignItems:'center', gap:12 }}>
-              <span style={{ fontSize:28 }}>{foundDoctor.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}</span>
+      {showModal&&(
+        <Modal title="Autoriser un médecin" onClose={()=>setShowModal(false)}>
+          <div className="form-group"><label className="form-label">Email du médecin</label><input className="form-input" type="email" placeholder="docteur@exemple.com" value={email} onChange={e=>{setEmail(e.target.value);setFoundDoctor(null);setSearchError('')}} /></div>
+          {searchError&&<div className="error-msg">{searchError}</div>}
+          {foundDoctor&&(
+            <div style={{background:'rgba(0,201,141,.06)',border:'1px solid rgba(0,201,141,.2)',borderRadius:12,padding:14,marginBottom:14,display:'flex',alignItems:'center',gap:12}}>
+              <span style={{fontSize:28}}>{foundDoctor.gender==='Féminin'?'👩‍⚕️':'👨‍⚕️'}</span>
               <div>
-                <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--white)' }}>Dr. {foundDoctor.fname} {foundDoctor.lname}</div>
-                {foundDoctor.specialite && <div style={{ fontSize:12, color:'var(--blue)', marginTop:2 }}>{foundDoctor.specialite}</div>}
-                {foundDoctor.numero_ordre && <div style={{ fontSize:11, color:'var(--dim)', marginTop:2 }}>N° Ordre : {foundDoctor.numero_ordre}</div>}
+                <div style={{fontFamily:"'Syne',sans-serif",fontWeight:700,color:'var(--white)'}}>Dr. {foundDoctor.fname} {foundDoctor.lname}</div>
+                {foundDoctor.specialite&&<div style={{fontSize:12,color:'var(--blue)',marginTop:2}}>{foundDoctor.specialite}</div>}
               </div>
             </div>
           )}
           {!foundDoctor
-            ? <button className="btn-submit" onClick={searchDoctorReal} disabled={searching}>{searching ? '🔍 Recherche...' : '🔍 Rechercher'}</button>
-            : <button className="btn-submit" onClick={authorizeDoctor} disabled={adding}>{adding ? '⏳...' : '✅ Autoriser ce médecin'}</button>}
-          <button className="btn-cancel" onClick={() => setShowModal(false)}>Annuler</button>
+            ?<button className="btn-submit" onClick={searchDoctorReal} disabled={searching}>{searching?'🔍 Recherche...':'🔍 Rechercher'}</button>
+            :<button className="btn-submit" onClick={authorizeDoctor} disabled={adding}>{adding?'⏳...':'✅ Autoriser ce médecin'}</button>}
+          <button className="btn-cancel" onClick={()=>setShowModal(false)}>Annuler</button>
         </Modal>
       )}
     </div>
@@ -839,240 +794,169 @@ function DoctorsScreen({ nav, showToast }) {
 
 function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
   const [modal, setModal] = useState(false)
-  const [form, setForm] = useState(profile || {})
+  const [form, setForm] = useState(profile||{})
   const [saving, setSaving] = useState(false)
+  const { i18n } = useTranslation()
   const save = async () => {
     setSaving(true)
-    const { error } = await supabase.from('profiles').update({ fname: form.fname, lname: form.lname, dob: form.dob, gender: form.gender, wilaya: form.wilaya, blood: form.blood, cnas: form.cnas, emergency: form.emergency }).eq('id', profile.id)
-    if (!error) { setProfile({ ...profile, ...form }); setModal(false); showToast('✅ Profil mis à jour') }
+    const {error} = await supabase.from('profiles').update({fname:form.fname,lname:form.lname,dob:form.dob,gender:form.gender,wilaya:form.wilaya,blood:form.blood,cnas:form.cnas,emergency:form.emergency}).eq('id',profile.id)
+    if(!error){setProfile({...profile,...form});setModal(false);showToast('✅ Profil mis à jour')}
     setSaving(false)
   }
-  const age = profile?.dob ? new Date().getFullYear() - parseInt(profile.dob.split('-')[0]) : ''
-  const avatarEmoji = getAvatarEmoji(profile?.gender, 'patient')
+  const age = profile?.dob?new Date().getFullYear()-parseInt(profile.dob.split('-')[0]):''
   return (
-    <div className="screen" style={{ display: 'flex' }}>
+    <div className="screen" style={{display:'flex'}}>
       <div className="profile-hero">
-        <div className="p-av-wrap"><div className="p-av">{avatarEmoji}</div><div className="p-badge">✅</div></div>
+        <div className="p-av-wrap"><div className="p-av">{getAvatarEmoji(profile?.gender,'patient')}</div><div className="p-badge">✅</div></div>
         <div className="p-name">{profile?.fname} {profile?.lname}</div>
         <div className="p-id">ID : VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</div>
-        <div className="p-chips"><span className="pchip">🩸 {profile?.blood || 'N/A'}</span><span className="pchip">📍 {profile?.wilaya || 'N/A'}</span><span className="pchip">{age} ans</span></div>
+        <div className="p-chips"><span className="pchip">🩸 {profile?.blood||'N/A'}</span><span className="pchip">📍 {profile?.wilaya||'N/A'}</span><span className="pchip">{age} ans</span></div>
       </div>
-      <div style={{ height: 20 }} />
+      <div style={{height:20}} />
+
+      {/* SÉLECTEUR DE LANGUE */}
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'var(--card)',border:'1px solid var(--border)',borderRadius:14,padding:'12px 16px',marginBottom:10}}>
+        <div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,color:'var(--white)'}}>🌐 Langue</div>
+          <div style={{fontSize:11,color:'var(--dim)',marginTop:2}}>{i18n.language==='fr'?'Français actif':'العربية نشطة'}</div>
+        </div>
+        <button onClick={()=>{const next=i18n.language==='fr'?'ar':'fr';i18n.changeLanguage(next);localStorage.setItem('vitapass_lang',next);showToast(next==='ar'?'تم التغيير إلى العربية':'Français activé')}} style={{background:'rgba(0,201,141,.1)',border:'1px solid rgba(0,201,141,.2)',borderRadius:10,padding:'8px 16px',fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,color:'var(--g)',cursor:'pointer'}}>
+          {i18n.language==='fr'?'العربية':'Français'}
+        </button>
+      </div>
+
       <div className="sec-label">Informations personnelles</div>
       <div className="pinfo-list">
-        {[['Prénom', profile?.fname],['Nom', profile?.lname],['Date de naissance', formatDate(profile?.dob)],['Genre', profile?.gender],['Wilaya', profile?.wilaya],['Groupe sanguin', profile?.blood],['N° CNAS', profile?.cnas],['Contact urgence', profile?.emergency]].map(([k,v], i) => (
-          <div key={i} className="pinfo-row"><span className="pi-key">{k}</span><span className="pi-val">{v || '—'}</span></div>
+        {[['Prénom',profile?.fname],['Nom',profile?.lname],['Date de naissance',formatDate(profile?.dob)],['Genre',profile?.gender],['Wilaya',profile?.wilaya],['Groupe sanguin',profile?.blood],['N° CNAS',profile?.cnas],['Contact urgence',profile?.emergency]].map(([k,v],i)=>(
+          <div key={i} className="pinfo-row"><span className="pi-key">{k}</span><span className="pi-val">{v||'—'}</span></div>
         ))}
       </div>
-      <div className="add-btn" onClick={() => { setForm(profile || {}); setModal(true) }}>✏️ Modifier mon profil</div>
+      <div className="add-btn" onClick={()=>{setForm(profile||{});setModal(true)}}>✏️ Modifier mon profil</div>
       <div className="logout-btn" onClick={onLogout}>🚪 Se déconnecter</div>
-      {modal && <Modal title="Modifier mon profil" onClose={() => setModal(false)}>
+      {modal&&<Modal title="Modifier mon profil" onClose={()=>setModal(false)}>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Prénom</label><input className="form-input" defaultValue={profile?.fname} onChange={e => setForm({ ...form, fname: e.target.value })} /></div>
-          <div className="form-group"><label className="form-label">Nom</label><input className="form-input" defaultValue={profile?.lname} onChange={e => setForm({ ...form, lname: e.target.value })} /></div>
+          <div className="form-group"><label className="form-label">Prénom</label><input className="form-input" defaultValue={profile?.fname} onChange={e=>setForm({...form,fname:e.target.value})} /></div>
+          <div className="form-group"><label className="form-label">Nom</label><input className="form-input" defaultValue={profile?.lname} onChange={e=>setForm({...form,lname:e.target.value})} /></div>
         </div>
-        <div className="form-group"><label className="form-label">Date de naissance</label><input className="form-input" type="date" defaultValue={profile?.dob} onChange={e => setForm({ ...form, dob: e.target.value })} /></div>
+        <div className="form-group"><label className="form-label">Date de naissance</label><input className="form-input" type="date" defaultValue={profile?.dob} onChange={e=>setForm({...form,dob:e.target.value})} /></div>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Groupe sanguin</label><select className="form-select" defaultValue={profile?.blood} onChange={e => setForm({ ...form, blood: e.target.value })}>{['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b => <option key={b}>{b}</option>)}</select></div>
-          <div className="form-group"><label className="form-label">Genre</label><select className="form-select" defaultValue={profile?.gender} onChange={e => setForm({ ...form, gender: e.target.value })}><option>Masculin</option><option>Féminin</option></select></div>
+          <div className="form-group"><label className="form-label">Groupe sanguin</label><select className="form-select" defaultValue={profile?.blood} onChange={e=>setForm({...form,blood:e.target.value})}>{['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b=><option key={b}>{b}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Genre</label><select className="form-select" defaultValue={profile?.gender} onChange={e=>setForm({...form,gender:e.target.value})}><option>Masculin</option><option>Féminin</option></select></div>
         </div>
-        <div className="form-group"><label className="form-label">Wilaya</label><select className="form-select" defaultValue={profile?.wilaya} onChange={e => setForm({ ...form, wilaya: e.target.value })}>{WILAYAS.map(w => <option key={w}>{w}</option>)}</select></div>
-        <div className="form-group"><label className="form-label">N° CNAS</label><input className="form-input" defaultValue={profile?.cnas} onChange={e => setForm({ ...form, cnas: e.target.value })} /></div>
-        <div className="form-group"><label className="form-label">Contact urgence</label><input className="form-input" defaultValue={profile?.emergency} onChange={e => setForm({ ...form, emergency: e.target.value })} /></div>
-        <button className="btn-submit" onClick={save} disabled={saving}>{saving ? '⏳...' : 'Enregistrer'}</button>
-        <button className="btn-cancel" onClick={() => setModal(false)}>Annuler</button>
+        <div className="form-group"><label className="form-label">Wilaya</label><select className="form-select" defaultValue={profile?.wilaya} onChange={e=>setForm({...form,wilaya:e.target.value})}>{WILAYAS.map(w=><option key={w}>{w}</option>)}</select></div>
+        <div className="form-group"><label className="form-label">N° CNAS</label><input className="form-input" defaultValue={profile?.cnas} onChange={e=>setForm({...form,cnas:e.target.value})} /></div>
+        <div className="form-group"><label className="form-label">Contact urgence</label><input className="form-input" defaultValue={profile?.emergency} onChange={e=>setForm({...form,emergency:e.target.value})} /></div>
+        <button className="btn-submit" onClick={save} disabled={saving}>{saving?'⏳...':'Enregistrer'}</button>
+        <button className="btn-cancel" onClick={()=>setModal(false)}>Annuler</button>
       </Modal>}
     </div>
   )
 }
 
 function OnboardingScreen({ profile, setProfile, userId, showToast }) {
-  const [form, setForm] = useState({ wilaya: 'Oran', blood: 'A+', gender: 'Masculin', dob: '', cnas: '', emergency: '' })
+  const [form, setForm] = useState({wilaya:'Oran',blood:'A+',gender:'Masculin',dob:'',cnas:'',emergency:''})
   const [saving, setSaving] = useState(false)
   const save = async () => {
-    if (!form.dob) { alert('Date de naissance requise'); return }
+    if(!form.dob){alert('Date de naissance requise');return}
     setSaving(true)
-    const { error } = await supabase.from('profiles').update(form).eq('id', userId)
-    if (!error) { setProfile({ ...profile, ...form }); showToast('✅ Profil complété !') }
+    const {error} = await supabase.from('profiles').update(form).eq('id',userId)
+    if(!error){setProfile({...profile,...form});showToast('✅ Profil complété !')}
     setSaving(false)
   }
   return (
-    <div className="auth-screen" style={{ justifyContent: 'flex-start', paddingTop: 40, overflowY: 'auto' }}>
-      <div className="auth-logo" style={{ marginBottom: 8 }}>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>Complète ton <span style={{ color: 'var(--g)' }}>profil</span></div>
-        <div style={{ fontSize: 12, color: 'var(--dim)' }}>Nécessaire pour ton dossier médical</div>
+    <div className="auth-screen" style={{justifyContent:'flex-start',paddingTop:40,overflowY:'auto'}}>
+      <div className="auth-logo" style={{marginBottom:8}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'var(--white)'}}>Complète ton <span style={{color:'var(--g)'}}>profil</span></div>
+        <div style={{fontSize:12,color:'var(--dim)'}}>Nécessaire pour ton dossier médical</div>
       </div>
-      <div className="auth-card" style={{ width: '100%' }}>
-        <div className="form-group"><label className="form-label">Date de naissance</label><input className="form-input" type="date" onChange={e => setForm({ ...form, dob: e.target.value })} /></div>
+      <div className="auth-card" style={{width:'100%'}}>
+        <div className="form-group"><label className="form-label">Date de naissance</label><input className="form-input" type="date" onChange={e=>setForm({...form,dob:e.target.value})} /></div>
         <div className="form-row">
-          <div className="form-group"><label className="form-label">Groupe sanguin</label><select className="form-select" onChange={e => setForm({ ...form, blood: e.target.value })}>{['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b => <option key={b}>{b}</option>)}</select></div>
-          <div className="form-group"><label className="form-label">Genre</label><select className="form-select" onChange={e => setForm({ ...form, gender: e.target.value })}><option>Masculin</option><option>Féminin</option></select></div>
+          <div className="form-group"><label className="form-label">Groupe sanguin</label><select className="form-select" onChange={e=>setForm({...form,blood:e.target.value})}>{['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(b=><option key={b}>{b}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Genre</label><select className="form-select" onChange={e=>setForm({...form,gender:e.target.value})}><option>Masculin</option><option>Féminin</option></select></div>
         </div>
-        <div className="form-group"><label className="form-label">Wilaya</label><select className="form-select" onChange={e => setForm({ ...form, wilaya: e.target.value })}>{WILAYAS.map(w => <option key={w}>{w}</option>)}</select></div>
-        <div className="form-group"><label className="form-label">N° CNAS</label><input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e => setForm({ ...form, cnas: e.target.value })} /></div>
-        <div className="form-group"><label className="form-label">Contact d'urgence</label><input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e => setForm({ ...form, emergency: e.target.value })} /></div>
-        <button className="btn-submit" onClick={save} disabled={saving}>{saving ? '⏳...' : '✅ Accéder à VitaPass'}</button>
+        <div className="form-group"><label className="form-label">Wilaya</label><select className="form-select" onChange={e=>setForm({...form,wilaya:e.target.value})}>{WILAYAS.map(w=><option key={w}>{w}</option>)}</select></div>
+        <div className="form-group"><label className="form-label">N° CNAS</label><input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e=>setForm({...form,cnas:e.target.value})} /></div>
+        <div className="form-group"><label className="form-label">Contact d'urgence</label><input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e=>setForm({...form,emergency:e.target.value})} /></div>
+        <button className="btn-submit" onClick={save} disabled={saving}>{saving?'⏳...':'✅ Accéder à VitaPass'}</button>
       </div>
     </div>
   )
 }
 
-// ─── LANDING SCREEN ──────────────────────────────────────────────────────────
 function LandingScreen() {
   const [showAuth, setShowAuth] = useState(false)
   const [authTab, setAuthTab] = useState('login')
 
   if (showAuth) return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24, padding:24, overflowY:'auto' }}>
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginBottom:8 }}>
-          <svg width="56" height="56" viewBox="0 0 110 110" fill="none">
-            <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
-            <circle cx="55" cy="55" r="44" fill="#0A1628"/>
-            <path d="M55 82C48 76 30 66 30 51c0-8 6-14 13-14 4.5 0 8.5 2.5 12 6.5 3.5-4 7.5-6.5 12-6.5 7 0 13 6 13 14 0 15-17 25-25 31Z" fill="url(#sg2)"/>
-            <defs><linearGradient id="sg2" x1="30" y1="37" x2="80" y2="82" gradientUnits="userSpaceOnUse"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
-          </svg>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:26, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
+    <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:24,padding:24,overflowY:'auto'}}>
+      <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8,marginBottom:8}}>
+        <svg width="56" height="56" viewBox="0 0 110 110" fill="none">
+          <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
+          <circle cx="55" cy="55" r="44" fill="#0A1628"/>
+          <path d="M55 82C48 76 30 66 30 51c0-8 6-14 13-14 4.5 0 8.5 2.5 12 6.5 3.5-4 7.5-6.5 12-6.5 7 0 13 6 13 14 0 15-17 25-25 31Z" fill="url(#sg2)"/>
+          <defs><linearGradient id="sg2" x1="30" y1="37" x2="80" y2="82" gradientUnits="userSpaceOnUse"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
+        </svg>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:26,fontWeight:800,color:'var(--white)'}}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
+      </div>
+      <div style={{background:'var(--card)',border:'1px solid var(--border)',borderRadius:20,padding:20,width:'100%'}}>
+        <div style={{display:'flex',background:'var(--card2)',borderRadius:10,padding:3,marginBottom:16,gap:2}}>
+          <div onClick={()=>setAuthTab('login')} style={{flex:1,textAlign:'center',padding:8,fontFamily:"'Syne',sans-serif",fontSize:12,fontWeight:700,color:authTab==='login'?'#001A12':'var(--dim)',background:authTab==='login'?'var(--g)':'transparent',borderRadius:8,cursor:'pointer'}}>Connexion</div>
+          <div onClick={()=>setAuthTab('signup')} style={{flex:1,textAlign:'center',padding:8,fontFamily:"'Syne',sans-serif",fontSize:12,fontWeight:700,color:authTab==='signup'?'#001A12':'var(--dim)',background:authTab==='signup'?'var(--g)':'transparent',borderRadius:8,cursor:'pointer'}}>Inscription</div>
         </div>
-        <div style={{ background:'var(--card)', border:'1px solid var(--border)', borderRadius:20, padding:20, width:'100%' }}>
-          <div style={{ display:'flex', background:'var(--card2)', borderRadius:10, padding:3, marginBottom:16, gap:2 }}>
-            <div onClick={() => setAuthTab('login')} style={{ flex:1, textAlign:'center', padding:8, fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color: authTab==='login' ? '#001A12' : 'var(--dim)', background: authTab==='login' ? 'var(--g)' : 'transparent', borderRadius:8, cursor:'pointer' }}>Connexion</div>
-            <div onClick={() => setAuthTab('signup')} style={{ flex:1, textAlign:'center', padding:8, fontFamily:"'Syne',sans-serif", fontSize:12, fontWeight:700, color: authTab==='signup' ? '#001A12' : 'var(--dim)', background: authTab==='signup' ? 'var(--g)' : 'transparent', borderRadius:8, cursor:'pointer' }}>Inscription</div>
-          </div>
-          <AuthScreen tab={authTab} />
-        </div>
-        <div onClick={() => setShowAuth(false)} style={{ fontSize:13, color:'var(--dim)', cursor:'pointer', textDecoration:'underline' }}>← Retour à l&apos;accueil</div>
+        <AuthScreen tab={authTab} />
+      </div>
+      <div onClick={()=>setShowAuth(false)} style={{fontSize:13,color:'var(--dim)',cursor:'pointer',textDecoration:'underline'}}>← Retour à l&apos;accueil</div>
     </div>
   )
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)', color:'var(--white)', fontFamily:"'Inter',sans-serif", overflowX:'hidden' }}>
-      {/* NAV */}
-      <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:100, padding:'16px 32px', display:'flex', alignItems:'center', justifyContent:'space-between', background:'rgba(8,14,30,0.92)', backdropFilter:'blur(20px)', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+    <div style={{minHeight:'100vh',background:'var(--bg)',color:'var(--white)',fontFamily:"'Inter',sans-serif",overflowX:'hidden'}}>
+      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(8,14,30,0.92)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
           <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
             <circle cx="20" cy="20" r="19" fill="rgba(0,201,141,0.08)" stroke="rgba(0,201,141,0.25)" strokeWidth="1"/>
             <path d="M20 32C17 29 9 24 9 17c0-4 3-7 6.5-7 2 0 3.8 1.2 4.5 3 .7-1.8 2.5-3 4.5-3C28 10 31 13 31 17c0 7-9 12-11 15Z" fill="url(#lg1)"/>
             <defs><linearGradient id="lg1" x1="9" y1="10" x2="31" y2="32"><stop stopColor="#00C98D"/><stop offset="1" stopColor="#005E42"/></linearGradient></defs>
           </svg>
-          <span style={{ fontFamily:"'Syne',sans-serif", fontSize:19, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></span>
+          <span style={{fontFamily:"'Syne',sans-serif",fontSize:19,fontWeight:800,color:'var(--white)'}}>Vita<span style={{color:'var(--g)'}}>Pass</span></span>
         </div>
-        <div style={{ display:'flex', gap:12 }}>
-          <button onClick={() => { setAuthTab('login'); setShowAuth(true) }} style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.15)', borderRadius:8, padding:'9px 20px', fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700, cursor:'pointer' }}>Connexion</button>
-          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:8, padding:'9px 20px', fontFamily:"'Syne',sans-serif", fontSize:13, fontWeight:700, cursor:'pointer' }}>Créer un compte</button>
+        <div style={{display:'flex',gap:12}}>
+          <button onClick={()=>{setAuthTab('login');setShowAuth(true)}} style={{background:'transparent',color:'var(--white)',border:'1px solid rgba(255,255,255,0.15)',borderRadius:8,padding:'9px 20px',fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,cursor:'pointer'}}>Connexion</button>
+          <button onClick={()=>{setAuthTab('signup');setShowAuth(true)}} style={{background:'var(--g)',color:'#001A12',border:'none',borderRadius:8,padding:'9px 20px',fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,cursor:'pointer'}}>Créer un compte</button>
         </div>
       </nav>
-
-      {/* HERO */}
-      <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'120px 24px 80px', position:'relative' }}>
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,201,141,0.07) 0%, transparent 65%)', pointerEvents:'none' }} />
-        <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'rgba(0,201,141,0.08)', border:'1px solid rgba(0,201,141,0.18)', borderRadius:20, padding:'6px 16px', fontSize:11, fontFamily:"'Syne',sans-serif", fontWeight:700, color:'var(--g)', letterSpacing:'1.5px', textTransform:'uppercase', marginBottom:32 }}>
-          <span style={{ width:6, height:6, background:'var(--g)', borderRadius:'50%', display:'inline-block', animation:'none' }}>·</span> Disponible maintenant · Gratuit
+      <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'120px 24px 80px',position:'relative'}}>
+        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,201,141,0.07) 0%, transparent 65%)',pointerEvents:'none'}} />
+        <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(0,201,141,0.08)',border:'1px solid rgba(0,201,141,0.18)',borderRadius:20,padding:'6px 16px',fontSize:11,fontFamily:"'Syne',sans-serif",fontWeight:700,color:'var(--g)',letterSpacing:'1.5px',textTransform:'uppercase',marginBottom:32}}>
+          · Disponible maintenant · Gratuit
         </div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:'3.5vw', fontWeight:800, lineHeight:1.05, maxWidth:'820px', marginBottom:24 }}>
-          Votre sant&#233;,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
+        <h1 style={{fontFamily:"'Syne',sans-serif",fontSize:'clamp(28px,5vw,56px)',fontWeight:800,lineHeight:1.05,maxWidth:'820px',marginBottom:24}}>
+          Votre santé,<br/><span style={{color:'var(--g)'}}>toujours avec vous</span>
         </h1>
-        <p style={{ fontSize:17, color:'#8A9AB5', maxWidth:'520px', lineHeight:1.75, marginBottom:44 }}>
-          VitaPass centralise tout votre dossier médical dans une application sécurisée, accessible en un scan QR — même en urgence.
+        <p style={{fontSize:17,color:'#8A9AB5',maxWidth:'520px',lineHeight:1.75,marginBottom:44}}>
+          VitaPass centralise tout votre dossier médical dans une application sécurisée. Prenez rendez-vous avec tous les professionnels de santé — accessible en un scan QR.
         </p>
-        <div style={{ display:'flex', gap:14, flexWrap:'wrap', justifyContent:'center' }}>
-          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:10, padding:'16px 40px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, cursor:'pointer' }}>
-            Créer mon dossier gratuit
-          </button>
-          <button onClick={() => { setAuthTab('login'); setShowAuth(true) }} style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'16px 36px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:600, cursor:'pointer' }}>
-            Se connecter →
-          </button>
+        <div style={{display:'flex',gap:14,flexWrap:'wrap',justifyContent:'center'}}>
+          <button onClick={()=>{setAuthTab('signup');setShowAuth(true)}} style={{background:'var(--g)',color:'#001A12',border:'none',borderRadius:10,padding:'16px 40px',fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:700,cursor:'pointer'}}>Créer mon dossier gratuit</button>
+          <button onClick={()=>{setAuthTab('login');setShowAuth(true)}} style={{background:'transparent',color:'var(--white)',border:'1px solid rgba(255,255,255,0.12)',borderRadius:10,padding:'16px 36px',fontFamily:"'Syne',sans-serif",fontSize:15,fontWeight:600,cursor:'pointer'}}>Se connecter →</button>
         </div>
-        <div style={{ display:'flex', gap:48, marginTop:72, paddingTop:48, borderTop:'1px solid rgba(255,255,255,0.07)', flexWrap:'wrap', justifyContent:'center' }}>
-          {[['100%','Gratuit pour toujours'],['🔒','Chiffré & sécurisé'],['DZ','Made in Algeria 🇩🇿']].map(([n,l]) => (
-            <div key={l} style={{ textAlign:'center' }}>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:34, fontWeight:800, color:'var(--g)', lineHeight:1 }}>{n}</div>
-              <div style={{ fontSize:13, color:'#8A9AB5', marginTop:6 }}>{l}</div>
+        <div style={{display:'flex',gap:48,marginTop:72,paddingTop:48,borderTop:'1px solid rgba(255,255,255,0.07)',flexWrap:'wrap',justifyContent:'center'}}>
+          {[['100%','Gratuit pour toujours'],['🔒','Chiffré & sécurisé'],['DZ','Made in Algeria 🇩🇿']].map(([n,l])=>(
+            <div key={l} style={{textAlign:'center'}}>
+              <div style={{fontFamily:"'Syne',sans-serif",fontSize:34,fontWeight:800,color:'var(--g)',lineHeight:1}}>{n}</div>
+              <div style={{fontSize:13,color:'#8A9AB5',marginTop:6}}>{l}</div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* FEATURES */}
-      <div style={{ padding:'80px 24px', maxWidth:'1100px', margin:'0 auto' }}>
-        <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'4vw', fontWeight:800, marginBottom:48 }}>Tout ce dont vous <span style={{color:'var(--g)'}}>avez besoin</span></div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(270px,1fr))', gap:1, background:'rgba(255,255,255,0.07)', borderRadius:16, overflow:'hidden', border:'1px solid rgba(255,255,255,0.07)' }}>
-          {[
-            ['🆘','QR Pass Urgence','Un QR code contenant vos infos vitales — groupe sanguin, allergies, contact — accessible instantanément par les secours.'],
-            ['📋','Dossier médical complet','Médicaments, antécédents, allergies, vaccins, documents — tout en un seul endroit, organisé et sécurisé.'],
-            ['📊','Suivi santé personnalisé','Surveillez votre glycémie, tension et poids avec des graphiques clairs. Idéal pour les patients diabétiques ou hypertendus.'],
-            ['👨‍⚕️','Accès médecin sécurisé','Autorisez vos médecins à consulter votre dossier en un clic. Vous gardez le contrôle total.'],
-            ['📄','Documents médicaux','Stockez ordonnances, analyses et radios. Fini les papiers perdus — tout est dans votre poche.'],
-            ['📱','Application mobile PWA','Installez VitaPass sur votre téléphone comme une vraie app iOS ou Android, sans passer par un store.'],
-          ].map(([ico,titre,desc]) => (
-            <div key={titre} style={{ background:'var(--card)', padding:'28px 24px' }}>
-              <div style={{ width:44, height:44, background:'rgba(0,201,141,0.07)', border:'1px solid rgba(0,201,141,0.15)', borderRadius:11, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, marginBottom:16 }}>{ico}</div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:700, color:'var(--white)', marginBottom:8 }}>{titre}</div>
-              <p style={{ fontSize:13, color:'#8A9AB5', lineHeight:1.7 }}>{desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* FOR WHO */}
-      <div style={{ padding:'80px 24px', maxWidth:'1100px', margin:'0 auto' }}>
-        <div style={{ width:44, height:2, background:'var(--g)', marginBottom:18 }} />
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:'4vw', fontWeight:800, marginBottom:40 }}>Conçu pour <span style={{color:'var(--g)'}}>tous</span></div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:20 }}>
-          {[
-            ['🧑‍💼','Patients',['Centralisez tout votre historique médical','Partagez vos infos en urgence via QR code','Suivez vos constantes au quotidien','Ne perdez plus jamais une ordonnance','Gérez vos médecins autorisés']],
-            ['👨‍⚕️','Médecins',['Accédez au dossier complet de vos patients','Historique médicaments et antécédents instantané','Profil validé par l\'équipe VitaPass','Interface dédiée et optimisée','Accès sécurisé et révocable par le patient']],
-          ].map(([ico,titre,liste]) => (
-            <div key={titre} style={{ background:'var(--card)', border:'1px solid rgba(255,255,255,0.07)', borderRadius:18, padding:'40px 32px' }}>
-              <div style={{ fontSize:42, marginBottom:18 }}>{ico}</div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:'var(--white)', marginBottom:18 }}>{titre}</div>
-              <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:10 }}>
-                {liste.map(item => (
-                  <li key={item} style={{ display:'flex', alignItems:'flex-start', gap:10, fontSize:14, color:'#8A9AB5', lineHeight:1.5 }}>
-                    <span style={{ color:'var(--g)', fontSize:9, marginTop:4, flexShrink:0 }}>✦</span>{item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CTA */}
-      <div style={{ padding:'100px 24px', textAlign:'center', position:'relative' }}>
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,201,141,0.05), transparent)', pointerEvents:'none' }} />
-        <div style={{ width:44, height:2, background:'var(--g)', margin:'0 auto 18px' }} />
-        <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:'4.5vw', fontWeight:800, lineHeight:1.1, maxWidth:'680px', margin:'0 auto 20px' }}>
-          Prêt à prendre soin<br/>de votre <span style={{color:'var(--g)'}}>santé ?</span>
-        </h2>
-        <p style={{ fontSize:16, color:'#8A9AB5', maxWidth:'460px', margin:'0 auto 40px', lineHeight:1.7 }}>
-          Rejoignez les Algériens qui font confiance à VitaPass pour gérer leur santé au quotidien.
-        </p>
-        <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
-          <button onClick={() => { setAuthTab('signup'); setShowAuth(true) }} style={{ background:'var(--g)', color:'#001A12', border:'none', borderRadius:10, padding:'16px 40px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, cursor:'pointer' }}>
-            Créer mon compte gratuit →
-          </button>
-          <a href="mailto:contact@vitapass.app" style={{ background:'transparent', color:'var(--white)', border:'1px solid rgba(255,255,255,0.12)', borderRadius:10, padding:'16px 36px', fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:600, textDecoration:'none', display:'inline-flex', alignItems:'center' }}>
-            Nous contacter
-          </a>
-        </div>
-        <p style={{ fontSize:12, color:'var(--dim)', marginTop:16 }}>Gratuit · Sans publicité · 100% algérien 🇩🇿</p>
-      </div>
-
-      {/* FOOTER */}
-      <div style={{ padding:'32px 24px', borderTop:'1px solid rgba(255,255,255,0.07)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:17, fontWeight:800, color:'var(--white)' }}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
-        <div style={{ display:'flex', gap:24 }}>
-          {[['contact@vitapass.app','Contact'],['mailto:contact@vitapass.app','Médecins']].map(([href,label]) => (
-            <a key={label} href={href} style={{ fontSize:13, color:'#8A9AB5', textDecoration:'none' }}>{label}</a>
-          ))}
-        </div>
-        <div style={{ fontSize:12, color:'var(--dim)' }}>© 2026 VitaPass · Algérie 🇩🇿</div>
+      <div style={{padding:'32px 24px',borderTop:'1px solid rgba(255,255,255,0.07)',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:16}}>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:17,fontWeight:800,color:'var(--white)'}}>Vita<span style={{color:'var(--g)'}}>Pass</span></div>
+        <div style={{fontSize:12,color:'var(--dim)'}}>© 2026 VitaPass · Algérie 🇩🇿</div>
       </div>
     </div>
   )
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── APP PRINCIPAL ───────────────────────────────────────────────────────────
 export default function App() {
@@ -1088,115 +972,104 @@ export default function App() {
   const [doctorCount, setDoctorCount] = useState(0)
   const [notifs, setNotifs] = useState([])
 
-  // ── MODIFICATION 2 : détection lien recovery dans l'URL au chargement ──────
-  const [isRecovery, setIsRecovery] = useState(() => {
-    return window.location.hash.includes('type=recovery')
-  })
+  const [isRecovery, setIsRecovery] = useState(()=>window.location.hash.includes('type=recovery'))
 
-  useEffect(() => {
-    const tick = () => { const n = new Date(); setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`) }
-    tick(); const id = setInterval(tick, 1000); return () => clearInterval(id)
-  }, [])
+  useEffect(()=>{
+    const tick = ()=>{const n=new Date();setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)}
+    tick(); const id=setInterval(tick,1000); return ()=>clearInterval(id)
+  },[])
 
-  useEffect(() => {
-    if (isRecovery) { setLoading(false); return }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
+  useEffect(()=>{
+    if(isRecovery){setLoading(false);return}
+    supabase.auth.getSession().then(({data:{session}})=>{
       setSession(session)
-      if (session) loadUserData(session.user.id)
+      if(session) loadUserData(session.user.id)
       else setLoading(false)
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {data:{subscription}} = supabase.auth.onAuthStateChange((_event,session)=>{
       setSession(session)
-      if (session) { setSplash(true); loadUserData(session.user.id); setTimeout(() => setSplash(false), 2000) }
-      else { setProfile(null); setDossier(null); setLoading(false) }
+      if(session){setSplash(true);loadUserData(session.user.id);setTimeout(()=>setSplash(false),2000)}
+      else{setProfile(null);setDossier(null);setLoading(false)}
     })
-    return () => subscription.unsubscribe()
-  }, [isRecovery])
+    return ()=>subscription.unsubscribe()
+  },[isRecovery])
 
   const loadUserData = async (userId) => {
     setLoading(true)
-    const [{ data: prof }, { data: dos }, { count: docCount }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
-      supabase.from('dossiers').select('*').eq('patient_id', userId).maybeSingle(),
-      supabase.from('doctor_access').select('*', { count: 'exact', head: true }).eq('patient_id', userId).eq('status', 'active')
+    const [{data:prof},{data:dos},{count:docCount}] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id',userId).maybeSingle(),
+      supabase.from('dossiers').select('*').eq('patient_id',userId).maybeSingle(),
+      supabase.from('doctor_access').select('*',{count:'exact',head:true}).eq('patient_id',userId).eq('status','active')
     ])
     setProfile(prof)
-    if (prof?.role === 'doctor') setScreen('doctor')
+    if(prof?.role==='doctor') setScreen('doctor')
     setDossier(dos)
-    setDoctorCount(docCount || 0)
-    if (prof?.role === 'patient') buildNotifs(dos, docCount || 0)
+    setDoctorCount(docCount||0)
+    if(prof?.role==='patient') buildNotifs(dos,docCount||0)
     setLoading(false)
   }
 
   const buildNotifs = (dos, docCount) => {
     const alerts = []
-    const meds = dos?.meds || []
-    if (meds.length > 0) alerts.push({ id: 'med', icon: '💊', txt: `Rappel : prenez votre traitement (${meds[0].name})`, color: 'green', screen: 'dossier' })
-    const glyc = dos?.glyc || []
-    const bp = dos?.bp || []
-    if (glyc.length === 0) alerts.push({ id: 'glyc0', icon: '📊', txt: "Pensez à saisir votre glycémie aujourd'hui", color: '', screen: 'suivi' })
-    if (bp.length === 0) alerts.push({ id: 'bp0', icon: '❤️', txt: "Pensez à mesurer votre tension aujourd'hui", color: '', screen: 'suivi' })
-    if (docCount > 0) alerts.push({ id: 'doc', icon: '👨‍⚕️', txt: `${docCount} médecin(s) ont accès à votre dossier`, color: 'green', screen: 'doctors' })
-    alerts.push({ id: 'rdv', icon: '📅', txt: 'Pensez à planifier votre prochain rendez-vous', color: '', screen: 'doctors' })
-    setNotifs(alerts.slice(0, 3))
+    const meds = dos?.meds||[]
+    if(meds.length>0) alerts.push({id:'med',icon:'💊',txt:`Rappel : prenez votre traitement (${meds[0].name})`,screen:'dossier'})
+    if((dos?.glyc||[]).length===0) alerts.push({id:'glyc0',icon:'📊',txt:"Pensez à saisir votre glycémie aujourd'hui",screen:'suivi'})
+    if(docCount>0) alerts.push({id:'doc',icon:'👨‍⚕️',txt:`${docCount} médecin(s) ont accès à votre dossier`,screen:'doctors'})
+    setNotifs(alerts.slice(0,3))
   }
 
   const saveDossier = async (updates) => {
-    if (!dossier) return
-    const { data, error } = await supabase.from('dossiers').update({ ...updates, updated_at: new Date().toISOString() }).eq('patient_id', session.user.id).select().maybeSingle()
-    if (!error && data) setDossier(data)
+    if(!dossier) return
+    const {data,error} = await supabase.from('dossiers').update({...updates,updated_at:new Date().toISOString()}).eq('patient_id',session.user.id).select().maybeSingle()
+    if(!error&&data) setDossier(data)
   }
 
-  const handleLogout = async () => { await supabase.auth.signOut(); setScreen('home') }
-  const showToast = msg => { setToast(msg); setTimeout(() => setToast(null), 2500) }
-  const nav = (s, params = {}) => { setScreen(s); setNavParams(params) }
+  const handleLogout = async ()=>{await supabase.auth.signOut();setScreen('home')}
+  const showToast = msg=>{setToast(msg);setTimeout(()=>setToast(null),2500)}
+  const nav = (s,params={})=>{setScreen(s);setNavParams(params)}
 
+  // Nav items — 5 icônes dont RDV
   const navItems = [
-    { id: 'home', icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>, label: 'Accueil' },
-    { id: 'qr', icon: <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h2v2h-2zM15 15h2v2h-2zM13 17h2v2h-2zM17 13h2v2h-2zM19 15h2v2h-2zM17 17h2v2h-2zM19 19h2v2h-2zM15 19h2v2h-2z"/>, label: 'QR Pass' },
-    { id: 'dossier', icon: <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/>, label: 'Dossier' },
-    { id: 'doctors', icon: <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>, label: 'Médecins' },
-    { id: 'profile', icon: <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>, label: 'Profil' },
+    { id:'home',    icon:<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>,                                                                                                    label:'Accueil' },
+    { id:'search',  icon:<path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>, label:'Recherche' },
+    { id:'appointments', icon:<path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>,                                                           label:'RDV' },
+    { id:'dossier', icon:<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/>,              label:'Dossier' },
+    { id:'profile', icon:<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>,              label:'Profil' },
   ]
 
-  // ── PRIORITÉ ABSOLUE : mode récupération mot de passe ────────────────────
-  if (isRecovery) return <ResetPasswordScreen />
+  if(isRecovery) return <ResetPasswordScreen />
 
-  if (loading) return (
-    <div className="phone" style={{ alignItems: 'center', justifyContent: 'center' }}>
+  if(loading) return (
+    <div className="phone" style={{alignItems:'center',justifyContent:'center'}}>
       <div className="loading">⏳ Chargement...</div>
     </div>
   )
 
-  const profileIncomplete = session && profile && !profile.blood && profile.role !== 'doctor'
-  if (profileIncomplete) return (
+  const profileIncomplete = session&&profile&&!profile.blood&&profile.role!=='doctor'
+  if(profileIncomplete) return (
     <div className="phone">
       <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
     </div>
   )
 
-  if (!session) return <LandingScreen />
+  if(!session) return <LandingScreen />
 
-  if (profile?.role === 'doctor' && profile?.validated === false) return (
+  if(profile?.role==='doctor'&&profile?.validated===false) return (
     <div className="phone">
-      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:32, gap:20, background:'var(--bg)' }}>
-        <div style={{ fontSize:64 }}>⏳</div>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:22, fontWeight:800, color:'var(--white)', textAlign:'center' }}>Compte en attente</div>
-        <div style={{ fontSize:14, color:'var(--dim)', textAlign:'center', lineHeight:1.6 }}>Votre compte médecin est en cours de validation par l&apos;équipe VitaPass. Vous recevrez un accès sous 24h.</div>
-        <div style={{ background:'rgba(0,201,141,.08)', border:'1px solid rgba(0,201,141,.2)', borderRadius:14, padding:16, width:'100%', textAlign:'center' }}>
-          <div style={{ fontSize:12, color:'var(--g)', fontFamily:"'Syne',sans-serif", fontWeight:700 }}>N° Ordre : {profile?.numero_ordre || 'Non renseigné'}</div>
-        </div>
-        <div className="logout-btn" style={{ width:'100%' }} onClick={handleLogout}>🚪 Se déconnecter</div>
+      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20,background:'var(--bg)'}}>
+        <div style={{fontSize:64}}>⏳</div>
+        <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'var(--white)',textAlign:'center'}}>Compte en attente</div>
+        <div style={{fontSize:14,color:'var(--dim)',textAlign:'center',lineHeight:1.6}}>Votre compte médecin est en cours de validation. Vous recevrez un accès sous 24h.</div>
+        <div className="logout-btn" style={{width:'100%'}} onClick={handleLogout}>🚪 Se déconnecter</div>
       </div>
     </div>
   )
 
-  if (profile?.role === 'doctor') return (
+  if(profile?.role==='doctor') return (
     <>
-      {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
-      {screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
-      {screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
+      {screen==='doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
+      {screen==='doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
+      {screen==='doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
       {toast && <div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:'rgba(13,21,38,.95)',border:'1px solid rgba(0,201,141,.3)',color:'#EFF3FF',padding:'10px 20px',borderRadius:20,zIndex:999,fontSize:13,fontWeight:600}}>{toast}</div>}
     </>
   )
@@ -1228,16 +1101,20 @@ export default function App() {
         </div>
       </div>
       <div className="screens">
-        {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} />}
-        {screen === 'qr' && <QRScreen nav={nav} profile={profile} />}
-        {screen === 'dossier' && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
-        {screen === 'suivi' && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
-        {screen === 'doctors' && <DoctorsScreen nav={nav} showToast={showToast} />}
-        {screen === 'profile' && <ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} />}
+        {screen==='home'         && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} />}
+        {screen==='qr'           && <QRScreen nav={nav} profile={profile} />}
+        {screen==='search'       && <SearchScreen nav={nav} />}
+        {screen==='pro-profile'  && <ProProfileScreen nav={nav} navParams={navParams} />}
+        {screen==='booking'      && <BookingScreen nav={nav} navParams={navParams} showToast={showToast} />}
+        {screen==='appointments' && <AppointmentsScreen nav={nav} showToast={showToast} />}
+        {screen==='dossier'      && <DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
+        {screen==='suivi'        && <SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} />}
+        {screen==='doctors'      && <DoctorsScreen nav={nav} showToast={showToast} />}
+        {screen==='profile'      && <ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} />}
       </div>
       <div className="bnav">
-        {navItems.map(item => (
-          <div key={item.id} className={`ni${screen === item.id || (item.id === 'dossier' && screen === 'suivi') ? ' active' : ''}`} onClick={() => nav(item.id)}>
+        {navItems.map(item=>(
+          <div key={item.id} className={`ni${screen===item.id||(item.id==='dossier'&&screen==='suivi')||(item.id==='search'&&(screen==='pro-profile'||screen==='booking'))?' active':''}`} onClick={()=>nav(item.id)}>
             <svg viewBox="0 0 24 24">{item.icon}</svg>
             <span>{item.label}</span>
           </div>
