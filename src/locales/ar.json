@@ -1,0 +1,198 @@
+{
+  "app_name": "فيتاباس",
+  "tagline": "دفتر الصحة الرقمي الجزائري",
+
+  "nav": {
+    "home": "الرئيسية",
+    "qr": "رمز QR",
+    "dossier": "الملف",
+    "doctors": "الأطباء",
+    "profile": "الملف الشخصي",
+    "rdv": "المواعيد",
+    "search": "بحث"
+  },
+
+  "auth": {
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "login_btn": "تسجيل الدخول",
+    "signup_btn": "إنشاء حسابي",
+    "loading": "جارٍ التحميل...",
+    "role_patient": "مريض",
+    "role_patient_sub": "إدارة ملفي الطبي",
+    "role_doctor": "طبيب",
+    "role_doctor_sub": "الوصول إلى ملفات المرضى",
+    "i_am": "أنا",
+    "first_name": "الاسم",
+    "last_name": "اللقب",
+    "ordre_number": "رقم هيئة الأطباء",
+    "all_fields_required": "جميع الحقول مطلوبة",
+    "password_min": "كلمة المرور يجب أن تحتوي على 6 أحرف على الأقل",
+    "account_created": "تم إنشاء الحساب! تحقق من بريدك الإلكتروني.",
+    "reset_sent": "تم الإرسال! تحقق من بريدك الإلكتروني.",
+    "enter_email_first": "أدخل بريدك الإلكتروني أولاً"
+  },
+
+  "home": {
+    "greeting": "مرحباً 👋",
+    "health_summary": "ملخص صحتي",
+    "treatments": "العلاجات",
+    "doctors_count": "الأطباء",
+    "metrics": "القياسات",
+    "quick_access": "وصول سريع",
+    "qr_pass_title": "رمز QR الخاص بي",
+    "qr_pass_sub": "مشاركة معلوماتي في حالات الطوارئ",
+    "dossier_title": "ملفي الطبي",
+    "dossier_sub": "الأدوية، السوابق المرضية...",
+    "doctors_title": "أطبائي",
+    "doctors_sub": "الوصول والمواعيد",
+    "suivi_title": "متابعتي",
+    "suivi_sub": "السكر، ضغط الدم، الوزن",
+    "rdv_title": "حجز موعد",
+    "rdv_sub": "البحث عن متخصص صحي"
+  },
+
+  "search": {
+    "title": "البحث عن متخصص",
+    "placeholder": "تخصص، طبيب...",
+    "filter_wilaya": "الولاية",
+    "filter_specialite": "التخصص",
+    "filter_langue": "اللغة",
+    "all_wilayas": "جميع الولايات",
+    "all_specialites": "جميع التخصصات",
+    "results": "نتيجة",
+    "no_results": "لا يوجد متخصص",
+    "no_results_sub": "جرب فلاتر أخرى",
+    "loading": "جارٍ البحث...",
+    "book_btn": "حجز موعد",
+    "view_btn": "عرض الملف",
+    "da": "دج",
+    "min": "دقيقة"
+  },
+
+  "booking": {
+    "title": "حجز موعد",
+    "choose_date": "اختر تاريخاً",
+    "available_slots": "الأوقات المتاحة",
+    "no_slots": "لا توجد أوقات متاحة في هذا اليوم",
+    "motif": "سبب الاستشارة",
+    "motif_placeholder": "مثال: استشارة روتينية، تجديد وصفة طبية...",
+    "confirm_btn": "تأكيد الموعد",
+    "cancel": "إلغاء",
+    "loading": "جارٍ تحميل المواعيد...",
+    "success": "تم تأكيد الموعد!",
+    "error": "خطأ في الحجز"
+  },
+
+  "appointments": {
+    "title": "مواعيدي",
+    "upcoming": "القادمة",
+    "past": "السابقة",
+    "no_upcoming": "لا توجد مواعيد قادمة",
+    "no_past": "لا توجد مواعيد سابقة",
+    "status_pending": "في الانتظار",
+    "status_confirmed": "مؤكد",
+    "status_cancelled": "ملغى",
+    "status_completed": "مكتمل",
+    "cancel_btn": "إلغاء",
+    "cancel_confirm": "إلغاء هذا الموعد؟",
+    "add_btn": "حجز موعد"
+  },
+
+  "pro_profile": {
+    "book_btn": "حجز موعد",
+    "specialite": "التخصص",
+    "address": "العنوان",
+    "languages": "اللغات",
+    "fee": "الأتعاب",
+    "duration": "مدة الاستشارة",
+    "about": "نبذة",
+    "da": "دج",
+    "min": "دقيقة"
+  },
+
+  "dossier": {
+    "title": "ملفي الطبي",
+    "meds": "الأدوية",
+    "allergies": "الحساسية",
+    "antecedents": "السوابق",
+    "vaccins": "اللقاحات",
+    "docs": "الوثائق",
+    "no_meds": "لا توجد أدوية مسجلة",
+    "no_allergies": "لا توجد حساسية مسجلة",
+    "no_antecedents": "لا توجد سوابق مرضية مسجلة",
+    "add_med": "إضافة دواء",
+    "add_allergy": "إضافة حساسية",
+    "add_antecedent": "إضافة سابقة مرضية",
+    "add_vaccin": "إضافة لقاح",
+    "active": "نشط",
+    "chronic": "مزمن",
+    "hospitalization": "استشفاء",
+    "surgery": "جراحة",
+    "other": "أخرى"
+  },
+
+  "profile": {
+    "title": "ملفي الشخصي",
+    "edit": "تعديل ملفي",
+    "logout": "تسجيل الخروج",
+    "first_name": "الاسم",
+    "last_name": "اللقب",
+    "dob": "تاريخ الميلاد",
+    "gender": "الجنس",
+    "wilaya": "الولاية",
+    "blood": "فصيلة الدم",
+    "cnas": "رقم CNAS",
+    "emergency": "جهة الاتصال للطوارئ",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "male": "ذكر",
+    "female": "أنثى"
+  },
+
+  "doctor": {
+    "pending_title": "الحساب قيد الانتظار",
+    "pending_body": "حسابك الطبي قيد المراجعة. ستحصل على الوصول خلال 24 ساعة.",
+    "ordre_label": "رقم الهيئة"
+  },
+
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "add": "إضافة",
+    "delete": "حذف",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "search": "بحث",
+    "error": "خطأ",
+    "success": "نجاح",
+    "required": "حقل مطلوب",
+    "da": "دج",
+    "lang_fr": "Français",
+    "lang_ar": "العربية"
+  },
+
+  "landing": {
+    "available": "متاح الآن · مجاني",
+    "hero_title": "صحتك،",
+    "hero_title_accent": "معك دائماً",
+    "hero_sub": "فيتاباس يجمع ملفك الطبي في تطبيق آمن، يمكن الوصول إليه بمسح رمز QR — حتى في حالات الطوارئ.",
+    "create_btn": "إنشاء ملفي مجاناً",
+    "login_btn": "تسجيل الدخول ←",
+    "stat_free": "مجاني",
+    "stat_free_sub": "للأبد",
+    "stat_secure": "مشفر وآمن",
+    "stat_dz": "صنع في الجزائر 🇩🇿",
+    "features_title": "كل ما تحتاجه",
+    "features_accent": "في مكان واحد",
+    "cta_title": "مستعد للاعتناء",
+    "cta_accent": "بصحتك؟",
+    "cta_sub": "انضم إلى الجزائريين الذين يثقون بفيتاباس.",
+    "contact": "اتصل بنا",
+    "footer_free": "مجاني · بدون إعلانات · 100% جزائري 🇩🇿"
+  }
+}

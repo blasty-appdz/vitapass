@@ -1,0 +1,198 @@
+{
+  "app_name": "VitaPass",
+  "tagline": "Carnet de santé digital algérien",
+
+  "nav": {
+    "home": "Accueil",
+    "qr": "QR Pass",
+    "dossier": "Dossier",
+    "doctors": "Médecins",
+    "profile": "Profil",
+    "rdv": "Rendez-vous",
+    "search": "Recherche"
+  },
+
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgot_password": "Mot de passe oublié ?",
+    "login_btn": "Se connecter",
+    "signup_btn": "Créer mon compte",
+    "loading": "Chargement...",
+    "role_patient": "Patient",
+    "role_patient_sub": "Gérer mon dossier médical",
+    "role_doctor": "Médecin",
+    "role_doctor_sub": "Accéder aux dossiers patients",
+    "i_am": "Je suis",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "ordre_number": "N° Ordre national",
+    "all_fields_required": "Tous les champs sont requis",
+    "password_min": "Mot de passe minimum 6 caractères",
+    "account_created": "Compte créé ! Vérifiez votre email.",
+    "reset_sent": "Email envoyé ! Vérifie ta boîte mail.",
+    "enter_email_first": "Entre ton email d'abord"
+  },
+
+  "home": {
+    "greeting": "Bonjour 👋",
+    "health_summary": "Mon résumé santé",
+    "treatments": "Traitements",
+    "doctors_count": "Médecins",
+    "metrics": "Métriques",
+    "quick_access": "Accès rapide",
+    "qr_pass_title": "Mon QR Pass",
+    "qr_pass_sub": "Partager mes infos en urgence",
+    "dossier_title": "Mon dossier",
+    "dossier_sub": "Médicaments, antécédents...",
+    "doctors_title": "Mes médecins",
+    "doctors_sub": "Accès & rendez-vous",
+    "suivi_title": "Mon suivi",
+    "suivi_sub": "Glycémie, tension, poids",
+    "rdv_title": "Prendre RDV",
+    "rdv_sub": "Trouver un professionnel de santé"
+  },
+
+  "search": {
+    "title": "Trouver un professionnel",
+    "placeholder": "Spécialité, médecin...",
+    "filter_wilaya": "Wilaya",
+    "filter_specialite": "Spécialité",
+    "filter_langue": "Langue",
+    "all_wilayas": "Toutes les wilayas",
+    "all_specialites": "Toutes les spécialités",
+    "results": "résultat(s)",
+    "no_results": "Aucun professionnel trouvé",
+    "no_results_sub": "Essayez d'autres filtres",
+    "loading": "Recherche en cours...",
+    "book_btn": "Prendre RDV",
+    "view_btn": "Voir le profil",
+    "da": "DA",
+    "min": "min"
+  },
+
+  "booking": {
+    "title": "Prendre rendez-vous",
+    "choose_date": "Choisir une date",
+    "available_slots": "Créneaux disponibles",
+    "no_slots": "Aucun créneau disponible ce jour",
+    "motif": "Motif de consultation",
+    "motif_placeholder": "Ex: Consultation de routine, renouvellement ordonnance...",
+    "confirm_btn": "Confirmer le rendez-vous",
+    "cancel": "Annuler",
+    "loading": "Chargement des créneaux...",
+    "success": "Rendez-vous confirmé !",
+    "error": "Erreur lors de la réservation"
+  },
+
+  "appointments": {
+    "title": "Mes rendez-vous",
+    "upcoming": "À venir",
+    "past": "Passés",
+    "no_upcoming": "Aucun rendez-vous à venir",
+    "no_past": "Aucun rendez-vous passé",
+    "status_pending": "En attente",
+    "status_confirmed": "Confirmé",
+    "status_cancelled": "Annulé",
+    "status_completed": "Terminé",
+    "cancel_btn": "Annuler",
+    "cancel_confirm": "Annuler ce rendez-vous ?",
+    "add_btn": "Prendre un rendez-vous"
+  },
+
+  "pro_profile": {
+    "book_btn": "Prendre rendez-vous",
+    "specialite": "Spécialité",
+    "address": "Adresse",
+    "languages": "Langues",
+    "fee": "Tarif",
+    "duration": "Durée consultation",
+    "about": "À propos",
+    "da": "DA",
+    "min": "min"
+  },
+
+  "dossier": {
+    "title": "Mon Dossier",
+    "meds": "Médic.",
+    "allergies": "Allergies",
+    "antecedents": "Antéc.",
+    "vaccins": "Vaccins",
+    "docs": "Docs",
+    "no_meds": "Aucun médicament enregistré",
+    "no_allergies": "Aucune allergie enregistrée",
+    "no_antecedents": "Aucun antécédent enregistré",
+    "add_med": "Ajouter un médicament",
+    "add_allergy": "Ajouter une allergie",
+    "add_antecedent": "Ajouter un antécédent",
+    "add_vaccin": "Ajouter un vaccin",
+    "active": "Actif",
+    "chronic": "Chronique",
+    "hospitalization": "Hospitalisation",
+    "surgery": "Chirurgie",
+    "other": "Autre"
+  },
+
+  "profile": {
+    "title": "Mon Profil",
+    "edit": "Modifier mon profil",
+    "logout": "Se déconnecter",
+    "first_name": "Prénom",
+    "last_name": "Nom",
+    "dob": "Date de naissance",
+    "gender": "Genre",
+    "wilaya": "Wilaya",
+    "blood": "Groupe sanguin",
+    "cnas": "N° CNAS",
+    "emergency": "Contact urgence",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "male": "Masculin",
+    "female": "Féminin"
+  },
+
+  "doctor": {
+    "pending_title": "Compte en attente",
+    "pending_body": "Votre compte médecin est en cours de validation. Vous recevrez un accès sous 24h.",
+    "ordre_label": "N° Ordre"
+  },
+
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "add": "Ajouter",
+    "delete": "Supprimer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "search": "Rechercher",
+    "error": "Erreur",
+    "success": "Succès",
+    "required": "Champ requis",
+    "da": "DA",
+    "lang_fr": "Français",
+    "lang_ar": "العربية"
+  },
+
+  "landing": {
+    "available": "Disponible maintenant · Gratuit",
+    "hero_title": "Votre santé,",
+    "hero_title_accent": "toujours avec vous",
+    "hero_sub": "VitaPass centralise votre dossier médical dans une application sécurisée, accessible en un scan QR — même en urgence.",
+    "create_btn": "Créer mon dossier gratuit",
+    "login_btn": "Se connecter →",
+    "stat_free": "Gratuit",
+    "stat_free_sub": "Pour toujours",
+    "stat_secure": "Chiffré & sécurisé",
+    "stat_dz": "Made in Algeria 🇩🇿",
+    "features_title": "Tout ce dont vous",
+    "features_accent": "avez besoin",
+    "cta_title": "Prêt à prendre soin",
+    "cta_accent": "de votre santé ?",
+    "cta_sub": "Rejoignez les Algériens qui font confiance à VitaPass.",
+    "contact": "Nous contacter",
+    "footer_free": "Gratuit · Sans publicité · 100% algérien 🇩🇿"
+  }
+}

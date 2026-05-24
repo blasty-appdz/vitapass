@@ -13,8 +13,10 @@
     "@supabase/supabase-js": "^2.105.1",
     "@vercel/analytics": "^2.0.1",
     "canvas": "^3.2.3",
+    "i18next": "^26.2.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-i18next": "^17.0.8",
     "react-router-dom": "^7.14.2"
   },
   "devDependencies": {
