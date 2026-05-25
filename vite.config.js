@@ -14,7 +14,6 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        importScripts: ['sw-push.js'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/qklhzepfbhihtlgqbweo\.supabase\.co\/rest\/.*/i,
