@@ -47,4 +47,57 @@ export async function loadOffline(storeName) {
     const store = tx.objectStore(storeName)
     const req = store.getAll()
     return new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result ||
+      req.onsuccess = () => resolve(req.result || [])
+      req.onerror = () => reject(req.error)
+    })
+  } catch (err) {
+    console.warn('[VitaPass Offline] loadOffline error:', err)
+    return []
+  }
+}
+
+export async function clearOffline(storeName) {
+  try {
+    const db = await openDB()
+    const tx = db.transaction(storeName, 'readwrite')
+    tx.objectStore(storeName).clear()
+  } catch (err) {
+    console.warn('[VitaPass Offline] clearOffline error:', err)
+  }
+}
+
+export function useOffline() {
+  const [isOffline, setIsOffline] = useState(!navigator.onLine)
+  const [wasOffline, setWasOffline] = useState(false)
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOffline(false)
+      setWasOffline(true)
+      setTimeout(() => setWasOffline(false), 4000)
+    }
+    const handleOffline = () => {
+      setIsOffline(true)
+      setWasOffline(false)
+    }
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
+
+  const triggerSync = useCallback(async () => {
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      try {
+        const reg = await navigator.serviceWorker.ready
+        await reg.sync.register('vitapass-sync')
+      } catch (err) {
+        console.warn('[VitaPass Offline] Background sync not available:', err)
+      }
+    }
+  }, [])
+
+  return { isOffline, wasOffline, triggerSync }
+}
