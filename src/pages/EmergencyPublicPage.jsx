@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 
 const SECTIONS = [
-  { key: 'groupe_sanguin',    label: 'Groupe sanguin',     icon: '🩸', critical: true  },
-  { key: 'allergies',         label: 'Allergies',          icon: '⚠️', critical: true  },
-  { key: 'medicaments',       label: 'Médicaments',        icon: '💊', critical: true  },
-  { key: 'antecedents',       label: 'Antécédents',        icon: '📋', critical: false },
+  { key: 'groupe_sanguin',      label: 'Groupe sanguin',      icon: '🩸', critical: true  },
+  { key: 'allergies',           label: 'Allergies',           icon: '⚠️', critical: true  },
+  { key: 'medicaments',         label: 'Médicaments',         icon: '💊', critical: true  },
+  { key: 'antecedents',         label: 'Antécédents',         icon: '📋', critical: false },
   { key: 'maladies_chroniques', label: 'Maladies chroniques', icon: '🏥', critical: false },
-  { key: 'contact_urgence',   label: 'Contact d\'urgence', icon: '📞', critical: true  },
+  { key: 'contact_urgence',     label: "Contact d'urgence",   icon: '📞', critical: true  },
 ]
 
 export default function EmergencyPublicPage({ token }) {
@@ -42,8 +42,8 @@ export default function EmergencyPublicPage({ token }) {
 
     const { data: prof } = await supabase
       .from('profiles')
-      .select('full_name, date_naissance, photo_url')
-      .eq('id', dos.user_id)
+      .select('fname, lname, dob, photo_url')
+      .eq('id', dos.patient_id)
       .maybeSingle()
 
     setProfile(prof)
@@ -55,6 +55,10 @@ export default function EmergencyPublicPage({ token }) {
     const diff = Date.now() - new Date(dateStr).getTime()
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
   }
+
+  const fullName = profile
+    ? `${profile.fname || ''} ${profile.lname || ''}`.trim() || 'Nom inconnu'
+    : 'Nom inconnu'
 
   if (loading) return (
     <div style={styles.center}>
@@ -78,13 +82,11 @@ export default function EmergencyPublicPage({ token }) {
 
   return (
     <div style={styles.page}>
-      {/* Header urgence */}
       <div style={styles.header}>
         <div style={styles.badge}>🚨 URGENCE MÉDICALE</div>
         <p style={styles.headerSub}>Données de santé critiques — Accès secouriste</p>
       </div>
 
-      {/* Identité patient */}
       <div style={styles.card}>
         <div style={styles.patientRow}>
           {profile?.photo_url
@@ -92,33 +94,29 @@ export default function EmergencyPublicPage({ token }) {
             : <div style={styles.avatarPlaceholder}>👤</div>
           }
           <div>
-            <div style={styles.patientName}>{profile?.full_name || 'Nom inconnu'}</div>
-            {profile?.date_naissance && (
+            <div style={styles.patientName}>{fullName}</div>
+            {profile?.dob && (
               <div style={styles.patientAge}>
-                {calcAge(profile.date_naissance)} ans
-                <span style={styles.dob}> · né(e) le {new Date(profile.date_naissance).toLocaleDateString('fr-FR')}</span>
+                {calcAge(profile.dob)} ans
+                <span style={styles.dob}> · né(e) le {new Date(profile.dob).toLocaleDateString('fr-FR')}</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Données critiques en priorité */}
       {SECTIONS.filter(s => s.critical).map(section => (
         <DataCard key={section.key} section={section} dossier={dossier} critical />
       ))}
 
-      {/* Séparateur */}
       <div style={styles.separator}>
         <span style={styles.separatorText}>Informations complémentaires</span>
       </div>
 
-      {/* Données secondaires */}
       {SECTIONS.filter(s => !s.critical).map(section => (
         <DataCard key={section.key} section={section} dossier={dossier} />
       ))}
 
-      {/* Footer */}
       <div style={styles.footer}>
         <img
           src="https://vitapass.app/vitapass-icon.png"
