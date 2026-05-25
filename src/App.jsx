@@ -260,7 +260,7 @@ function MiniChart({ data }) {
 }
 
 function AuthScreen({ onAuth }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [tab, setTab] = useState('login')
   const [role, setRole] = useState('patient')
   const [email, setEmail] = useState('')
@@ -303,6 +303,21 @@ function AuthScreen({ onAuth }) {
 
   return (
     <div className="auth-screen">
+
+      {/* SÉLECTEUR DE LANGUE — tout en haut */}
+      <div style={{position:'absolute',top:20,right:20}}>
+        <button
+          onClick={()=>{
+            const next = i18n.language==='fr'?'ar':'fr'
+            i18n.changeLanguage(next)
+            localStorage.setItem('vitapass_lang',next)
+          }}
+          style={{background:'rgba(255,255,255,.07)',border:'1px solid rgba(255,255,255,.15)',borderRadius:20,padding:'6px 16px',color:'#EFF3FF',fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,cursor:'pointer',display:'flex',alignItems:'center',gap:6}}
+        >
+          🌐 {i18n.language==='fr'?'العربية':'Français'}
+        </button>
+      </div>
+
       <div className="auth-logo">
         <svg width="60" height="60" viewBox="0 0 110 110" fill="none">
           <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
@@ -773,21 +788,6 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
         <div className="p-chips"><span className="pchip">🩸 {profile?.blood||'N/A'}</span><span className="pchip">📍 {profile?.wilaya||'N/A'}</span><span className="pchip">{age} {t('common.loading').includes('جار')?'سنة':'ans'}</span></div>
       </div>
       <div style={{height:16}} />
-
-      {/* BOUTON LANGUE — bien visible */}
-      <div onClick={toggleLang} style={{background:'rgba(0,201,141,.08)',border:'1px solid rgba(0,201,141,.25)',borderRadius:14,padding:'14px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',marginBottom:10}}>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <span style={{fontSize:22}}>🌐</span>
-          <div>
-            <div style={{fontFamily:"'Syne',sans-serif",fontSize:14,fontWeight:700,color:'var(--white)'}}>Langue · اللغة</div>
-            <div style={{fontSize:11,color:'var(--dim)',marginTop:2}}>{i18n.language==='fr'?'Français actif · اضغط للعربية':'العربية نشطة · Appuyer pour FR'}</div>
-          </div>
-        </div>
-        <div style={{background:'var(--g)',color:'#001A12',fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:800,padding:'6px 16px',borderRadius:10}}>
-          {i18n.language==='fr'?'العربية':'FR'}
-        </div>
-      </div>
-
       <div className="sec-label">{t('profile.title')}</div>
       <div className="pinfo-list">
         {[[t('profile.first_name'),profile?.fname],[t('profile.last_name'),profile?.lname],[t('profile.dob'),formatDate(profile?.dob)],[t('profile.gender'),profile?.gender],[t('profile.wilaya'),profile?.wilaya],[t('profile.blood'),profile?.blood],[t('profile.cnas'),profile?.cnas],[t('profile.emergency'),profile?.emergency]].map(([k,v],i)=>(
