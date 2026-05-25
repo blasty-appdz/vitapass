@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
 import { useTranslation } from 'react-i18next'
+import { useOffline } from './hooks/useOffline'
+import { useOfflineProfile, useOfflineDossier, useOfflineAppointments } from './hooks/useOfflineData'
+import OfflineBanner from './components/OfflineBanner'
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientRecord from './pages/doctor/PatientRecord';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
@@ -379,11 +382,16 @@ function AuthScreen({ onAuth }) {
   )
 }
 
-function HomeScreen({ nav, profile, dossier, doctorCount=0, notifs=[] }) {
+function HomeScreen({ nav, profile, dossier, doctorCount=0, notifs=[], isOffline }) {
   const { t } = useTranslation()
   const meds = dossier?.meds || []
   return (
     <div className="screen" style={{display:'flex'}}>
+      {isOffline && (
+        <div style={{background:'rgba(255,209,102,.1)',border:'1px solid rgba(255,209,102,.25)',borderRadius:10,padding:'8px 14px',fontSize:12,color:'var(--yellow)',marginTop:8,display:'flex',alignItems:'center',gap:8}}>
+          📴 <span>Mode hors ligne — données locales</span>
+        </div>
+      )}
       <div className="home-hdr">
         <div className="h-greet">{t('home.greeting')}</div>
         <div className="h-name">{profile?.fname} <span>{profile?.lname}</span></div>
@@ -433,7 +441,6 @@ function QRScreen({ nav, profile, dossierData }) {
 
   useEffect(() => {
     if (!qrRef.current || !profile) return
-    // Utilise l'URL urgence publique si le token existe, sinon fallback JSON
     const qrText = dossierData?.urgence_token && dossierData?.urgence_public
       ? `https://vitapass.app/urgence/${dossierData.urgence_token}`
       : JSON.stringify({ id:profile.id, name:`${profile.fname} ${profile.lname}`, blood:profile.blood, emergency:profile.emergency })
@@ -451,7 +458,6 @@ function QRScreen({ nav, profile, dossierData }) {
           <span style={{fontSize:20}}>🆘</span>
           <div className="emg-txt">{t('home.qr_pass_sub')}</div>
         </div>
-        {/* Toggle urgence publique */}
         <div style={{background:'var(--card)',border:`1px solid ${urgenceActive?'rgba(0,201,141,.3)':'var(--border)'}`,borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
           <div>
             <div style={{fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,color:'var(--white)'}}>
@@ -517,7 +523,7 @@ function UrgenceToggle({ dossier, userId }) {
   )
 }
 
-function DossierScreen({ nav, dossier, onSave, showToast }) {
+function DossierScreen({ nav, dossier, onSave, showToast, isOffline }) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState('med')
   const [modal, setModal] = useState(null)
@@ -542,6 +548,7 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
   const DOC_TYPES = { ordonnance:{label:'Ordonnance',icon:'💊'}, analyse:{label:'Analyse',icon:'🧪'}, radio:{label:'Radiologie',icon:'🩻'}, compte_rendu:{label:'Compte rendu',icon:'📋'}, autre:{label:'Autre',icon:'📄'} }
   useEffect(()=>{if(activeTab==='docs')loadDocs()},[activeTab])
   const loadDocs = async () => {
+    if (isOffline) return
     setDocsLoading(true)
     const {data:{user}} = await supabase.auth.getUser()
     const {data} = await supabase.from('documents').select('*').eq('patient_id',user.id).order('created_at',{ascending:false})
@@ -549,11 +556,13 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
   }
   const handleOpenDoc = (doc) => { if(doc.file_url) window.open(doc.file_url,'_blank') }
   const handleDeleteDoc = async (doc) => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
     if(!confirm(t('common.delete')+'?')) return
     await supabase.from('documents').delete().eq('id',doc.id)
     loadDocs(); showToast(t('common.success'))
   }
   const handleUpload = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
     if(!docFile){setDocError(t('common.required'));return}
     if(!docForm.title){setDocError(t('common.required'));return}
     setUploadingDoc(true); setDocError('')
@@ -567,11 +576,26 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
     setShowUploadModal(false); setDocFile(null); setDocForm({title:'',type:'ordonnance',date:'',medecin:''})
     loadDocs(); showToast('✅ '+t('common.success')); setUploadingDoc(false)
   }
-  const addMed = async () => { if(!form.name)return; setSaving(true); await onSave({meds:[...meds,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅') }
-  const addAllergy = async () => { if(!form.name)return; setSaving(true); await onSave({allergies:[...allergies,{id:Date.now(),name:form.name}]}); setModal(null);setForm({});setSaving(false);showToast('✅') }
-  const removeAllergy = async (id) => { await onSave({allergies:allergies.filter(a=>a.id!==id)}) }
-  const addAnt = async () => { if(!form.name)return; setSaving(true); await onSave({antecedents:[...antecedents,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅') }
-  const addVacc = async () => { if(!form.name)return; setSaving(true); await onSave({vaccins:[...vaccins,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅') }
+  const addMed = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    if(!form.name)return; setSaving(true); await onSave({meds:[...meds,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅')
+  }
+  const addAllergy = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    if(!form.name)return; setSaving(true); await onSave({allergies:[...allergies,{id:Date.now(),name:form.name}]}); setModal(null);setForm({});setSaving(false);showToast('✅')
+  }
+  const removeAllergy = async (id) => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    await onSave({allergies:allergies.filter(a=>a.id!==id)})
+  }
+  const addAnt = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    if(!form.name)return; setSaving(true); await onSave({antecedents:[...antecedents,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅')
+  }
+  const addVacc = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    if(!form.name)return; setSaving(true); await onSave({vaccins:[...vaccins,{id:Date.now(),...form}]}); setModal(null);setForm({});setSaving(false);showToast('✅')
+  }
 
   const tabs = [
     {id:'med',label:'💊 '+t('dossier.meds')},
@@ -583,44 +607,49 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
   return (
     <div className="screen" style={{display:'flex'}}>
       <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">{t('dossier.title')}</div></div>
+      {isOffline && (
+        <div style={{background:'rgba(255,209,102,.1)',border:'1px solid rgba(255,209,102,.25)',borderRadius:10,padding:'8px 14px',fontSize:12,color:'var(--yellow)',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+          📴 <span>Mode hors ligne — lecture seule</span>
+        </div>
+      )}
       <div className="tabs">{tabs.map(t2=><div key={t2.id} className={`tab${activeTab===t2.id?' active':''}`} onClick={()=>setActiveTab(t2.id)}>{t2.label}</div>)}</div>
       {activeTab==='med' && <>
         <div className="dsect-title">{t('dossier.meds')}</div>
         {meds.length===0?<div className="empty-state"><div className="empty-icon">💊</div><p>{t('dossier.no_meds')}</p></div>
           :meds.map(m=>(<div key={m.id} className="card"><div className="card-row"><div className="card-icon" style={{background:'rgba(77,159,236,.1)'}}>💊</div><div className="card-info"><div className="card-name">{m.name}</div><div className="card-sub">{m.dose}{m.reason?' · '+m.reason:''}</div></div><span className="badge badge-g">{t('dossier.active')}</span></div></div>))}
-        <div className="add-btn" onClick={()=>{setModal('med');setForm({})}}>＋ {t('dossier.add_med')}</div>
+        {!isOffline && <div className="add-btn" onClick={()=>{setModal('med');setForm({})}}>＋ {t('dossier.add_med')}</div>}
         <div className="pad-b" />
       </>}
       {activeTab==='allergy' && <>
         <div className="dsect-title">{t('dossier.allergies')}</div>
         <div className="allergy-wrap">
           {allergies.length===0?<div className="empty-state"><div className="empty-icon">⚠️</div><p>{t('dossier.no_allergies')}</p></div>
-            :allergies.map(a=>(<div key={a.id} className="achip">{a.name}<span className="achip-rm" onClick={()=>removeAllergy(a.id)}>✕</span></div>))}
+            :allergies.map(a=>(<div key={a.id} className="achip">{a.name}{!isOffline&&<span className="achip-rm" onClick={()=>removeAllergy(a.id)}>✕</span>}</div>))}
         </div>
-        <div className="add-btn" onClick={()=>{setModal('allergy');setForm({})}}>＋ {t('dossier.add_allergy')}</div>
+        {!isOffline && <div className="add-btn" onClick={()=>{setModal('allergy');setForm({})}}>＋ {t('dossier.add_allergy')}</div>}
         <div className="pad-b" />
       </>}
       {activeTab==='ant' && <>
         <div className="dsect-title">{t('dossier.antecedents')}</div>
         {antecedents.length===0?<div className="empty-state"><div className="empty-icon">📋</div><p>{t('dossier.no_antecedents')}</p></div>
           :antecedents.map(a=>(<div key={a.id} className="card"><div className="card-row"><div className="card-icon" style={{background:'rgba(255,209,102,.1)'}}>🩺</div><div className="card-info"><div className="card-name">{a.name}</div><div className="card-sub">{a.type}{a.year?' · '+a.year:''}</div></div><span className="badge badge-r">{a.type}</span></div></div>))}
-        <div className="add-btn" onClick={()=>{setModal('ant');setForm({type:t('dossier.chronic')})}}>＋ {t('dossier.add_antecedent')}</div>
+        {!isOffline && <div className="add-btn" onClick={()=>{setModal('ant');setForm({type:t('dossier.chronic')})}}>＋ {t('dossier.add_antecedent')}</div>}
         <div className="pad-b" />
       </>}
       {activeTab==='vacc' && <>
         <div className="dsect-title">{t('dossier.vaccins')}</div>
         {vaccins.map(v=>(<div key={v.id} className="vacc-row"><div><div className="vacc-name">{v.name}</div><div className="vacc-date">{v.date?formatDate(v.date):'—'}</div></div><div className="vacc-ico" style={{background:v.status==='done'?'rgba(0,201,141,.15)':'rgba(255,209,102,.15)'}}>{v.status==='done'?'✅':'⏳'}</div></div>))}
-        <div className="add-btn" onClick={()=>{setModal('vacc');setForm({status:'done'})}}>＋ {t('dossier.add_vaccin')}</div>
+        {!isOffline && <div className="add-btn" onClick={()=>{setModal('vacc');setForm({status:'done'})}}>＋ {t('dossier.add_vaccin')}</div>}
         <div className="pad-b" />
       </>}
       {activeTab==='docs' && (
         <div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
             <span style={{fontWeight:600,color:'var(--white)'}}>📄 {t('dossier.docs')} ({patientDocs.length})</span>
-            <div className="add-btn" style={{margin:0,padding:'6px 12px'}} onClick={()=>setShowUploadModal(true)}>+ {t('common.add')}</div>
+            {!isOffline && <div className="add-btn" style={{margin:0,padding:'6px 12px'}} onClick={()=>setShowUploadModal(true)}>+ {t('common.add')}</div>}
           </div>
           {docsLoading?<p style={{color:'var(--dim)'}}>{t('common.loading')}</p>:patientDocs.length===0?(
-            <div style={{textAlign:'center',padding:32,color:'var(--dim)'}}><div style={{fontSize:40}}>📂</div><div>{t('dossier.docs')}</div></div>
+            <div style={{textAlign:'center',padding:32,color:'var(--dim)'}}><div style={{fontSize:40}}>📂</div><div>{isOffline ? 'Documents non disponibles hors ligne' : t('dossier.docs')}</div></div>
           ):patientDocs.map(doc=>(
             <div key={doc.id} className="doc-card">
               <div className="doc-top">
@@ -631,11 +660,11 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
                   {doc.medecin&&<div className="doc-loc">Dr. {doc.medecin}</div>}
                 </div>
                 <button className="doc-btn" style={{background:'rgba(77,159,236,.1)',color:'var(--blue)'}} onClick={()=>handleOpenDoc(doc)}>👁</button>
-                <button className="doc-btn" style={{marginLeft:4,background:'rgba(255,90,90,.1)',color:'#FF8A8A'}} onClick={()=>handleDeleteDoc(doc)}>🗑</button>
+                {!isOffline && <button className="doc-btn" style={{marginLeft:4,background:'rgba(255,90,90,.1)',color:'#FF8A8A'}} onClick={()=>handleDeleteDoc(doc)}>🗑</button>}
               </div>
             </div>
           ))}
-          {showUploadModal&&(
+          {!isOffline && showUploadModal&&(
             <div className="modal-overlay" onClick={e=>e.target===e.currentTarget&&setShowUploadModal(false)}>
               <div className="modal">
                 <div className="modal-handle"/>
@@ -658,7 +687,7 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
           )}
         </div>
       )}
-      {modal==='med'&&<Modal title={t('dossier.add_med')} onClose={()=>setModal(null)}>
+      {!isOffline && modal==='med'&&<Modal title={t('dossier.add_med')} onClose={()=>setModal(null)}>
         <div className="form-group"><label className="form-label">Nom</label><input className="form-input" placeholder="Metformine 850mg" onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Posologie</label><input className="form-input" placeholder="2x/jour" onChange={e=>setForm({...form,dose:e.target.value})} /></div>
@@ -667,12 +696,12 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
         <button className="btn-submit" onClick={addMed} disabled={saving}>{saving?'⏳...':t('common.save')}</button>
         <button className="btn-cancel" onClick={()=>setModal(null)}>{t('common.cancel')}</button>
       </Modal>}
-      {modal==='allergy'&&<Modal title={t('dossier.add_allergy')} onClose={()=>setModal(null)}>
+      {!isOffline && modal==='allergy'&&<Modal title={t('dossier.add_allergy')} onClose={()=>setModal(null)}>
         <div className="form-group"><label className="form-label">Allergie</label><input className="form-input" placeholder="Pénicilline" onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <button className="btn-submit" onClick={addAllergy} disabled={saving}>{saving?'⏳...':t('common.save')}</button>
         <button className="btn-cancel" onClick={()=>setModal(null)}>{t('common.cancel')}</button>
       </Modal>}
-      {modal==='ant'&&<Modal title={t('dossier.add_antecedent')} onClose={()=>setModal(null)}>
+      {!isOffline && modal==='ant'&&<Modal title={t('dossier.add_antecedent')} onClose={()=>setModal(null)}>
         <div className="form-group"><label className="form-label">Condition</label><input className="form-input" placeholder="Diabète de type 2" onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Année</label><input className="form-input" type="number" placeholder="2018" onChange={e=>setForm({...form,year:e.target.value})} /></div>
@@ -681,7 +710,7 @@ function DossierScreen({ nav, dossier, onSave, showToast }) {
         <button className="btn-submit" onClick={addAnt} disabled={saving}>{saving?'⏳...':t('common.save')}</button>
         <button className="btn-cancel" onClick={()=>setModal(null)}>{t('common.cancel')}</button>
       </Modal>}
-      {modal==='vacc'&&<Modal title={t('dossier.add_vaccin')} onClose={()=>setModal(null)}>
+      {!isOffline && modal==='vacc'&&<Modal title={t('dossier.add_vaccin')} onClose={()=>setModal(null)}>
         <div className="form-group"><label className="form-label">Vaccin</label><input className="form-input" placeholder="BCG, Covid-19..." onChange={e=>setForm({...form,name:e.target.value})} /></div>
         <div className="form-row">
           <div className="form-group"><label className="form-label">Date</label><input className="form-input" type="date" onChange={e=>setForm({...form,date:e.target.value})} /></div>
@@ -822,22 +851,17 @@ function DoctorsScreen({ nav, showToast }) {
   )
 }
 
-function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
+function ProfileScreen({ nav, profile, setProfile, onLogout, showToast, isOffline }) {
   const { t, i18n } = useTranslation()
   const [modal, setModal] = useState(false)
   const [form, setForm] = useState(profile||{})
   const [saving, setSaving] = useState(false)
   const save = async () => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
     setSaving(true)
     const {error} = await supabase.from('profiles').update({fname:form.fname,lname:form.lname,dob:form.dob,gender:form.gender,wilaya:form.wilaya,blood:form.blood,cnas:form.cnas,emergency:form.emergency}).eq('id',profile.id)
     if(!error){setProfile({...profile,...form});setModal(false);showToast('✅')}
     setSaving(false)
-  }
-  const toggleLang = () => {
-    const next = i18n.language==='fr'?'ar':'fr'
-    i18n.changeLanguage(next)
-    localStorage.setItem('vitapass_lang',next)
-    showToast(next==='ar'?'✅ تم التغيير إلى العربية':'✅ Français activé')
   }
   const age = profile?.dob?new Date().getFullYear()-parseInt(profile.dob.split('-')[0]):''
   return (
@@ -846,8 +870,13 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
         <div className="p-av-wrap"><div className="p-av">{getAvatarEmoji(profile?.gender,'patient')}</div><div className="p-badge">✅</div></div>
         <div className="p-name">{profile?.fname} {profile?.lname}</div>
         <div className="p-id">VP-DZ-{profile?.id?.slice(0,8)?.toUpperCase()}</div>
-        <div className="p-chips"><span className="pchip">🩸 {profile?.blood||'N/A'}</span><span className="pchip">📍 {profile?.wilaya||'N/A'}</span><span className="pchip">{age} {t('common.loading').includes('جار')?'سنة':'ans'}</span></div>
+        <div className="p-chips"><span className="pchip">🩸 {profile?.blood||'N/A'}</span><span className="pchip">📍 {profile?.wilaya||'N/A'}</span><span className="pchip">{age} ans</span></div>
       </div>
+      {isOffline && (
+        <div style={{background:'rgba(255,209,102,.1)',border:'1px solid rgba(255,209,102,.25)',borderRadius:10,padding:'8px 14px',fontSize:12,color:'var(--yellow)',margin:'8px 0',display:'flex',alignItems:'center',gap:8}}>
+          📴 <span>Mode hors ligne — modification désactivée</span>
+        </div>
+      )}
       <div style={{height:16}} />
       <div className="sec-label">{t('profile.title')}</div>
       <div className="pinfo-list">
@@ -855,7 +884,7 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast }) {
           <div key={i} className="pinfo-row"><span className="pi-key">{k}</span><span className="pi-val">{v||'—'}</span></div>
         ))}
       </div>
-      <div className="add-btn" onClick={()=>{setForm(profile||{});setModal(true)}}>✏️ {t('profile.edit')}</div>
+      {!isOffline && <div className="add-btn" onClick={()=>{setForm(profile||{});setModal(true)}}>✏️ {t('profile.edit')}</div>}
       <div className="logout-btn" onClick={onLogout}>🚪 {t('profile.logout')}</div>
       {modal&&<Modal title={t('profile.edit')} onClose={()=>setModal(false)}>
         <div className="form-row">
@@ -957,6 +986,7 @@ function LandingScreen() {
 
 export default function App() {
   const { t } = useTranslation()
+  const { isOffline } = useOffline()
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [dossier, setDossier] = useState(null)
@@ -970,6 +1000,13 @@ export default function App() {
   const [notifs, setNotifs] = useState([])
   const [emergencyToken, setEmergencyToken] = useState(null)
   const [isRecovery] = useState(()=>window.location.hash.includes('type=recovery'))
+  const [userId, setUserId] = useState(null)
+
+  // ── Hooks offline — actifs dès que userId connu ──────────
+  const { profile: offlineProfile } = useOfflineProfile(userId)
+  const { dossier: offlineDossier } = useOfflineDossier(userId)
+  const { appointments: offlineAppointments } = useOfflineAppointments(userId)
+  // ─────────────────────────────────────────────────────────
 
   useEffect(()=>{
     const tick=()=>{const n=new Date();setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)}
@@ -977,7 +1014,6 @@ export default function App() {
   },[])
 
   useEffect(()=>{
-    // ── Détection route urgence publique ──────────────────────
     const path = window.location.pathname
     const urgenceMatch = path.match(/^\/urgence\/([a-f0-9-]{36})$/)
     if (urgenceMatch) {
@@ -985,16 +1021,32 @@ export default function App() {
       setLoading(false)
       return
     }
-    // ─────────────────────────────────────────────────────────
     if(isRecovery){setLoading(false);return}
-    supabase.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadUserData(session.user.id);else setLoading(false)})
+    supabase.auth.getSession().then(({data:{session}})=>{
+      setSession(session)
+      if(session){setUserId(session.user.id);loadUserData(session.user.id)}
+      else setLoading(false)
+    })
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
       setSession(session)
-      if(session){setSplash(true);loadUserData(session.user.id);setTimeout(()=>setSplash(false),2000)}
-      else{setProfile(null);setDossier(null);setLoading(false)}
+      if(session){
+        setUserId(session.user.id)
+        setSplash(true)
+        loadUserData(session.user.id)
+        setTimeout(()=>setSplash(false),2000)
+      }
+      else{setProfile(null);setDossier(null);setUserId(null);setLoading(false)}
     })
     return()=>subscription.unsubscribe()
   },[isRecovery])
+
+  // ── Fallback offline : utiliser données cachées si dispo ─
+  useEffect(()=>{
+    if(!isOffline || !userId) return
+    if(!profile && offlineProfile) setProfile(offlineProfile)
+    if(!dossier && offlineDossier) setDossier(offlineDossier)
+  },[isOffline, userId, offlineProfile, offlineDossier])
+  // ─────────────────────────────────────────────────────────
 
   const loadUserData = async(userId)=>{
     setLoading(true)
@@ -1024,6 +1076,7 @@ export default function App() {
   }
 
   const saveDossier=async(updates)=>{
+    if(isOffline){showToast('Impossible en mode hors ligne');return}
     if(!dossier)return
     const {data,error}=await supabase.from('dossiers').update({...updates,updated_at:new Date().toISOString()}).eq('patient_id',session.user.id).select().maybeSingle()
     if(!error&&data)setDossier(data)
@@ -1041,10 +1094,7 @@ export default function App() {
     {id:'profile', icon:<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>,               label:t('nav.profile')},
   ]
 
-  // ── Route urgence publique (sans auth) ────────────────────
   if (emergencyToken) return <EmergencyPublicPage token={emergencyToken} />
-  // ─────────────────────────────────────────────────────────
-
   if(isRecovery) return <ResetPasswordScreen />
   if(loading) return <div className="phone" style={{alignItems:'center',justifyContent:'center'}}><div className="loading">{t('common.loading')}</div></div>
 
@@ -1054,6 +1104,7 @@ export default function App() {
 
   if(profile?.role==='doctor') return (
     <>
+      <OfflineBanner />
       {screen==='pro-onboarding'    && <ProfessionalOnboarding nav={nav} />}
       {screen==='pro-dashboard'     && <ProfessionalDashboard nav={nav} showToast={showToast} />}
       {screen==='pro-schedule'      && <ProfessionalSchedule nav={nav} showToast={showToast} />}
@@ -1066,6 +1117,7 @@ export default function App() {
 
   return (
     <div className="phone">
+      <OfflineBanner />
       {splash&&(
         <div className="splash">
           <div className="sp-logo">
@@ -1086,16 +1138,16 @@ export default function App() {
         </div>
       </div>
       <div className="screens">
-        {screen==='home'         &&<HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs}/>}
+        {screen==='home'         &&<HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} isOffline={isOffline}/>}
         {screen==='qr'           &&<QRScreen nav={nav} profile={profile} dossierData={dossier}/>}
         {screen==='search'       &&<SearchScreen nav={nav}/>}
         {screen==='pro-profile'  &&<ProProfileScreen nav={nav} navParams={navParams}/>}
         {screen==='booking'      &&<BookingScreen nav={nav} navParams={navParams} showToast={showToast}/>}
-        {screen==='appointments' &&<AppointmentsScreen nav={nav} showToast={showToast}/>}
-        {screen==='dossier'      &&<DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast}/>}
+        {screen==='appointments' &&<AppointmentsScreen nav={nav} showToast={showToast} user={session?.user} offlineAppointments={offlineAppointments} isOffline={isOffline}/>}
+        {screen==='dossier'      &&<DossierScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast} isOffline={isOffline}/>}
         {screen==='suivi'        &&<SuiviScreen nav={nav} dossier={dossier} onSave={saveDossier} showToast={showToast}/>}
         {screen==='doctors'      &&<DoctorsScreen nav={nav} showToast={showToast}/>}
-        {screen==='profile'      &&<ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast}/>}
+        {screen==='profile'      &&<ProfileScreen nav={nav} profile={profile} setProfile={setProfile} onLogout={handleLogout} showToast={showToast} isOffline={isOffline}/>}
       </div>
       <div className="bnav">
         {navItems.map(item=>(

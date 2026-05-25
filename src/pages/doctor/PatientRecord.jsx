@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../supabase";
+import { useOffline } from "../../hooks/useOffline";
+import OfflineBanner from "../../components/OfflineBanner";
 
 export default function PatientRecord({ nav, showToast, patientId }) {
+  const { isOffline } = useOffline()
   const [patient, setPatient] = useState(null);
   const [dossier, setDossier] = useState(null);
   const [documents, setDocuments] = useState([]);
@@ -21,6 +24,24 @@ export default function PatientRecord({ nav, showToast, patientId }) {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return nav("home");
+
+    if (isOffline) {
+      // Mode hors ligne : charger depuis IndexedDB si dispo
+      try {
+        const { getFromDB } = await import("../../hooks/useOffline");
+        const cached = await getFromDB?.(`patient_record_${patientId}`);
+        if (cached) {
+          setPatient(cached.patient);
+          setDossier(cached.dossier);
+          setDocuments(cached.documents || []);
+          setAccessLevel(cached.accessLevel);
+        }
+      } catch (e) {
+        // pas de cache disponible
+      }
+      setLoading(false);
+      return;
+    }
 
     const { data: access } = await supabase
       .from("doctor_access")
@@ -61,6 +82,10 @@ export default function PatientRecord({ nav, showToast, patientId }) {
 
   async function saveNote() {
     if (!noteTitle.trim() || !noteContent.trim()) return;
+    if (isOffline) {
+      showToast && showToast("Impossible en mode hors ligne");
+      return;
+    }
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -108,9 +133,17 @@ export default function PatientRecord({ nav, showToast, patientId }) {
 
   return (
     <div style={styles.page}>
+      <OfflineBanner />
+
       <header style={styles.header}>
         <button style={styles.backBtn} onClick={() => nav("doctor")}>← Retour</button>
-        <button style={styles.noteBtn} onClick={() => setShowNoteModal(true)}>+ Ajouter une note</button>
+        {isOffline ? (
+          <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+            📴 Mode hors ligne
+          </span>
+        ) : (
+          <button style={styles.noteBtn} onClick={() => setShowNoteModal(true)}>+ Ajouter une note</button>
+        )}
       </header>
 
       <div style={styles.content}>
@@ -121,7 +154,7 @@ export default function PatientRecord({ nav, showToast, patientId }) {
             <div style={styles.patientMeta}>
               <span>🎂 {getAge(patient?.dob)}</span>
               {patient?.blood && <span style={styles.bloodBadge}>🩸 {patient.blood}</span>}
-              <span style={styles.accessBadge}>Accès : {accessLevel}</span>
+              {accessLevel && <span style={styles.accessBadge}>Accès : {accessLevel}</span>}
             </div>
           </div>
         </div>
