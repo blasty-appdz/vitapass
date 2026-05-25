@@ -1,5 +1,7 @@
 {
   "rewrites": [
+    { "source": "/auth/callback", "destination": "/index.html" },
+    { "source": "/urgence/:token", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

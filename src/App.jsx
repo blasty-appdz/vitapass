@@ -11,6 +11,7 @@ import SearchScreen from './pages/patient/SearchScreen';
 import ProProfileScreen from './pages/patient/ProProfileScreen';
 import BookingScreen from './pages/patient/BookingScreen';
 import AppointmentsScreen from './pages/patient/AppointmentsScreen';
+import EmergencyPublicPage from './pages/EmergencyPublicPage';
 
 const WILAYAS = ['Adrar','Chlef','Laghouat','Oum El Bouaghi','Batna','Béjaïa','Biskra','Béchar','Blida','Bouira','Tamanrasset','Tébessa','Tlemcen','Tiaret','Tizi Ouzou','Alger','Djelfa','Jijel','Sétif','Saïda','Skikda','Sidi Bel Abbès','Annaba','Guelma','Constantine','Médéa','Mostaganem','M\'Sila','Mascara','Ouargla','Oran','El Bayadh','Illizi','Bordj Bou Arréridj','Boumerdès','El Tarf','Tindouf','Tissemsilt','El Oued','Khenchela','Souk Ahras','Tipaza','Mila','Aïn Defla','Naâma','Aïn Témouchent','Ghardaïa','Relizane']
 
@@ -425,21 +426,43 @@ function HomeScreen({ nav, profile, dossier, doctorCount=0, notifs=[] }) {
   )
 }
 
-function QRScreen({ nav, profile }) {
+function QRScreen({ nav, profile, dossierData }) {
   const { t } = useTranslation()
   const qrRef = useRef(null)
   const qrInstance = useRef(null)
+
   useEffect(() => {
-    if (!qrRef.current||!profile) return
-    const text = JSON.stringify({ id:profile.id, name:`${profile.fname} ${profile.lname}`, blood:profile.blood, emergency:profile.emergency })
-    if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(text) }
-    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current,{text,width:180,height:180,colorDark:'#000',colorLight:'#fff'}) }
-  }, [profile])
+    if (!qrRef.current || !profile) return
+    // Utilise l'URL urgence publique si le token existe, sinon fallback JSON
+    const qrText = dossierData?.urgence_token && dossierData?.urgence_public
+      ? `https://vitapass.app/urgence/${dossierData.urgence_token}`
+      : JSON.stringify({ id:profile.id, name:`${profile.fname} ${profile.lname}`, blood:profile.blood, emergency:profile.emergency })
+    if (qrInstance.current) { qrInstance.current.clear(); qrInstance.current.makeCode(qrText) }
+    else if (window.QRCode) { qrInstance.current = new window.QRCode(qrRef.current,{text:qrText,width:180,height:180,colorDark:'#000',colorLight:'#fff'}) }
+  }, [profile, dossierData])
+
+  const urgenceActive = dossierData?.urgence_public === true
+
   return (
     <div className="screen" style={{display:'flex'}}>
       <div className="screen-hdr"><div className="back-btn" onClick={()=>nav('home')}>←</div><div className="shdr-title">{t('nav.qr')}</div></div>
       <div className="qr-wrap">
-        <div className="emergency-bar"><span style={{fontSize:20}}>🆘</span><div className="emg-txt">{t('home.qr_pass_sub')}</div></div>
+        <div className="emergency-bar">
+          <span style={{fontSize:20}}>🆘</span>
+          <div className="emg-txt">{t('home.qr_pass_sub')}</div>
+        </div>
+        {/* Toggle urgence publique */}
+        <div style={{background:'var(--card)',border:`1px solid ${urgenceActive?'rgba(0,201,141,.3)':'var(--border)'}`,borderRadius:14,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+          <div>
+            <div style={{fontFamily:"'Syne',sans-serif",fontSize:13,fontWeight:700,color:'var(--white)'}}>
+              {urgenceActive ? '🟢 Accès urgence activé' : '🔴 Accès urgence désactivé'}
+            </div>
+            <div style={{fontSize:11,color:'var(--dim)',marginTop:3}}>
+              {urgenceActive ? 'QR lisible sans connexion par les secouristes' : 'Activer pour rendre le QR accessible aux secouristes'}
+            </div>
+          </div>
+          <UrgenceToggle dossier={dossierData} userId={profile?.id} />
+        </div>
         <div className="qr-card">
           <div className="qr-tag">URGENCE MÉDICALE</div>
           <div className="qr-box" ref={qrRef} />
@@ -448,10 +471,48 @@ function QRScreen({ nav, profile }) {
           <div className="qr-chips">
             {profile?.blood && <span className="badge badge-r">🩸 {profile.blood}</span>}
             {profile?.emergency && <span className="badge badge-g">📞 {profile.emergency}</span>}
+            {urgenceActive && <span className="badge badge-g">✅ Public</span>}
           </div>
         </div>
       </div>
       <div className="pad-b" />
+    </div>
+  )
+}
+
+function UrgenceToggle({ dossier, userId }) {
+  const [active, setActive] = useState(dossier?.urgence_public || false)
+  const [loading, setLoading] = useState(false)
+
+  const toggle = async () => {
+    setLoading(true)
+    const newVal = !active
+    const { error } = await supabase
+      .from('dossiers')
+      .update({ urgence_public: newVal })
+      .eq('patient_id', userId)
+    if (!error) setActive(newVal)
+    setLoading(false)
+  }
+
+  return (
+    <div
+      onClick={loading ? undefined : toggle}
+      style={{
+        width:48, height:28, borderRadius:14,
+        background: active ? 'var(--g)' : 'rgba(255,255,255,.1)',
+        position:'relative', cursor: loading ? 'not-allowed' : 'pointer',
+        transition:'background .25s', flexShrink:0,
+        border: active ? '1px solid rgba(0,201,141,.4)' : '1px solid rgba(255,255,255,.15)'
+      }}
+    >
+      <div style={{
+        position:'absolute', top:3,
+        left: active ? 22 : 3,
+        width:20, height:20, borderRadius:'50%',
+        background:'#fff', transition:'left .25s',
+        boxShadow:'0 1px 4px rgba(0,0,0,.3)'
+      }} />
     </div>
   )
 }
@@ -907,6 +968,7 @@ export default function App() {
   const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
   const [notifs, setNotifs] = useState([])
+  const [emergencyToken, setEmergencyToken] = useState(null)
   const [isRecovery] = useState(()=>window.location.hash.includes('type=recovery'))
 
   useEffect(()=>{
@@ -915,6 +977,15 @@ export default function App() {
   },[])
 
   useEffect(()=>{
+    // ── Détection route urgence publique ──────────────────────
+    const path = window.location.pathname
+    const urgenceMatch = path.match(/^\/urgence\/([a-f0-9-]{36})$/)
+    if (urgenceMatch) {
+      setEmergencyToken(urgenceMatch[1])
+      setLoading(false)
+      return
+    }
+    // ─────────────────────────────────────────────────────────
     if(isRecovery){setLoading(false);return}
     supabase.auth.getSession().then(({data:{session}})=>{setSession(session);if(session)loadUserData(session.user.id);else setLoading(false)})
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>{
@@ -933,14 +1004,11 @@ export default function App() {
       supabase.from('doctor_access').select('*',{count:'exact',head:true}).eq('patient_id',userId).eq('status','active')
     ])
     setProfile(prof)
-    // ── Routing doctor ──────────────────────────────────────────
     if(prof?.role==='doctor'){
-      // Vérifier si le profil pro est complété
       const {data:proData} = await supabase.from('professionals').select('fname,specialite,wilaya').eq('id',userId).maybeSingle()
       const profilComplet = proData?.fname && proData?.specialite && proData?.wilaya
       setScreen(profilComplet ? 'pro-dashboard' : 'pro-onboarding')
     }
-    // ────────────────────────────────────────────────────────────
     setDossier(dos);setDoctorCount(docCount||0)
     if(prof?.role==='patient')buildNotifs(dos,docCount||0)
     setLoading(false)
@@ -973,6 +1041,10 @@ export default function App() {
     {id:'profile', icon:<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>,               label:t('nav.profile')},
   ]
 
+  // ── Route urgence publique (sans auth) ────────────────────
+  if (emergencyToken) return <EmergencyPublicPage token={emergencyToken} />
+  // ─────────────────────────────────────────────────────────
+
   if(isRecovery) return <ResetPasswordScreen />
   if(loading) return <div className="phone" style={{alignItems:'center',justifyContent:'center'}}><div className="loading">{t('common.loading')}</div></div>
 
@@ -980,7 +1052,6 @@ export default function App() {
   if(profileIncomplete) return <div className="phone"><OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} /></div>
   if(!session) return <LandingScreen />
 
-  // ── Espace professionnel de santé ────────────────────────────
   if(profile?.role==='doctor') return (
     <>
       {screen==='pro-onboarding'    && <ProfessionalOnboarding nav={nav} />}
@@ -992,7 +1063,6 @@ export default function App() {
       {toast&&<div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:'rgba(13,21,38,.95)',border:'1px solid rgba(0,201,141,.3)',color:'#EFF3FF',padding:'10px 20px',borderRadius:20,zIndex:999,fontSize:13,fontWeight:600}}>{toast}</div>}
     </>
   )
-  // ────────────────────────────────────────────────────────────
 
   return (
     <div className="phone">
@@ -1017,7 +1087,7 @@ export default function App() {
       </div>
       <div className="screens">
         {screen==='home'         &&<HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs}/>}
-        {screen==='qr'           &&<QRScreen nav={nav} profile={profile}/>}
+        {screen==='qr'           &&<QRScreen nav={nav} profile={profile} dossierData={dossier}/>}
         {screen==='search'       &&<SearchScreen nav={nav}/>}
         {screen==='pro-profile'  &&<ProProfileScreen nav={nav} navParams={navParams}/>}
         {screen==='booking'      &&<BookingScreen nav={nav} navParams={navParams} showToast={showToast}/>}
