@@ -1,103 +1,70 @@
-// src/hooks/useOffline.js
-import { useState, useEffect, useCallback } from 'react'
+// src/hooks/useOfflineData.js
+import { useState, useEffect } from 'react'
+import { saveOffline, loadOffline } from './useOffline'
+import { supabase } from '../supabase'
 
-const DB_NAME = 'vitapass_offline'
-const DB_VERSION = 1
-const STORES = ['profile', 'dossier', 'appointments', 'professionals']
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION)
-    req.onupgradeneeded = (e) => {
-      const db = e.target.result
-      STORES.forEach((store) => {
-        if (!db.objectStoreNames.contains(store)) {
-          db.createObjectStore(store, { keyPath: 'id' })
-        }
-      })
-    }
-    req.onsuccess = () => resolve(req.result)
-    req.onerror = () => reject(req.error)
-  })
-}
-
-export async function saveOffline(storeName, data) {
-  try {
-    const db = await openDB()
-    const tx = db.transaction(storeName, 'readwrite')
-    const store = tx.objectStore(storeName)
-    const record = Array.isArray(data)
-      ? data.map((item, i) => ({ ...item, id: item.id || item.patient_id || String(i) }))
-      : [{ ...data, id: data.id || data.patient_id || 'single' }]
-    record.forEach((item) => store.put(item))
-    return new Promise((resolve, reject) => {
-      tx.oncomplete = () => resolve(true)
-      tx.onerror = () => reject(tx.error)
-    })
-  } catch (err) {
-    console.warn('[VitaPass Offline] saveOffline error:', err)
-    return false
-  }
-}
-
-export async function loadOffline(storeName) {
-  try {
-    const db = await openDB()
-    const tx = db.transaction(storeName, 'readonly')
-    const store = tx.objectStore(storeName)
-    const req = store.getAll()
-    return new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result || [])
-      req.onerror = () => reject(req.error)
-    })
-  } catch (err) {
-    console.warn('[VitaPass Offline] loadOffline error:', err)
-    return []
-  }
-}
-
-export async function clearOffline(storeName) {
-  try {
-    const db = await openDB()
-    const tx = db.transaction(storeName, 'readwrite')
-    tx.objectStore(storeName).clear()
-  } catch (err) {
-    console.warn('[VitaPass Offline] clearOffline error:', err)
-  }
-}
-
-export function useOffline() {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine)
-  const [wasOffline, setWasOffline] = useState(false)
+export function useOfflineProfile(userId) {
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOffline(false)
-      setWasOffline(true)
-      setTimeout(() => setWasOffline(false), 4000)
-    }
-    const handleOffline = () => {
-      setIsOffline(true)
-      setWasOffline(false)
-    }
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
-
-  const triggerSync = useCallback(async () => {
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-      try {
-        const reg = await navigator.serviceWorker.ready
-        await reg.sync.register('vitapass-sync')
-      } catch (err) {
-        console.warn('[VitaPass Offline] Background sync not available:', err)
+    if (!userId) return
+    loadOffline('profile').then((records) => {
+      const found = records.find((r) => r.id === userId)
+      if (found) setProfile(found)
+    })
+    // Sync en ligne → sauvegarde en cache
+    supabase.from('profiles').select('*').eq('id', userId).maybeSingle().then(({ data }) => {
+      if (data) {
+        setProfile(data)
+        saveOffline('profile', data)
       }
-    }
-  }, [])
+    })
+  }, [userId])
 
-  return { isOffline, wasOffline, triggerSync }
+  return { profile }
+}
+
+export function useOfflineDossier(userId) {
+  const [dossier, setDossier] = useState(null)
+
+  useEffect(() => {
+    if (!userId) return
+    loadOffline('dossier').then((records) => {
+      const found = records.find((r) => r.patient_id === userId || r.id === userId)
+      if (found) setDossier(found)
+    })
+    supabase.from('dossiers').select('*').eq('patient_id', userId).maybeSingle().then(({ data }) => {
+      if (data) {
+        setDossier(data)
+        saveOffline('dossier', { ...data, id: data.patient_id })
+      }
+    })
+  }, [userId])
+
+  return { dossier }
+}
+
+export function useOfflineAppointments(userId) {
+  const [appointments, setAppointments] = useState([])
+
+  useEffect(() => {
+    if (!userId) return
+    loadOffline('appointments').then((records) => {
+      const found = records.filter((r) => r.patient_id === userId)
+      if (found.length > 0) setAppointments(found)
+    })
+    supabase
+      .from('appointments')
+      .select('id, appointment_date, status, notes, professional_id, patient_id')
+      .eq('patient_id', userId)
+      .order('appointment_date', { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setAppointments(data)
+          saveOffline('appointments', data)
+        }
+      })
+  }, [userId])
+
+  return { appointments }
 }
