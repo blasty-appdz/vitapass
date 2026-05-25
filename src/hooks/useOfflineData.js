@@ -39,7 +39,6 @@ export async function saveOffline(storeName, data) {
     return false
   }
 }
-
 export async function loadOffline(storeName) {
   try {
     const db = await openDB()
