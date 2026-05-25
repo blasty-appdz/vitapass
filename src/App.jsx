@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientRecord from './pages/doctor/PatientRecord';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
+import ProfessionalOnboarding from './pages/doctor/ProfessionalOnboarding';
+import ProfessionalSchedule from './pages/doctor/ProfessionalSchedule';
+import ProfessionalDashboard from './pages/doctor/ProfessionalDashboard';
 import SearchScreen from './pages/patient/SearchScreen';
 import ProProfileScreen from './pages/patient/ProProfileScreen';
 import BookingScreen from './pages/patient/BookingScreen';
@@ -303,8 +306,6 @@ function AuthScreen({ onAuth }) {
 
   return (
     <div className="auth-screen">
-
-      {/* SÉLECTEUR DE LANGUE — tout en haut */}
       <div style={{position:'absolute',top:20,right:20}}>
         <button
           onClick={()=>{
@@ -317,7 +318,6 @@ function AuthScreen({ onAuth }) {
           🌐 {i18n.language==='fr'?'العربية':'Français'}
         </button>
       </div>
-
       <div className="auth-logo">
         <svg width="60" height="60" viewBox="0 0 110 110" fill="none">
           <circle cx="55" cy="55" r="52" fill="rgba(0,201,141,0.1)" stroke="rgba(0,201,141,0.28)" strokeWidth="1.5"/>
@@ -933,7 +933,14 @@ export default function App() {
       supabase.from('doctor_access').select('*',{count:'exact',head:true}).eq('patient_id',userId).eq('status','active')
     ])
     setProfile(prof)
-    if(prof?.role==='doctor')setScreen('doctor')
+    // ── Routing doctor ──────────────────────────────────────────
+    if(prof?.role==='doctor'){
+      // Vérifier si le profil pro est complété
+      const {data:proData} = await supabase.from('professionals').select('fname,specialite,wilaya').eq('id',userId).maybeSingle()
+      const profilComplet = proData?.fname && proData?.specialite && proData?.wilaya
+      setScreen(profilComplet ? 'pro-dashboard' : 'pro-onboarding')
+    }
+    // ────────────────────────────────────────────────────────────
     setDossier(dos);setDoctorCount(docCount||0)
     if(prof?.role==='patient')buildNotifs(dos,docCount||0)
     setLoading(false)
@@ -973,25 +980,19 @@ export default function App() {
   if(profileIncomplete) return <div className="phone"><OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} /></div>
   if(!session) return <LandingScreen />
 
-  if(profile?.role==='doctor'&&profile?.validated===false) return (
-    <div className="phone">
-      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,gap:20,background:'var(--bg)'}}>
-        <div style={{fontSize:64}}>⏳</div>
-        <div style={{fontFamily:"'Syne',sans-serif",fontSize:22,fontWeight:800,color:'var(--white)',textAlign:'center'}}>{t('doctor.pending_title')}</div>
-        <div style={{fontSize:14,color:'var(--dim)',textAlign:'center',lineHeight:1.6}}>{t('doctor.pending_body')}</div>
-        <div className="logout-btn" style={{width:'100%'}} onClick={handleLogout}>🚪 {t('profile.logout')}</div>
-      </div>
-    </div>
-  )
-
+  // ── Espace professionnel de santé ────────────────────────────
   if(profile?.role==='doctor') return (
     <>
-      {screen==='doctor'&&<DoctorDashboard nav={nav} showToast={showToast}/>}
-      {screen==='doctor-patient'&&<PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId}/>}
+      {screen==='pro-onboarding'    && <ProfessionalOnboarding nav={nav} />}
+      {screen==='pro-dashboard'     && <ProfessionalDashboard nav={nav} showToast={showToast} />}
+      {screen==='pro-schedule'      && <ProfessionalSchedule nav={nav} showToast={showToast} />}
+      {screen==='doctor'            && <DoctorDashboard nav={nav} showToast={showToast}/>}
+      {screen==='doctor-patient'    && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId}/>}
       {screen==='doctor-appointments'&&<DoctorAppointments nav={nav} showToast={showToast}/>}
       {toast&&<div style={{position:'fixed',top:20,left:'50%',transform:'translateX(-50%)',background:'rgba(13,21,38,.95)',border:'1px solid rgba(0,201,141,.3)',color:'#EFF3FF',padding:'10px 20px',borderRadius:20,zIndex:999,fontSize:13,fontWeight:600}}>{toast}</div>}
     </>
   )
+  // ────────────────────────────────────────────────────────────
 
   return (
     <div className="phone">
