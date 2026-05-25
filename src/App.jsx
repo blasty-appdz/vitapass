@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useOffline } from './hooks/useOffline'
 import { useOfflineProfile, useOfflineDossier, useOfflineAppointments } from './hooks/useOfflineData'
 import OfflineBanner from './components/OfflineBanner'
+import PushNotificationToggle from './components/PushNotificationToggle'
 import DoctorDashboard from './pages/doctor/DoctorDashboard';
 import PatientRecord from './pages/doctor/PatientRecord';
 import DoctorAppointments from './pages/doctor/DoctorAppointments';
@@ -885,6 +886,9 @@ function ProfileScreen({ nav, profile, setProfile, onLogout, showToast, isOfflin
         ))}
       </div>
       {!isOffline && <div className="add-btn" onClick={()=>{setForm(profile||{});setModal(true)}}>✏️ {t('profile.edit')}</div>}
+      <div className="dsect-title">Paramètres</div>
+      <PushNotificationToggle />
+      <div style={{height:12}}/>
       <div className="logout-btn" onClick={onLogout}>🚪 {t('profile.logout')}</div>
       {modal&&<Modal title={t('profile.edit')} onClose={()=>setModal(false)}>
         <div className="form-row">
@@ -1002,11 +1006,9 @@ export default function App() {
   const [isRecovery] = useState(()=>window.location.hash.includes('type=recovery'))
   const [userId, setUserId] = useState(null)
 
-  // ── Hooks offline — actifs dès que userId connu ──────────
   const { profile: offlineProfile } = useOfflineProfile(userId)
   const { dossier: offlineDossier } = useOfflineDossier(userId)
   const { appointments: offlineAppointments } = useOfflineAppointments(userId)
-  // ─────────────────────────────────────────────────────────
 
   useEffect(()=>{
     const tick=()=>{const n=new Date();setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`)}
@@ -1040,13 +1042,11 @@ export default function App() {
     return()=>subscription.unsubscribe()
   },[isRecovery])
 
-  // ── Fallback offline : utiliser données cachées si dispo ─
   useEffect(()=>{
     if(!isOffline || !userId) return
     if(!profile && offlineProfile) setProfile(offlineProfile)
     if(!dossier && offlineDossier) setDossier(offlineDossier)
   },[isOffline, userId, offlineProfile, offlineDossier])
-  // ─────────────────────────────────────────────────────────
 
   const loadUserData = async(userId)=>{
     setLoading(true)
@@ -1087,11 +1087,11 @@ export default function App() {
   const nav=(s,params={})=>{setScreen(s);setNavParams(params)}
 
   const navItems=[
-    {id:'home',    icon:<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>,                                                                                                     label:t('nav.home')},
+    {id:'home',    icon:<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>, label:t('nav.home')},
     {id:'search',  icon:<path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>, label:t('nav.search')},
     {id:'appointments',icon:<path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/>, label:t('nav.rdv')},
-    {id:'dossier', icon:<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/>,               label:t('nav.dossier')},
-    {id:'profile', icon:<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>,               label:t('nav.profile')},
+    {id:'dossier', icon:<path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z"/>, label:t('nav.dossier')},
+    {id:'profile', icon:<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>, label:t('nav.profile')},
   ]
 
   if (emergencyToken) return <EmergencyPublicPage token={emergencyToken} />

@@ -13,9 +13,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        importScripts: ['sw-push.js'],
         runtimeCaching: [
-          // Cache Supabase REST API — stale-while-revalidate
           {
             urlPattern: /^https:\/\/qklhzepfbhihtlgqbweo\.supabase\.co\/rest\/.*/i,
             handler: 'StaleWhileRevalidate',
@@ -23,14 +23,13 @@ export default defineConfig({
               cacheName: 'supabase-api-cache',
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 7 * 24 * 60 * 60, // 7 jours
+                maxAgeSeconds: 7 * 24 * 60 * 60,
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
             },
           },
-          // Cache Supabase Storage (photos, documents)
           {
             urlPattern: /^https:\/\/qklhzepfbhihtlgqbweo\.supabase\.co\/storage\/.*/i,
             handler: 'CacheFirst',
@@ -38,14 +37,13 @@ export default defineConfig({
               cacheName: 'supabase-storage-cache',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 jours
+                maxAgeSeconds: 30 * 24 * 60 * 60,
               },
               cacheableResponse: {
                 statuses: [0, 200],
               },
             },
           },
-          // Cache Google Fonts si utilisés
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
@@ -58,7 +56,6 @@ export default defineConfig({
             },
           },
         ],
-        // Page de fallback offline
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/urgence\//, /^\/auth\//],
         skipWaiting: true,
