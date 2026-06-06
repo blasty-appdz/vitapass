@@ -5,6 +5,7 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "crons": [
-    { "path": "/api/agent", "schedule": "0 * * * *" }
+    { "path": "/api/agent",      "schedule": "0 * * * *" },
+    { "path": "/api/prospector", "schedule": "0 8 * * *" }
   ]
 }
