@@ -177,11 +177,11 @@
   },
 
   "landing": {
-    "available": "Disponible maintenant · Gratuit",
-    "hero_title": "Votre santé,",
-    "hero_title_accent": "toujours avec vous",
-    "hero_sub": "VitaPass centralise votre dossier médical dans une application sécurisée, accessible en un scan QR — même en urgence.",
-    "create_btn": "Créer mon dossier gratuit",
+    "available": "Urgence · Gratuit · Oran",
+    "hero_title": "En urgence,",
+    "hero_title_accent": "chaque seconde compte",
+    "hero_sub": "Le médecin scanne votre QR code. Il voit votre groupe sanguin, vos allergies, vos médicaments. Sans vous demander. Sans perdre de temps.",
+    "create_btn": "Créer mon dossier — c'est gratuit",
     "login_btn": "Se connecter →",
     "stat_free": "Gratuit",
     "stat_free_sub": "Pour toujours",
@@ -189,10 +189,10 @@
     "stat_dz": "Made in Algeria 🇩🇿",
     "features_title": "Tout ce dont vous",
     "features_accent": "avez besoin",
-    "cta_title": "Prêt à prendre soin",
-    "cta_accent": "de votre santé ?",
-    "cta_sub": "Rejoignez les Algériens qui font confiance à VitaPass.",
+    "cta_title": "Et si votre prochain médecin",
+    "cta_accent": "avait déjà tout votre dossier ?",
+    "cta_sub": "Des milliers d'Algériens ont déjà créé leur VitaPass. En cas d'urgence, c'est trop tard pour commencer.",
     "contact": "Nous contacter",
-    "footer_free": "Gratuit · Sans publicité · 100% algérien 🇩🇿"
+    "footer_free": "Gratuit · Sans publicité · Conçu à Oran 🇩🇿"
   }
 }
