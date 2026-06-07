@@ -124,6 +124,18 @@ function extractSpecialty(text) {
   return m ? m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase() : null
 }
 
+// "Dr Akloul Pediatre" → "dr.akloul.pediatre@gmail.com"
+function guessEmail(fullName) {
+  const slug = fullName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')  // supprime les accents
+    .replace(/[^a-z0-9\s]/g, '')      // supprime les caractères non-alphanumériques
+    .trim()
+    .replace(/\s+/g, '.')
+  return `${slug}@gmail.com`
+}
+
 // ── Déduplication & insertion ─────────────────────────────────────────────────
 
 async function emailExists(email) {
@@ -233,15 +245,18 @@ async function runGooglePlaces(wilaya) {
           debugLogged = true
         }
 
-        const email = await findEmailForDoctor(name, website, wilaya)
+        let email         = await findEmailForDoctor(name, website, wilaya)
+        let emailVerified = true
         if (!email) {
-          console.log(`[maps:${wilaya}] pas d'email — ${name} (website: ${website ?? 'aucun'})`)
-          continue
+          email         = guessEmail(name)
+          emailVerified = false
+          console.log(`[maps:${wilaya}] email deviné — ${name} → ${email}`)
         }
         const ok = await insertLeadSafe({
           full_name: name, email, phone, specialty,
           city: wilaya, status: 'new', sequence_step: 0,
-          notes: 'Trouvé via Google Maps',
+          email_verified: emailVerified,
+          notes: emailVerified ? 'Trouvé via Google Maps' : 'Trouvé via Google Maps (email deviné)',
         })
         if (ok) { report.inserted++; console.log(`[maps:${wilaya}] ✓ ${name} <${email}>`) }
         await sleep(200)
@@ -295,14 +310,19 @@ async function scrapeFacebookViaGoogle(wilaya) {
       const specialty = extractSpecialty(snippetCtx)
       const phone     = extractFirstPhone(html)
 
-      let email = extractEmails(html)[0] ?? null
+      let email         = extractEmails(html)[0] ?? null
       if (!email && rawName) email = await searchEmailGoogle(rawName, wilaya)
-      if (!email) continue
+      let emailVerified = !!email
+      if (!email) {
+        email = guessEmail(name)
+        console.log(`[facebook:${wilaya}] email deviné — ${name} → ${email}`)
+      }
 
       const ok = await insertLeadSafe({
         full_name: name, email, phone, specialty,
         city: wilaya, status: 'new', sequence_step: 0,
-        notes: `Trouvé via Facebook (${pageUrl})`,
+        email_verified: emailVerified,
+        notes: emailVerified ? `Trouvé via Facebook (${pageUrl})` : `Trouvé via Facebook (email deviné) (${pageUrl})`,
       })
       if (ok) { report.inserted++; console.log(`[facebook:${wilaya}] ✓ ${name} <${email}>`) }
     } catch (err) {
