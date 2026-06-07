@@ -54,17 +54,6 @@ const JUNK_EMAILS = ['noreply', 'no-reply', 'example', 'sentry', 'wix.com', 'wor
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 
-// ── Normalisation nom de wilaya pour URLs ─────────────────────────────────────
-
-function slugWilaya(wilaya) {
-  return wilaya
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')   // supprimer les accents
-    .replace(/\s+/g, '-')              // espaces → tirets
-    .replace(/[^a-z0-9\-]/g, '')       // caractères non-URL
-}
-
 // ── État persistant — rotation wilayas ───────────────────────────────────────
 
 async function getWilayaIndex() {
@@ -253,99 +242,7 @@ async function runGooglePlaces(wilaya) {
   return report
 }
 
-// ── Source 2 : salama.dz ─────────────────────────────────────────────────────
-
-async function scrapeSalamaDz(wilaya) {
-  const report    = { found: 0, inserted: 0, errors: 0 }
-  const slug      = slugWilaya(wilaya)
-  const MAX_PAGES = 3
-
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    let html
-    try {
-      html = await fetchHtml(`https://salama.dz/medecins?wilaya=${slug}&page=${page}`)
-    } catch (err) {
-      console.error(`[salama:${wilaya}] page ${page}: ${err.message}`)
-      break
-    }
-
-    const emails = extractEmails(html)
-    if (emails.length === 0 && page > 1) break
-
-    for (const email of emails) {
-      report.found++
-      try {
-        const idx  = html.toLowerCase().indexOf(email)
-        const ctx  = idx > -1 ? html.slice(Math.max(0, idx - 600), idx + 200) : html
-        const name = extractDoctorName(ctx) ?? `Médecin ${wilaya}`
-        const ok   = await insertLeadSafe({
-          full_name: name,
-          email,
-          phone:     extractFirstPhone(ctx),
-          specialty: extractSpecialty(ctx),
-          city:      wilaya,
-          status:    'new',
-          sequence_step: 0,
-          notes:     'Trouvé via salama.dz',
-        })
-        if (ok) { report.inserted++; console.log(`[salama:${wilaya}] ✓ ${name} <${email}>`) }
-      } catch (err) {
-        console.error(`[salama:${wilaya}] ${email}: ${err.message}`)
-        report.errors++
-      }
-    }
-    await sleep(800)
-  }
-  return report
-}
-
-// ── Source 3 : docteur.dz ────────────────────────────────────────────────────
-
-async function scrapeDocteurDz(wilaya) {
-  const report    = { found: 0, inserted: 0, errors: 0 }
-  const slug      = slugWilaya(wilaya)
-  const MAX_PAGES = 3
-
-  for (let page = 1; page <= MAX_PAGES; page++) {
-    let html
-    try {
-      html = await fetchHtml(`https://docteur.dz/annuaire?ville=${slug}&page=${page}`)
-    } catch (err) {
-      console.error(`[docteur:${wilaya}] page ${page}: ${err.message}`)
-      break
-    }
-
-    const emails = extractEmails(html)
-    if (emails.length === 0 && page > 1) break
-
-    for (const email of emails) {
-      report.found++
-      try {
-        const idx  = html.toLowerCase().indexOf(email)
-        const ctx  = idx > -1 ? html.slice(Math.max(0, idx - 600), idx + 200) : html
-        const name = extractDoctorName(ctx) ?? `Médecin ${wilaya}`
-        const ok   = await insertLeadSafe({
-          full_name: name,
-          email,
-          phone:     extractFirstPhone(ctx),
-          specialty: extractSpecialty(ctx),
-          city:      wilaya,
-          status:    'new',
-          sequence_step: 0,
-          notes:     'Trouvé via docteur.dz',
-        })
-        if (ok) { report.inserted++; console.log(`[docteur:${wilaya}] ✓ ${name} <${email}>`) }
-      } catch (err) {
-        console.error(`[docteur:${wilaya}] ${email}: ${err.message}`)
-        report.errors++
-      }
-    }
-    await sleep(800)
-  }
-  return report
-}
-
-// ── Source 4 : pages Facebook via Google Custom Search ───────────────────────
+// ── Source 2 : pages Facebook via Google Custom Search ───────────────────────
 
 async function scrapeFacebookViaGoogle(wilaya) {
   const report = { found: 0, inserted: 0, errors: 0 }
@@ -421,8 +318,6 @@ export async function runProspection() {
   for (const wilaya of batch) {
     const results = {
       google_maps: await runGooglePlaces(wilaya),
-      salama_dz:   await scrapeSalamaDz(wilaya),
-      docteur_dz:  await scrapeDocteurDz(wilaya),
       facebook:    await scrapeFacebookViaGoogle(wilaya),
     }
 
