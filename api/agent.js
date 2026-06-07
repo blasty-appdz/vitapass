@@ -522,6 +522,19 @@ async function runRelances() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default async function handler(req, res) {
+  // GET sans auth → test manuel (relances uniquement, pas de prospection)
+  if (req.method === 'GET') {
+    try {
+      const relances = await runRelances()
+      console.log(`[agent:test] relances — envoyés: ${relances.sent}, erreurs: ${relances.errors}`)
+      return res.status(200).json({ ok: true, mode: 'test', relances })
+    } catch (err) {
+      console.error('[agent:test] fatal:', err.message)
+      return res.status(500).json({ error: err.message })
+    }
+  }
+
+  // POST/cron → authentification requise
   const authHeader = req.headers['authorization'] ?? ''
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' })
