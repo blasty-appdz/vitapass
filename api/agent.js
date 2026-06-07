@@ -405,7 +405,7 @@ async function scrapeFacebookViaGoogle(wilaya) {
 
 // ── Orchestration prospection ─────────────────────────────────────────────────
 
-async function runProspection() {
+export async function runProspection() {
   // Lire l'index courant depuis Supabase
   const startIndex  = await getWilayaIndex()
   const batch       = []
@@ -474,7 +474,7 @@ async function updateLead(id, step) {
   if (error) throw new Error(`DB update (${id}): ${error.message}`)
 }
 
-async function runRelances() {
+export async function runRelances() {
   const now     = Date.now()
   const report  = { sent: 0, errors: 0 }
   const EXCLUDE = ['unsubscribed', 'converted', 'demo_scheduled']
