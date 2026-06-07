@@ -215,6 +215,7 @@ async function runGooglePlaces(wilaya) {
     }
     report.found += places.length
 
+    let debugLogged = false
     for (const place of places) {
       try {
         await sleep(300)
@@ -223,8 +224,20 @@ async function runGooglePlaces(wilaya) {
         const name    = details.name        ?? place.name
         const phone   = details.formatted_phone_number ?? null
         const website = details.website     ?? null
-        const email   = await findEmailForDoctor(name, website, wilaya)
-        if (!email) continue
+
+        // Debug : log du premier résultat pour vérifier la structure
+        if (!debugLogged) {
+          console.log(`[maps:debug] premier résultat brut place=`, JSON.stringify(place, null, 2))
+          console.log(`[maps:debug] details=`, JSON.stringify(details, null, 2))
+          console.log(`[maps:debug] name="${name}" phone="${phone}" website="${website}"`)
+          debugLogged = true
+        }
+
+        const email = await findEmailForDoctor(name, website, wilaya)
+        if (!email) {
+          console.log(`[maps:${wilaya}] pas d'email — ${name} (website: ${website ?? 'aucun'})`)
+          continue
+        }
         const ok = await insertLeadSafe({
           full_name: name, email, phone, specialty,
           city: wilaya, status: 'new', sequence_step: 0,
@@ -370,14 +383,15 @@ async function updateLead(id, step) {
 }
 
 export async function runRelances() {
-  const now     = Date.now()
-  const report  = { sent: 0, errors: 0 }
-  const EXCLUDE = ['unsubscribed', 'converted', 'demo_scheduled']
+  const now    = Date.now()
+  const report = { sent: 0, errors: 0 }
 
   const { data: newLeads, error: e0 } = await supabase
     .from('doctor_leads').select('*')
     .eq('sequence_step', 0)
-    .not('status', 'in', `(${EXCLUDE.join(',')})`)
+    .neq('status', 'unsubscribed')
+    .neq('status', 'converted')
+    .neq('status', 'demo_scheduled')
   if (e0) throw new Error('Fetch new leads: ' + e0.message)
 
   for (const lead of newLeads ?? []) {
@@ -388,7 +402,9 @@ export async function runRelances() {
   const { data: step1, error: e1 } = await supabase
     .from('doctor_leads').select('*')
     .eq('sequence_step', 1)
-    .not('status', 'in', `(${EXCLUDE.join(',')})`)
+    .neq('status', 'unsubscribed')
+    .neq('status', 'converted')
+    .neq('status', 'demo_scheduled')
     .lt('last_contact_at', new Date(now - DELAY_J3).toISOString())
   if (e1) throw new Error('Fetch step-1: ' + e1.message)
 
@@ -400,7 +416,9 @@ export async function runRelances() {
   const { data: step2, error: e2 } = await supabase
     .from('doctor_leads').select('*')
     .eq('sequence_step', 2)
-    .not('status', 'in', `(${EXCLUDE.join(',')})`)
+    .neq('status', 'unsubscribed')
+    .neq('status', 'converted')
+    .neq('status', 'demo_scheduled')
     .lt('last_contact_at', new Date(now - DELAY_J7).toISOString())
   if (e2) throw new Error('Fetch step-2: ' + e2.message)
 
