@@ -52,6 +52,13 @@ const EMAIL_RE    = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g
 const PHONE_RE    = /(?:\+213|0)[2-7]\d[\s.\-]?\d{2}[\s.\-]?\d{2}[\s.\-]?\d{2}/g
 const JUNK_EMAILS = ['noreply', 'no-reply', 'example', 'sentry', 'wix.com', 'wordpress', '@2x', '.png', '.jpg', '.svg']
 
+const CONTACT_PATHS = [
+  '/contact', '/contact-us', '/nous-contacter', '/contactez-nous',
+  '/about', '/a-propos', '/qui-sommes-nous',
+  '/rendez-vous', '/appointment',
+  '/informations', '/coordonnees',
+]
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 
 // ── État persistant — rotation wilayas ───────────────────────────────────────
@@ -129,8 +136,8 @@ function guessEmail(fullName) {
   const slug = fullName
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')  // supprime les accents
-    .replace(/[^a-z0-9\s]/g, '')      // supprime les caractères non-alphanumériques
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
     .trim()
     .replace(/\s+/g, '.')
   return `${slug}@gmail.com`
@@ -179,38 +186,78 @@ async function getPlaceDetails(placeId) {
   return data.result ?? null
 }
 
-async function searchEmailGoogle(name, wilaya) {
-  const url = new URL('https://www.googleapis.com/customsearch/v1')
-  url.searchParams.set('key', SEARCH_KEY)
-  url.searchParams.set('cx', SEARCH_CX)
-  url.searchParams.set('q', `"${name}" médecin ${wilaya} email`)
-  url.searchParams.set('num', '5')
+// ── Scraping email multi-pages ────────────────────────────────────────────────
+
+async function scrapeEmailFromWebsite(website) {
+  const base = website.replace(/\/$/, '')
+
+  // 1. Homepage
   try {
-    const res  = await fetch(url)
-    const data = await res.json()
-    for (const item of data.items ?? []) {
-      const text = (item.snippet ?? '') + (item.htmlSnippet ?? '')
-      for (const email of (text.match(EMAIL_RE) ?? [])) {
-        const e = email.toLowerCase()
-        if (!JUNK_EMAILS.some(j => e.includes(j))) return e
+    const html   = await fetchHtml(base)
+    const emails = extractEmails(html)
+    if (emails[0]) return emails[0]
+  } catch { /* continue */ }
+
+  // 2. Pages contact connues
+  for (const path of CONTACT_PATHS) {
+    try {
+      await sleep(300)
+      const html   = await fetchHtml(base + path)
+      const emails = extractEmails(html)
+      if (emails[0]) return emails[0]
+    } catch { /* page inexistante, continue */ }
+  }
+
+  return null
+}
+
+// ── Recherche email via Google Custom Search ──────────────────────────────────
+
+async function searchEmailGoogle(name, wilaya) {
+  const queries = [
+    `"${name}" médecin ${wilaya} email contact`,
+    `"${name}" ${wilaya} "@gmail.com" OR "@yahoo.fr" OR "@hotmail.com"`,
+    `"${name}" clinique ${wilaya} contact`,
+  ]
+
+  for (const q of queries) {
+    try {
+      const url = new URL('https://www.googleapis.com/customsearch/v1')
+      url.searchParams.set('key', SEARCH_KEY)
+      url.searchParams.set('cx', SEARCH_CX)
+      url.searchParams.set('q', q)
+      url.searchParams.set('num', '5')
+      const res  = await fetch(url)
+      const data = await res.json()
+      for (const item of data.items ?? []) {
+        const text = (item.snippet ?? '') + (item.htmlSnippet ?? '')
+        for (const email of (text.match(EMAIL_RE) ?? [])) {
+          const e = email.toLowerCase()
+          if (!JUNK_EMAILS.some(j => e.includes(j))) return e
+        }
       }
+      await sleep(400)
+    } catch (err) {
+      console.error(`[google-search] "${q}": ${err.message}`)
     }
-  } catch (err) {
-    console.error(`[google-search] "${name}": ${err.message}`)
   }
   return null
 }
 
+// ── Recherche email — orchestration priorités ─────────────────────────────────
+
 async function findEmailForDoctor(name, website, wilaya) {
+  // Priorité 1 : scraping du site web (homepage + pages contact)
   if (website) {
-    try {
-      const html   = await fetchHtml(website)
-      const emails = extractEmails(html)
-      if (emails[0]) return emails[0]
-    } catch { /* timeout ou bloqué */ }
+    const email = await scrapeEmailFromWebsite(website)
+    if (email) return email
   }
+
+  // Priorité 2 : Google Custom Search (3 variantes)
   return searchEmailGoogle(name, wilaya)
 }
+
+// ── runGooglePlaces ───────────────────────────────────────────────────────────
 
 async function runGooglePlaces(wilaya) {
   const report = { found: 0, inserted: 0, errors: 0 }
@@ -233,14 +280,13 @@ async function runGooglePlaces(wilaya) {
         await sleep(300)
         const details = await getPlaceDetails(place.place_id)
         if (!details) continue
-        const name    = details.name        ?? place.name
+        const name    = details.name                   ?? place.name
         const phone   = details.formatted_phone_number ?? null
-        const website = details.website     ?? null
+        const website = details.website                ?? null
 
-        // Debug : log du premier résultat pour vérifier la structure
         if (!debugLogged) {
-          console.log(`[maps:debug] premier résultat brut place=`, JSON.stringify(place, null, 2))
-          console.log(`[maps:debug] details=`, JSON.stringify(details, null, 2))
+          console.log(`[maps:debug] place=`, JSON.stringify(place))
+          console.log(`[maps:debug] details=`, JSON.stringify(details))
           console.log(`[maps:debug] name="${name}" phone="${phone}" website="${website}"`)
           debugLogged = true
         }
@@ -303,12 +349,12 @@ async function scrapeFacebookViaGoogle(wilaya) {
       try       { html = await fetchHtml(mobileUrl, 8000) }
       catch     { try { html = await fetchHtml(pageUrl, 8000) } catch { continue } }
 
-      const titleM    = html.match(/<title[^>]*>\s*([^|<\n]{3,60})\s*[|<]/)
-      const rawName   = titleM ? titleM[1].trim() : extractDoctorName(html)
-      const name      = rawName ?? `Médecin ${wilaya}`
+      const titleM     = html.match(/<title[^>]*>\s*([^|<\n]{3,60})\s*[|<]/)
+      const rawName    = titleM ? titleM[1].trim() : extractDoctorName(html)
+      const name       = rawName ?? `Médecin ${wilaya}`
       const snippetCtx = (item.snippet ?? '') + html.slice(0, 2000)
-      const specialty = extractSpecialty(snippetCtx)
-      const phone     = extractFirstPhone(html)
+      const specialty  = extractSpecialty(snippetCtx)
+      const phone      = extractFirstPhone(html)
 
       let email         = extractEmails(html)[0] ?? null
       if (!email && rawName) email = await searchEmailGoogle(rawName, wilaya)
@@ -322,7 +368,9 @@ async function scrapeFacebookViaGoogle(wilaya) {
         full_name: name, email, phone, specialty,
         city: wilaya, status: 'new', sequence_step: 0,
         email_verified: emailVerified,
-        notes: emailVerified ? `Trouvé via Facebook (${pageUrl})` : `Trouvé via Facebook (email deviné) (${pageUrl})`,
+        notes: emailVerified
+          ? `Trouvé via Facebook (${pageUrl})`
+          : `Trouvé via Facebook (email deviné) (${pageUrl})`,
       })
       if (ok) { report.inserted++; console.log(`[facebook:${wilaya}] ✓ ${name} <${email}>`) }
     } catch (err) {
@@ -336,9 +384,8 @@ async function scrapeFacebookViaGoogle(wilaya) {
 // ── Orchestration prospection ─────────────────────────────────────────────────
 
 export async function runProspection() {
-  // Lire l'index courant depuis Supabase
-  const startIndex  = await getWilayaIndex()
-  const batch       = []
+  const startIndex = await getWilayaIndex()
+  const batch      = []
   for (let i = 0; i < WILAYAS_PER_DAY; i++) {
     batch.push(WILAYAS[(startIndex + i) % WILAYAS.length])
   }
@@ -366,10 +413,9 @@ export async function runProspection() {
     report.inserted        += wInserted
     report.errors          += wErrors
 
-    await sleep(2000)  // pause entre wilayas
+    await sleep(2000)
   }
 
-  // Sauvegarder le prochain index
   await setWilayaIndex(nextIndex)
   console.log(`[prospection] Prochain démarrage : wilaya index ${nextIndex} (${WILAYAS[nextIndex]})`)
 
@@ -455,7 +501,6 @@ export async function runRelances() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default async function handler(req, res) {
-  // GET sans auth → test manuel (relances uniquement, pas de prospection)
   if (req.method === 'GET') {
     try {
       const relances = await runRelances()
@@ -467,7 +512,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // POST/cron → authentification requise
   const authHeader = req.headers['authorization'] ?? ''
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' })
