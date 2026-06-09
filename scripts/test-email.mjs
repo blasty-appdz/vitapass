@@ -21,7 +21,7 @@ console.log('📧  Envoi du test J+0 à snaceri99@yahoo.com...')
 console.log('    Sujet :', email.subject)
 
 const { data, error } = await resend.emails.send({
-  from:    'Samir VitaPass <samir@vitapass.app>',
+  from:    'Samir VitaPass <contact@vitapass.app>',
   to:      'snaceri99@yahoo.com',
   subject: email.subject,
   html:    email.html,

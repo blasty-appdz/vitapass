@@ -426,7 +426,7 @@ export async function runProspection() {
 // PARTIE 2 — RELANCES EMAIL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const FROM     = 'Samir — VitaPass <samir@vitapass.app>'
+const FROM     = 'Samir — VitaPass <contact@vitapass.app>'
 const DELAY_J3 = 72 * 60 * 60 * 1000
 const DELAY_J7 = 4 * 24 * 60 * 60 * 1000
 

@@ -65,7 +65,7 @@ export function getEmailJ0(lead) {
 
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9CA3AF;text-align:center">
       Vous recevez cet email car votre profil est référencé dans notre base de contacts professionnels.<br>
-      <a href="mailto:samir@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
+      <a href="mailto:contact@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
         Se désabonner
       </a>
     </div>
@@ -128,7 +128,7 @@ export function getEmailJ3(lead) {
     </div>
 
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9CA3AF;text-align:center">
-      <a href="mailto:samir@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
+      <a href="mailto:contact@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
         Se désabonner
       </a>
     </div>
@@ -197,7 +197,7 @@ export function getEmailJ7(lead) {
     </div>
 
     <div style="margin-top:32px;padding-top:16px;border-top:1px solid #E5E7EB;font-size:12px;color:#9CA3AF;text-align:center">
-      <a href="mailto:samir@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
+      <a href="mailto:contact@vitapass.app?subject=Désabonnement&body=Veuillez me retirer de votre liste" style="color:#9CA3AF">
         Se désabonner
       </a>
     </div>
