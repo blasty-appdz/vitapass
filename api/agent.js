@@ -146,18 +146,49 @@ function guessEmail(fullName) {
 // ── Déduplication & insertion ─────────────────────────────────────────────────
 
 async function emailExists(email) {
-  const { data } = await supabase
+  const safeEmail = email.toLowerCase().trim()
+  const { data, error } = await supabase
     .from('doctor_leads')
     .select('id')
-    .eq('email', email)
+    .eq('email', safeEmail)
     .maybeSingle()
+  if (error) {
+    console.error(`[emailExists] erreur pour "${safeEmail}": ${error.message}`)
+    return false
+  }
   return !!data
 }
 
+function sanitizeLead(lead) {
+  const sanitize = (str) => {
+    if (!str) return null
+    return str
+      .replace(/[؀-ۿݐ-ݿࢠ-ࣿ]/g, '')
+      .replace(/[^\x20-\x7EÀ-ɏ]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200)
+  }
+  return {
+    ...lead,
+    full_name: sanitize(lead.full_name) || 'Médecin',
+    email:     lead.email ? lead.email.toLowerCase().trim().slice(0, 200) : null,
+    phone:     lead.phone ? lead.phone.replace(/[^\d+\s\-]/g, '').trim().slice(0, 30) : null,
+    specialty: sanitize(lead.specialty),
+    city:      sanitize(lead.city),
+    notes:     sanitize(lead.notes),
+  }
+}
+
 async function insertLeadSafe(lead) {
-  if (await emailExists(lead.email)) return false
-  const { error } = await supabase.from('doctor_leads').insert(lead)
-  if (error) throw new Error(error.message)
+  const clean = sanitizeLead(lead)
+  if (!clean.email) return false
+  if (await emailExists(clean.email)) return false
+  const { error } = await supabase.from('doctor_leads').insert(clean)
+  if (error) {
+    console.error(`[insert] erreur "${clean.full_name}" <${clean.email}>: ${error.message}`)
+    return false
+  }
   return true
 }
 
