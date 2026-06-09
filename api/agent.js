@@ -24,7 +24,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const PLACES_KEY      = process.env.GOOGLE_PLACES_API_KEY
 const SEARCH_KEY      = process.env.GOOGLE_SEARCH_API_KEY
 const SEARCH_CX       = process.env.GOOGLE_SEARCH_CX
-const WILAYAS_PER_DAY = 5
+const WILAYAS_PER_DAY = 2
 
 const WILAYAS = [
   'Alger', 'Oran', 'Constantine', 'Annaba', 'Blida',
