@@ -140,6 +140,7 @@ function guessEmail(fullName) {
     .replace(/[^a-z0-9\s]/g, '')
     .trim()
     .replace(/\s+/g, '.')
+    .slice(0, 50)
   return `${slug}@gmail.com`
 }
 
@@ -465,6 +466,7 @@ async function sendEmail(lead, template) {
   const { subject, html, text } = template
   const { error } = await resend.emails.send({ from: FROM, to: lead.email, subject, html, text })
   if (error) throw new Error(`Resend (${lead.email}): ${error.message}`)
+  await sleep(250)
 }
 
 async function updateLead(id, step) {
