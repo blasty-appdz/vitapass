@@ -6,6 +6,7 @@
 import { runProspection, runRelances } from '../api/agent.js'
 
 console.log('=== VitaPass Agent démarré ===', new Date().toISOString())
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL?.substring(0, 30))
 
 const prospection = await runProspection()
 console.log('[résultat] prospection:', JSON.stringify({
