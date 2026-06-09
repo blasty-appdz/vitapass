@@ -2,7 +2,7 @@ name: VitaPass Agent — Prospection + Relances
 
 on:
   schedule:
-    - cron: '0 * * * *'   # toutes les heures
+    - cron: '0 8 * * *'   # une fois par jour à 8h UTC
   workflow_dispatch:        # déclenchement manuel depuis GitHub
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout
