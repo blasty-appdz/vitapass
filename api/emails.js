@@ -3,10 +3,34 @@
  * De : Samir, fondateur VitaPass
  */
 
+const CALENDLY = 'https://calendly.com/contact-vitapass/30min'
+
+// Mots qui indiquent un nom de clinique/cabinet plutôt qu'un médecin
+const CLINIC_KEYWORDS = [
+  'clinique', 'clinic', 'cabinet', 'centre', 'center', 'polyclinique',
+  'hopital', 'hôpital', 'hospital', 'laboratoire', 'lab', 'pharmacie',
+  'pharmacy', 'medical', 'médical', 'sante', 'santé', 'health',
+  'kara', 'cherrak', 'abrar', 'group', 'groupe', 'complexe', 'association',
+]
+
+function getGreeting(fullName) {
+  if (!fullName || fullName.trim() === '') return 'Docteur'
+  const lower = fullName.toLowerCase()
+  // Si le nom contient un mot de clinique → formule générique
+  if (CLINIC_KEYWORDS.some(k => lower.includes(k))) return 'Docteur'
+  // Extraire le prénom (premier mot après "Dr", "Docteur", "Pr" si présent)
+  const cleaned = fullName
+    .replace(/^(dr\.?|docteur|pr\.?)\s+/i, '')
+    .trim()
+  const firstName = cleaned.split(/\s+/)[0]
+  // Si le prénom est trop court ou suspect → formule générique
+  if (!firstName || firstName.length < 3) return 'Docteur'
+  return `Dr. ${firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()}`
+}
+
 // ─── J+0 : Premier contact ───────────────────────────────────────────────────
 export function getEmailJ0(lead) {
-  const firstName = lead.full_name.split(' ')[0]
-  const CALENDLY  = 'https://calendly.com/contact-vitapass/30min'
+  const greeting = getGreeting(lead.full_name)
 
   return {
     subject: `VitaPass – Le dossier médical d'urgence pour vos patients`,
@@ -25,7 +49,7 @@ export function getEmailJ0(lead) {
 
     <div style="background:#ffffff;border-radius:16px;padding:36px;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
       <p style="margin:0 0 16px;font-size:16px;color:#374151">
-        Bonjour Dr. ${firstName},
+        Bonjour ${greeting},
       </p>
 
       <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7">
@@ -73,14 +97,13 @@ export function getEmailJ0(lead) {
   </div>
 </body>
 </html>`,
-    text: `Bonjour Dr. ${firstName},\n\nJe me permets de vous contacter au sujet de VitaPass, une solution développée à Oran pour résoudre un problème que vous connaissez bien : l'absence d'informations médicales critiques lors d'une urgence.\n\nVitaPass permet à chaque patient de porter un QR code donnant accès instantanément à son groupe sanguin, allergies, traitements en cours et antécédents — sans application, sans connexion requise.\n\nEn 30 secondes, vous savez tout ce qu'il faut savoir.\n\nJe serais ravi de vous montrer comment ça fonctionne en 15 minutes. Choisissez directement le créneau qui vous convient : ${CALENDLY}\n\nCordialement,\nSamir — Fondateur VitaPass\nhttps://vitapass.app`,
+    text: `Bonjour ${greeting},\n\nJe me permets de vous contacter au sujet de VitaPass, une solution développée à Oran pour résoudre un problème que vous connaissez bien : l'absence d'informations médicales critiques lors d'une urgence.\n\nVitaPass permet à chaque patient de porter un QR code donnant accès instantanément à son groupe sanguin, allergies, traitements en cours et antécédents — sans application, sans connexion requise.\n\nEn 30 secondes, vous savez tout ce qu'il faut savoir.\n\nJe serais ravi de vous montrer comment ça fonctionne en 15 minutes. Choisissez directement le créneau qui vous convient : ${CALENDLY}\n\nCordialement,\nSamir — Fondateur VitaPass\nhttps://vitapass.app`,
   }
 }
 
 // ─── J+3 : Relance douce ──────────────────────────────────────────────────────
 export function getEmailJ3(lead) {
-  const firstName = lead.full_name.split(' ')[0]
-  const CALENDLY  = 'https://calendly.com/contact-vitapass/30min'
+  const greeting = getGreeting(lead.full_name)
 
   return {
     subject: `Re: VitaPass – Une question rapide`,
@@ -99,7 +122,7 @@ export function getEmailJ3(lead) {
 
     <div style="background:#ffffff;border-radius:16px;padding:36px;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
       <p style="margin:0 0 16px;font-size:16px;color:#374151">
-        Bonjour Dr. ${firstName},
+        Bonjour ${greeting},
       </p>
 
       <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7">
@@ -136,14 +159,13 @@ export function getEmailJ3(lead) {
   </div>
 </body>
 </html>`,
-    text: `Bonjour Dr. ${firstName},\n\nJe reviens vers vous concernant VitaPass. Plusieurs médecins ont découvert la solution et souhaitent la mettre en place pour leurs patients — je pense que ça pourrait vous intéresser également.\n\n15 minutes suffisent pour voir concrètement comment ça fonctionne. Voici mon calendrier : ${CALENDLY}\n\nCordialement,\nSamir – VitaPass\nhttps://vitapass.app`,
+    text: `Bonjour ${greeting},\n\nJe reviens vers vous concernant VitaPass. Plusieurs médecins ont découvert la solution et souhaitent la mettre en place pour leurs patients — je pense que ça pourrait vous intéresser également.\n\n15 minutes suffisent pour voir concrètement comment ça fonctionne. Voici mon calendrier : ${CALENDLY}\n\nCordialement,\nSamir – VitaPass\nhttps://vitapass.app`,
   }
 }
 
 // ─── J+7 : Dernier message ────────────────────────────────────────────────────
 export function getEmailJ7(lead) {
-  const firstName = lead.full_name.split(' ')[0]
-  const CALENDLY  = 'https://calendly.com/contact-vitapass/30min'
+  const greeting = getGreeting(lead.full_name)
 
   return {
     subject: `VitaPass – Mon dernier message`,
@@ -162,7 +184,7 @@ export function getEmailJ7(lead) {
 
     <div style="background:#ffffff;border-radius:16px;padding:36px;box-shadow:0 2px 12px rgba(0,0,0,0.06)">
       <p style="margin:0 0 16px;font-size:16px;color:#374151">
-        Bonjour Dr. ${firstName},
+        Bonjour ${greeting},
       </p>
 
       <p style="margin:0 0 16px;font-size:15px;color:#374151;line-height:1.7">
@@ -205,6 +227,6 @@ export function getEmailJ7(lead) {
   </div>
 </body>
 </html>`,
-    text: `Bonjour Dr. ${firstName},\n\nC'est mon dernier message, je ne veux pas vous importuner.\n\nSi VitaPass ne correspond pas à vos priorités actuelles, c'est tout à fait compréhensible.\n\nSi en revanche vous souhaitez voir comment un QR code peut sauver la vie d'un de vos patients, mon calendrier reste ouvert : ${CALENDLY}\n\nBonne continuation,\nSamir – VitaPass`,
+    text: `Bonjour ${greeting},\n\nC'est mon dernier message, je ne veux pas vous importuner.\n\nSi VitaPass ne correspond pas à vos priorités actuelles, c'est tout à fait compréhensible.\n\nSi en revanche vous souhaitez voir comment un QR code peut sauver la vie d'un de vos patients, mon calendrier reste ouvert : ${CALENDLY}\n\nBonne continuation,\nSamir – VitaPass`,
   }
 }
