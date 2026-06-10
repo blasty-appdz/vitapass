@@ -48,11 +48,7 @@ ALTER FUNCTION public.handle_new_user()               SET search_path = '';
 ALTER FUNCTION public.find_doctor_by_email(text)      SET search_path = '';
 ALTER FUNCTION public.handle_new_professional()       SET search_path = '';
 ALTER FUNCTION public.rls_auto_enable()               SET search_path = '';
-
--- Pour search_professionals : vérifier la signature exacte avec :
---   SELECT pg_get_function_identity_arguments(oid) FROM pg_proc WHERE proname = 'search_professionals';
--- Puis exécuter :
---   ALTER FUNCTION public.search_professionals(<signature>) SET search_path = '';
+ALTER FUNCTION public.search_professionals(text, text, text) SET search_path = '';
 
 
 -- ════════════════════════════════════════════════════════════
