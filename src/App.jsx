@@ -38,6 +38,7 @@ import ProfessionalDashboard from './pages/doctor/ProfessionalDashboard'
 // Autres pages
 import EmergencyPublicPage from './pages/EmergencyPublicPage'
 import LandingScreen from './pages/LandingScreen'
+import PrivacyScreen from './pages/PrivacyScreen'
 
 // QR script CDN (chargé une seule fois)
 if (!document.querySelector('script[src*="qrcodejs"]')) {
@@ -82,6 +83,7 @@ export default function App() {
   // ── Auth + routing initial ────────────────────────────────────────────────
   useEffect(() => {
     const path = window.location.pathname
+    if (path === '/privacy') { setLoading(false); return }
     const urgenceMatch = path.match(/^\/urgence\/([a-f0-9-]{36})$/)
     if (urgenceMatch) {
       setEmergencyToken(urgenceMatch[1])
@@ -184,6 +186,7 @@ export default function App() {
   ]
 
   // ── Cas spéciaux ─────────────────────────────────────────────────────────
+  if (window.location.pathname === '/privacy') return <PrivacyScreen />
   if (emergencyToken) return <EmergencyPublicPage token={emergencyToken} />
   if (isRecovery) return <ResetPasswordScreen />
   if (loading) return (
