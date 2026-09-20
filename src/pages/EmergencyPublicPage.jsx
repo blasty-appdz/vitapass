@@ -1,52 +1,49 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 
-const SECTIONS = [
-  { key: 'groupe_sanguin',      label: 'Groupe sanguin',      icon: '🩸', critical: true  },
-  { key: 'allergies',           label: 'Allergies',           icon: '⚠️', critical: true  },
-  { key: 'medicaments',         label: 'Médicaments',         icon: '💊', critical: true  },
-  { key: 'antecedents',         label: 'Antécédents',         icon: '📋', critical: false },
-  { key: 'maladies_chroniques', label: 'Maladies chroniques', icon: '🏥', critical: false },
-  { key: 'contact_urgence',     label: "Contact d'urgence",   icon: '📞', critical: true  },
-]
+// Les données viennent de la fonction Supabase get_emergency_pass(token) :
+// elle ne renvoie que les infos d'urgence du patient dont le lien QR correspond,
+// et rien d'autre. Plus aucune lecture directe des tables dossiers / profiles.
+
+const txt = (v) => (typeof v === 'string' ? v.trim() : '')
+
+const listOf = (arr, fmt) =>
+  (Array.isArray(arr) ? arr : []).map(fmt).filter(Boolean)
+
+const joinParts = (parts, sep) => parts.map(txt).filter(Boolean).join(sep)
+
+const medLabel = (m) => joinParts([m?.name, m?.dose, m?.reason], ' · ')
+const allergyLabel = (a) => txt(a?.name)
+const antLabel = (a) => {
+  const name = txt(a?.name)
+  if (!name) return ''
+  const meta = joinParts([a?.type, a?.year], ' · ')
+  return meta ? `${name} (${meta})` : name
+}
 
 export default function EmergencyPublicPage({ token }) {
-  const [dossier, setDossier] = useState(null)
-  const [profile, setProfile] = useState(null)
+  const [pass, setPass]       = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
 
   useEffect(() => {
     if (!token) { setError('Token manquant.'); setLoading(false); return }
-    fetchDossier()
+    fetchPass()
   }, [token])
 
-  async function fetchDossier() {
+  async function fetchPass() {
     setLoading(true)
     setError(null)
 
-    const { data: dos, error: e1 } = await supabase
-      .from('dossiers')
-      .select('*')
-      .eq('urgence_token', token)
-      .eq('urgence_public', true)
-      .maybeSingle()
+    const { data, error: e1 } = await supabase.rpc('get_emergency_pass', { p_token: token })
 
-    if (e1 || !dos) {
+    if (e1 || !data) {
       setError('Dossier introuvable ou accès urgence non activé.')
       setLoading(false)
       return
     }
 
-    setDossier(dos)
-
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('fname, lname, dob, photo_url')
-      .eq('id', dos.patient_id)
-      .maybeSingle()
-
-    setProfile(prof)
+    setPass(data)
     setLoading(false)
   }
 
@@ -56,9 +53,20 @@ export default function EmergencyPublicPage({ token }) {
     return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25))
   }
 
-  const fullName = profile
-    ? `${profile.fname || ''} ${profile.lname || ''}`.trim() || 'Nom inconnu'
+  const fullName = pass
+    ? joinParts([pass.fname, pass.lname], ' ') || 'Nom inconnu'
     : 'Nom inconnu'
+
+  const critical = pass ? [
+    { key: 'blood',     label: 'Groupe sanguin',    icon: '🩸', value: txt(pass.blood) },
+    { key: 'allergies', label: 'Allergies',         icon: '⚠️', value: listOf(pass.allergies, allergyLabel) },
+    { key: 'meds',      label: 'Médicaments',       icon: '💊', value: listOf(pass.meds, medLabel) },
+    { key: 'emergency', label: "Contact d'urgence", icon: '📞', value: txt(pass.emergency) },
+  ] : []
+
+  const complementary = pass ? [
+    { key: 'antecedents', label: 'Antécédents', icon: '📋', value: listOf(pass.antecedents, antLabel) },
+  ] : []
 
   if (loading) return (
     <div style={styles.center}>
@@ -70,7 +78,7 @@ export default function EmergencyPublicPage({ token }) {
   if (error) return (
     <div style={styles.center}>
       <div style={styles.errorBox}>
-        <span style={{ fontSize: 48 }}>🚫</span>
+        <span style={{ fontSize: 48 }}>{"🚫"}</span>
         <h2 style={{ color: '#ef4444', margin: '12px 0 8px' }}>Accès impossible</h2>
         <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: 14 }}>{error}</p>
         <p style={{ color: '#64748b', fontSize: 12, marginTop: 12 }}>
@@ -83,38 +91,35 @@ export default function EmergencyPublicPage({ token }) {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <div style={styles.badge}>🚨 URGENCE MÉDICALE</div>
+        <div style={styles.badge}>{"🚨"} URGENCE MÉDICALE</div>
         <p style={styles.headerSub}>Données de santé critiques — Accès secouriste</p>
       </div>
 
       <div style={styles.card}>
         <div style={styles.patientRow}>
-          {profile?.photo_url
-            ? <img src={profile.photo_url} alt="patient" style={styles.avatar} />
-            : <div style={styles.avatarPlaceholder}>👤</div>
-          }
+          <div style={styles.avatarPlaceholder}>{"👤"}</div>
           <div>
             <div style={styles.patientName}>{fullName}</div>
-            {profile?.dob && (
+            {pass?.dob && (
               <div style={styles.patientAge}>
-                {calcAge(profile.dob)} ans
-                <span style={styles.dob}> · né(e) le {new Date(profile.dob).toLocaleDateString('fr-FR')}</span>
+                {calcAge(pass.dob)} ans
+                <span style={styles.dob}> · né(e) le {new Date(pass.dob).toLocaleDateString('fr-FR')}</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {SECTIONS.filter(s => s.critical).map(section => (
-        <DataCard key={section.key} section={section} dossier={dossier} critical />
+      {critical.map(section => (
+        <DataCard key={section.key} section={section} critical />
       ))}
 
       <div style={styles.separator}>
         <span style={styles.separatorText}>Informations complémentaires</span>
       </div>
 
-      {SECTIONS.filter(s => !s.critical).map(section => (
-        <DataCard key={section.key} section={section} dossier={dossier} />
+      {complementary.map(section => (
+        <DataCard key={section.key} section={section} />
       ))}
 
       <div style={styles.footer}>
@@ -132,10 +137,9 @@ export default function EmergencyPublicPage({ token }) {
   )
 }
 
-function DataCard({ section, dossier, critical }) {
-  const value = dossier?.[section.key]
-  const isEmpty = !value || (typeof value === 'string' && value.trim() === '') ||
-                  (Array.isArray(value) && value.length === 0)
+function DataCard({ section, critical }) {
+  const value = section.value
+  const isEmpty = !value || (Array.isArray(value) && value.length === 0)
 
   return (
     <div style={{ ...styles.card, ...(critical ? styles.cardCritical : {}) }}>
