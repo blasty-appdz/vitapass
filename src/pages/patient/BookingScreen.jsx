@@ -83,7 +83,7 @@ export default function BookingScreen({ nav, navParams, showToast }) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // 1. Créer le RDV
+    // Créer le RDV (la base réserve le créneau en même temps)
     const { error } = await supabase.from('appointments').insert({
       patient_id: user.id,
       professional_id: pro.id,
@@ -95,16 +95,18 @@ export default function BookingScreen({ nav, navParams, showToast }) {
     })
 
     if (error) {
-      showToast('❌ Erreur : ' + error.message)
+      // Le créneau est réservé côté base au moment de l'insertion : s'il vient d'être pris, l'insertion est refusée.
+      if (error.code === '23505') {
+        showToast('❌ Ce créneau vient d\'être réservé, choisissez-en un autre')
+        setSelectedSlot(null)
+        setStep(1)
+        loadSlots(navParams.proId)
+      } else {
+        showToast('❌ Erreur : ' + error.message)
+      }
       setBooking(false)
       return
     }
-
-    // 2. Marquer le créneau comme réservé
-    await supabase
-      .from('availability_slots')
-      .update({ is_booked: true })
-      .eq('id', selectedSlot.id)
 
     showToast('✅ Rendez-vous confirmé !')
     setBooking(false)

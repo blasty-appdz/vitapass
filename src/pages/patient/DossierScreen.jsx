@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import { formatDate } from '../../utils/formatters'
+import { openDocument } from '../../services/documents'
 
 const DOC_TYPES = {
   ordonnance: { label: 'Ordonnance', icon: '💊' },
@@ -59,7 +60,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
     }
   }
 
-  const handleOpenDoc = (doc) => { if (doc.file_url) window.open(doc.file_url, '_blank') }
+  const handleOpenDoc = (doc) => openDocument(doc, (msg) => showToast('❌ ' + msg))
 
   const handleDeleteDoc = async (doc) => {
     if (isOffline) { showToast('Impossible en mode hors ligne'); return }
@@ -82,14 +83,15 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
       const path = `${user.id}/${Date.now()}.${ext}`
       const { error: upErr } = await supabase.storage.from('documents').upload(path, docFile)
       if (upErr) { setDocError(upErr.message); setUploadingDoc(false); return }
-      const { data: { publicUrl } } = supabase.storage.from('documents').getPublicUrl(path)
       const { error: insErr } = await supabase.from('documents').insert({
         patient_id: user.id,
         title: docForm.title,
         type: docForm.type,
         date: docForm.date || null,
         medecin: docForm.medecin || null,
-        file_url: publicUrl,
+        storage_path: path,
+        mime_type: docFile.type || null,
+        file_size: docFile.size || null,
       })
       if (insErr) { setDocError(insErr.message); setUploadingDoc(false); return }
       setShowUploadModal(false)

@@ -1,4 +1,4 @@
-﻿# VitaPass — Instructions pour Claude Code
+# VitaPass — Instructions pour Claude Code
 
 ## C'est quoi VitaPass
 Application de dossier médical d'urgence pour l'Algérie.
@@ -21,9 +21,9 @@ Application de dossier médical d'urgence pour l'Algérie.
 - admin.vitapass.app → dashboard admin
 
 ## Comptes démo
-- patient.demo@vitapass.app / Demo2026! → role: patient
-- docteur.demo@vitapass.app / Demo2026! → role: doctor
-- admin@vitapass.app / Admin2026!
+- Comptes de démonstration : patient.demo@vitapass.app, docteur.demo@vitapass.app, admin@vitapass.app
+- Les mots de passe ne sont JAMAIS écrits dans le dépôt : ils sont dans le gestionnaire de mots de passe de Samir.
+- Le rôle admin ne se donne que côté base (tableau de bord Supabase) ; l'API ne peut ni donner un rôle ni valider un médecin.
 
 ## Règles absolues
 - Toujours fichier COMPLET, jamais de modifications partielles

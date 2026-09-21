@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../supabase";
 import { useOffline } from "../../hooks/useOffline";
 import OfflineBanner from "../../components/OfflineBanner";
+import { openDocument, hasDocumentFile } from "../../services/documents";
 
 export default function PatientRecord({ nav, showToast, patientId }) {
   const { isOffline } = useOffline()
@@ -215,8 +216,14 @@ export default function PatientRecord({ nav, showToast, patientId }) {
                     {doc.type === "note_medecin" && <span style={styles.noteBadge}>Note</span>}
                   </div>
                   {doc.content && <p style={styles.docContent}>{doc.content}</p>}
-                  {doc.file_url && (
-                    <a href={doc.file_url} target="_blank" rel="noreferrer" style={styles.docLink}>Voir le fichier →</a>
+                  {hasDocumentFile(doc) && (
+                    <button
+                      type="button"
+                      onClick={() => openDocument(doc, (msg) => showToast && showToast(msg))}
+                      style={{ ...styles.docLink, background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                    >
+                      Voir le fichier →
+                    </button>
                   )}
                 </div>
               ))

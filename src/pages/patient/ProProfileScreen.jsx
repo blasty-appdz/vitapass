@@ -25,7 +25,7 @@ export default function ProProfileScreen({ nav, navParams }) {
     setLoading(true)
     const { data } = await supabase
       .from('professionals')
-      .select('*')
+      .select('id, fname, lname, gender, specialite, sous_specialite, wilaya, adresse, telephone, tarif, duree_rdv, langues, photo_url, bio, is_available, numero_ordre')
       .eq('id', id)
       .maybeSingle()
     setPro(data)

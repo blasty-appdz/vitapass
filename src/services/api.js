@@ -97,8 +97,9 @@ export const documentService = {
   delete: (id) => supabase.from('documents').delete().eq('id', id),
   upload: (path, file) =>
     supabase.storage.from('documents').upload(path, file),
-  getPublicUrl: (path) =>
-    supabase.storage.from('documents').getPublicUrl(path),
+  // Stockage privé : URL signée à durée courte (voir services/documents.js)
+  getSignedUrl: (path, seconds = 300) =>
+    supabase.storage.from('documents').createSignedUrl(path, seconds),
 }
 
 // ─── Professionnels ──────────────────────────────────────────────────────────
@@ -116,7 +117,11 @@ export const professionalService = {
     return query.order('fname')
   },
   get: (id) =>
-    supabase.from('professionals').select('*').eq('id', id).maybeSingle(),
+    supabase
+      .from('professionals')
+      .select('id, fname, lname, gender, specialite, sous_specialite, wilaya, adresse, telephone, tarif, duree_rdv, langues, photo_url, bio, is_available, numero_ordre')
+      .eq('id', id)
+      .maybeSingle(),
   getPro: (userId) =>
     supabase
       .from('professionals')
