@@ -15,7 +15,7 @@ export default function DoctorsScreen({ nav, showToast }) {
   const [searchError, setSearchError] = useState('')
   const [adding, setAdding] = useState(false)
 
-  useEffect(() => { loadDoctors() }, [])
+  useEffect(() => { loadDoctors() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDoctors = async () => {
     setLoading(true)
@@ -29,16 +29,17 @@ export default function DoctorsScreen({ nav, showToast }) {
       if (error) { console.error(error.message); setLoading(false); return }
       if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
 
-      const doctorProfiles = []
-      for (const access of accesses) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('id,fname,lname,gender,specialite,numero_ordre')
-          .eq('id', access.doctor_id)
-          .maybeSingle()
-        if (prof) doctorProfiles.push({ ...prof, access_id: access.id, since: access.granted_at })
-      }
-      setDoctors(doctorProfiles)
+      const ids = accesses.map(a => a.doctor_id)
+      const [{ data: pros }, { data: profs }] = await Promise.all([
+        supabase.from('professionals').select('id,fname,lname,gender,specialite,wilaya').in('id', ids),
+        supabase.from('profiles').select('id,fname,lname,gender,specialite,numero_ordre').in('id', ids),
+      ])
+      setDoctors(accesses.map(access => {
+        const pr = (pros || []).find(p => p.id === access.doctor_id)
+        const pf = (profs || []).find(p => p.id === access.doctor_id)
+        const base = pr?.fname ? pr : (pf || { id: access.doctor_id })
+        return { ...base, specialite: pr?.specialite || pf?.specialite, access_id: access.id, since: access.granted_at }
+      }))
     } catch (e) {
       console.error(e)
     } finally {
@@ -52,7 +53,7 @@ export default function DoctorsScreen({ nav, showToast }) {
     try {
       const { data, error } = await supabase.rpc('find_doctor_by_email', { p_email: email.trim().toLowerCase() })
       if (error || !data || data.length === 0) {
-        setSearchError('Aucun médecin trouvé avec cet email')
+        setSearchError('Aucun médecin validé avec cet e-mail. Vérifiez l\'adresse utilisée par votre médecin pour son compte VitaPass.')
         setSearching(false)
         return
       }
@@ -80,9 +81,16 @@ export default function DoctorsScreen({ nav, showToast }) {
     setAdding(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      const { error } = await supabase
+      // Une seule ligne par couple patient/médecin : si l'accès avait été révoqué, on le réactive
+      const { data: previous } = await supabase
         .from('doctor_access')
-        .insert({ patient_id: user.id, doctor_id: foundDoctor.id, status: 'active' })
+        .select('id')
+        .eq('patient_id', user.id)
+        .eq('doctor_id', foundDoctor.id)
+        .limit(1)
+      const { error } = previous && previous.length > 0
+        ? await supabase.from('doctor_access').update({ status: 'active', granted_at: new Date().toISOString() }).eq('id', previous[0].id)
+        : await supabase.from('doctor_access').insert({ patient_id: user.id, doctor_id: foundDoctor.id, status: 'active' })
       if (error) { showToast('❌ ' + error.message); return }
       showToast('✅ Médecin autorisé')
       setShowModal(false); setEmail(''); setFoundDoctor(null)
@@ -141,7 +149,7 @@ export default function DoctorsScreen({ nav, showToast }) {
         className="add-btn"
         onClick={() => { setShowModal(true); setEmail(''); setFoundDoctor(null); setSearchError('') }}
       >
-        ＋ {t('common.add')}
+        ＋ Autoriser un médecin à voir mon dossier
       </div>
       <div className="pad-b" />
 

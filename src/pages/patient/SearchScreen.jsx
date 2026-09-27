@@ -1,26 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
-import { WILAYAS } from '../../data'
-
-const SPECIALITES = [
-  'Médecin généraliste', 'Cardiologue', 'Pédiatre', 'Gynécologue', 'Dermatologue',
-  'Ophtalmologue', 'ORL', 'Orthopédiste', 'Neurologue', 'Psychiatre', 'Pneumologue',
-  'Gastro-entérologue', 'Endocrinologue', 'Néphrologue', 'Rhumatologue', 'Urologue',
-  'Oncologue', 'Diabétologue', 'Dentiste', 'Sage-femme', 'Kinésithérapeute',
-  'Nutritionniste', 'Psychologue', 'Radiologue', 'Biologiste médical',
-]
-
-const SPECIALITE_ICONS = {
-  'Médecin généraliste': '🏥', 'Cardiologue': '❤️', 'Pédiatre': '👶',
-  'Gynécologue': '🌸', 'Dermatologue': '🔬', 'Ophtalmologue': '👁️',
-  'ORL': '👂', 'Orthopédiste': '🦴', 'Neurologue': '🧠',
-  'Psychiatre': '🧩', 'Pneumologue': '🫁', 'Gastro-entérologue': '🫄',
-  'Endocrinologue': '⚗️', 'Néphrologue': '🫘', 'Rhumatologue': '🦴',
-  'Urologue': '💧', 'Oncologue': '🎗️', 'Diabétologue': '🩸',
-  'Dentiste': '🦷', 'Sage-femme': '👼', 'Kinésithérapeute': '💪',
-  'Nutritionniste': '🥗', 'Psychologue': '🧘', 'Radiologue': '🩻',
-  'Biologiste médical': '🧪',
-}
+import { WILAYAS, SPECIALITES, SPECIALITE_ICONS, LANGUES, langueLabel } from '../../data'
 
 export default function SearchScreen({ nav }) {
   const [pros, setPros] = useState([])
@@ -57,7 +37,7 @@ export default function SearchScreen({ nav }) {
     }
   }
 
-  useEffect(() => { search() }, [])
+  useEffect(() => { search() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
@@ -84,8 +64,7 @@ export default function SearchScreen({ nav }) {
 
         <select className="form-select" value={langue} onChange={e => setLangue(e.target.value)}>
           <option value="">{"🌐"} Toutes les langues</option>
-          <option value="fr">Français</option>
-          <option value="ar">{"العربية"}</option>
+          {LANGUES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
 
         <button className="btn-submit" onClick={search} disabled={loading}>
@@ -157,7 +136,7 @@ function ProCard({ pro, nav }) {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
           {pro.langues.map(l => (
             <span key={l} className="badge badge-g">
-              {l === 'fr' ? '🇫🇷 Français' : l === 'ar' ? '🇩🇿 Arabe' : l}
+              {langueLabel(l)}
             </span>
           ))}
         </div>

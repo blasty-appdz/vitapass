@@ -50,41 +50,44 @@ export default function OnboardingScreen({ profile, setProfile, userId, showToas
           <input
             className={`form-input${!form.dob && error ? ' error' : ''}`}
             type="date"
+            value={form.dob}
+            max={new Date().toISOString().slice(0, 10)}
             onChange={e => setForm({ ...form, dob: e.target.value })}
           />
         </div>
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">{t('profile.blood')}</label>
-            <select className="form-select" onChange={e => setForm({ ...form, blood: e.target.value })}>
+            <select className="form-select" value={form.blood} onChange={e => setForm({ ...form, blood: e.target.value })}>
               {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => <option key={b}>{b}</option>)}
             </select>
           </div>
           <div className="form-group">
             <label className="form-label">{t('profile.gender')}</label>
-            <select className="form-select" onChange={e => setForm({ ...form, gender: e.target.value })}>
-              <option>{t('profile.male')}</option>
-              <option>{t('profile.female')}</option>
+            <select className="form-select" value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })}>
+              <option value="Masculin">{t('profile.male')}</option>
+              <option value="Féminin">{t('profile.female')}</option>
             </select>
           </div>
         </div>
         <div className="form-group">
           <label className="form-label">{t('profile.wilaya')}</label>
-          <select className="form-select" onChange={e => setForm({ ...form, wilaya: e.target.value })}>
+          <select className="form-select" value={form.wilaya} onChange={e => setForm({ ...form, wilaya: e.target.value })}>
             {WILAYAS.map(w => <option key={w}>{w}</option>)}
           </select>
         </div>
         <div className="form-group">
           <label className="form-label">{t('profile.cnas')}</label>
-          <input className="form-input" placeholder="DZ-CNAS-XXXXXX" onChange={e => setForm({ ...form, cnas: e.target.value })} />
+          <input className="form-input" placeholder="DZ-CNAS-XXXXXX" value={form.cnas} onChange={e => setForm({ ...form, cnas: e.target.value })} />
         </div>
         <div className="form-group">
           <label className="form-label">{t('profile.emergency')}</label>
-          <input className="form-input" placeholder="+213 XXX XXX XXX" onChange={e => setForm({ ...form, emergency: e.target.value })} />
+          <input className="form-input" type="tel" placeholder="Nom · 0550 12 34 56" value={form.emergency} onChange={e => setForm({ ...form, emergency: e.target.value })} />
         </div>
         <button className="btn-submit" onClick={save} disabled={saving}>
           {saving ? '⏳...' : '✅ ' + t('common.confirm')}
         </button>
+        <button className="btn-cancel" onClick={() => supabase.auth.signOut()}>{"🚪"} {t('profile.logout')}</button>
       </div>
     </div>
   )

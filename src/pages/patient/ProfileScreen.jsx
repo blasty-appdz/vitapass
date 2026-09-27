@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import PushNotificationToggle from '../../components/PushNotificationToggle'
+import LanguageSwitcher from '../../components/LanguageSwitcher'
 import { formatDate, getAvatarEmoji } from '../../utils/formatters'
 import { WILAYAS } from '../../data'
 
@@ -40,8 +41,8 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
   }
 
   const age = profile?.dob
-    ? new Date().getFullYear() - parseInt(profile.dob.split('-')[0])
-    : ''
+    ? Math.floor((Date.now() - new Date(profile.dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
+    : null
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
@@ -55,7 +56,7 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
         <div className="p-chips">
           <span className="pchip">{"🩸"} {profile?.blood || 'N/A'}</span>
           <span className="pchip">{"📍"} {profile?.wilaya || 'N/A'}</span>
-          <span className="pchip">{age} ans</span>
+          {age !== null && <span className="pchip">{age} ans</span>}
         </div>
       </div>
 
@@ -72,7 +73,7 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
           [t('profile.first_name'), profile?.fname],
           [t('profile.last_name'), profile?.lname],
           [t('profile.dob'), formatDate(profile?.dob)],
-          [t('profile.gender'), profile?.gender],
+          [t('profile.gender'), profile?.gender === 'Féminin' ? t('profile.female') : profile?.gender === 'Masculin' ? t('profile.male') : profile?.gender],
           [t('profile.wilaya'), profile?.wilaya],
           [t('profile.blood'), profile?.blood],
           [t('profile.cnas'), profile?.cnas],
@@ -93,6 +94,18 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
 
       <div className="dsect-title">Paramètres</div>
       <PushNotificationToggle />
+      <div className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className="pi-key">{"🌐"} Langue / اللغة</span>
+        <LanguageSwitcher />
+      </div>
+      <div className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, cursor: 'pointer' }} onClick={() => nav('doctors')}>
+        <span className="pi-key">{"👨‍⚕️"} Médecins ayant accès à mon dossier</span>
+        <span className="pi-val">›</span>
+      </div>
+      <a href="/privacy" className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, textDecoration: 'none', display: 'flex', justifyContent: 'space-between' }}>
+        <span className="pi-key">{"🔒"} Politique de confidentialité</span>
+        <span className="pi-val">›</span>
+      </a>
       <div style={{ height: 12 }} />
 
       <div className="logout-btn" onClick={onLogout}>
@@ -125,8 +138,8 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
             <div className="form-group">
               <label className="form-label">{t('profile.gender')}</label>
               <select className="form-select" defaultValue={profile?.gender} onChange={e => setForm({ ...form, gender: e.target.value })}>
-                <option>{t('profile.male')}</option>
-                <option>{t('profile.female')}</option>
+                <option value="Masculin">{t('profile.male')}</option>
+                <option value="Féminin">{t('profile.female')}</option>
               </select>
             </div>
           </div>

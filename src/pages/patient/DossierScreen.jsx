@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import { formatDate } from '../../utils/formatters'
-import { openDocument } from '../../services/documents'
+import { openDocument, hasDocumentFile } from '../../services/documents'
 
 const DOC_TYPES = {
   ordonnance: { label: 'Ordonnance', icon: '💊' },
@@ -31,15 +31,19 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
   const meds = dossier?.meds || []
   const allergies = dossier?.allergies || []
   const antecedents = dossier?.antecedents || []
-  const vaccins = dossier?.vaccins || [
-    { id: 1, name: 'BCG', status: 'done', date: '1990-01-01' },
-    { id: 2, name: 'Covid-19', status: 'done', date: '2021-06-15' },
-    { id: 3, name: 'Grippe saisonnière', status: 'pending', date: null },
-  ]
+  const vaccins = dossier?.vaccins || []
+
+  // Suppression d'un élément d'une liste du dossier (médicament, antécédent, vaccin)
+  const removeItem = async (key, list, item) => {
+    if (isOffline) { showToast('Impossible en mode hors ligne'); return }
+    if (!confirm(`Supprimer « ${item.name} » ?`)) return
+    await onSave({ [key]: list.filter(x => x !== item) })
+    showToast('✅ Supprimé')
+  }
 
   useEffect(() => {
     if (activeTab === 'docs') loadDocs()
-  }, [activeTab])
+  }, [activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadDocs = async () => {
     if (isOffline) return
@@ -67,6 +71,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
     if (!confirm(t('common.delete') + ' ?')) return
     const { error } = await supabase.from('documents').delete().eq('id', doc.id)
     if (error) { showToast('❌ ' + error.message); return }
+    if (doc.storage_path) await supabase.storage.from('documents').remove([doc.storage_path])
     loadDocs()
     showToast('✅ ' + t('common.success'))
   }
@@ -75,6 +80,8 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
     if (isOffline) { showToast('Impossible en mode hors ligne'); return }
     if (!docFile) { setDocError('Fichier requis'); return }
     if (!docForm.title.trim()) { setDocError('Nom requis'); return }
+    if (docFile.size > 10 * 1024 * 1024) { setDocError('Fichier trop lourd (10 Mo maximum)'); return }
+    if (!['application/pdf', 'image/jpeg', 'image/png'].includes(docFile.type)) { setDocError('Formats acceptés : PDF, JPG, PNG'); return }
     setUploadingDoc(true)
     setDocError('')
     try {
@@ -187,6 +194,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                     <div className="card-sub">{m.dose}{m.reason ? ' · ' + m.reason : ''}</div>
                   </div>
                   <span className="badge badge-g">{t('dossier.active')}</span>
+                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('meds', meds, m)}>✕</span>}
                 </div>
               </div>
             ))}
@@ -229,6 +237,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                     <div className="card-sub">{a.type}{a.year ? ' · ' + a.year : ''}</div>
                   </div>
                   <span className="badge badge-r">{a.type}</span>
+                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('antecedents', antecedents, a)}>✕</span>}
                 </div>
               </div>
             ))}
@@ -241,14 +250,18 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
       {activeTab === 'vacc' && (
         <>
           <div className="dsect-title">{t('dossier.vaccins')}</div>
+          {vaccins.length === 0 && <div className="empty-state"><div className="empty-icon">{"💉"}</div><p>Aucun vaccin renseigné</p></div>}
           {vaccins.map(v => (
             <div key={v.id} className="vacc-row">
               <div>
                 <div className="vacc-name">{v.name}</div>
                 <div className="vacc-date">{v.date ? formatDate(v.date) : '—'}</div>
               </div>
-              <div className="vacc-ico" style={{ background: v.status === 'done' ? 'rgba(0,201,141,.15)' : 'rgba(255,209,102,.15)' }}>
-                {v.status === 'done' ? '✅' : '⏳'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="vacc-ico" style={{ background: v.status === 'done' ? 'rgba(0,201,141,.15)' : 'rgba(255,209,102,.15)' }}>
+                  {v.status === 'done' ? '✅' : '⏳'}
+                </div>
+                {!isOffline && <span className="achip-rm" style={{ cursor: 'pointer' }} onClick={() => removeItem('vaccins', vaccins, v)}>✕</span>}
               </div>
             </div>
           ))}
@@ -275,20 +288,26 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
               ? (
                 <div style={{ textAlign: 'center', padding: 32, color: 'var(--dim)' }}>
                   <div style={{ fontSize: 40 }}>{"📂"}</div>
-                  <div>{isOffline ? 'Documents non disponibles hors ligne' : t('dossier.docs')}</div>
+                  <div>{isOffline ? 'Documents non disponibles hors ligne' : 'Aucun document. Ajoutez vos ordonnances, analyses et radios.'}</div>
                 </div>
               )
               : patientDocs.map(doc => (
                 <div key={doc.id} className="doc-card">
                   <div className="doc-top">
-                    <span style={{ fontSize: 20 }}>{DOC_TYPES[doc.type]?.icon || '📄'}</span>
+                    <span style={{ fontSize: 20 }}>{doc.type === 'note_medecin' ? '📝' : DOC_TYPES[doc.type]?.icon || '📄'}</span>
                     <div style={{ flex: 1, marginLeft: 8 }}>
                       <div className="doc-name">{doc.title}</div>
-                      <div className="doc-spec">{DOC_TYPES[doc.type]?.label} · {doc.date}</div>
+                      <div className="doc-spec">
+                        {doc.type === 'note_medecin' ? 'Note de votre médecin' : DOC_TYPES[doc.type]?.label || 'Document'}
+                        {(doc.date || doc.created_at) ? ' · ' + formatDate(doc.date || doc.created_at) : ''}
+                      </div>
                       {doc.medecin && <div className="doc-loc">Dr. {doc.medecin}</div>}
+                      {doc.content && <div style={{ fontSize: 12, color: 'rgba(239,243,255,.8)', marginTop: 6, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{doc.content}</div>}
                     </div>
-                    <button className="doc-btn" style={{ background: 'rgba(77,159,236,.1)', color: 'var(--blue)' }} onClick={() => handleOpenDoc(doc)}>{"👁"}</button>
-                    {!isOffline && (
+                    {hasDocumentFile(doc) && (
+                      <button className="doc-btn" style={{ background: 'rgba(77,159,236,.1)', color: 'var(--blue)' }} onClick={() => handleOpenDoc(doc)}>{"👁"}</button>
+                    )}
+                    {!isOffline && doc.type !== 'note_medecin' && (
                       <button className="doc-btn" style={{ marginLeft: 4, background: 'rgba(255,90,90,.1)', color: '#FF8A8A' }} onClick={() => handleDeleteDoc(doc)}>{"🗑"}</button>
                     )}
                   </div>

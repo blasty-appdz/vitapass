@@ -1,17 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
-
-const SPECIALITE_ICONS = {
-  'Médecin généraliste': '🏥', 'Cardiologue': '❤️', 'Pédiatre': '👶',
-  'Gynécologue': '🌸', 'Dermatologue': '🔬', 'Ophtalmologue': '👁️',
-  'ORL': '👂', 'Orthopédiste': '🦴', 'Neurologue': '🧠',
-  'Psychiatre': '🧩', 'Pneumologue': '🫁', 'Gastro-entérologue': '🫄',
-  'Endocrinologue': '⚗️', 'Néphrologue': '🫘', 'Rhumatologue': '🦴',
-  'Urologue': '💧', 'Oncologue': '🎗️', 'Diabétologue': '🩸',
-  'Dentiste': '🦷', 'Sage-femme': '👼', 'Kinésithérapeute': '💪',
-  'Nutritionniste': '🥗', 'Psychologue': '🧘', 'Radiologue': '🩻',
-  'Biologiste médical': '🧪'
-}
+import { SPECIALITE_ICONS, langueLabel } from '../../data'
 
 export default function ProProfileScreen({ nav, navParams }) {
   const [pro, setPro] = useState(null)
@@ -180,7 +169,7 @@ export default function ProProfileScreen({ nav, navParams }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             {pro.langues.map(l => (
               <span key={l} className="badge badge-g" style={{ padding: '6px 14px', fontSize: 12 }}>
-                {l === 'fr' ? '🇫🇷 Français' : l === 'ar' ? '🇩🇿 Arabe' : l}
+                {langueLabel(l)}
               </span>
             ))}
           </div>

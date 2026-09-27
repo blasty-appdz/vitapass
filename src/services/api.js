@@ -16,7 +16,7 @@ export const authService = {
   updateUser: (attrs) => supabase.auth.updateUser(attrs),
   resetPassword: (email) =>
     supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://www.vitapass.app/auth/callback',
+      redirectTo: `${window.location.origin}/auth/callback`,
     }),
   onAuthStateChange: (callback) => supabase.auth.onAuthStateChange(callback),
 }
@@ -142,13 +142,13 @@ export const appointmentService = {
       .from('appointments')
       .select('*')
       .eq('patient_id', patientId)
-      .order('scheduled_at', { ascending: true }),
+      .order('start_at', { ascending: true }),
   getByPro: (proId) =>
     supabase
       .from('appointments')
       .select('*')
       .eq('professional_id', proId)
-      .order('scheduled_at', { ascending: true }),
+      .order('start_at', { ascending: true }),
   insert: (data) => supabase.from('appointments').insert(data),
   updateStatus: (id, status) =>
     supabase.from('appointments').update({ status }).eq('id', id),

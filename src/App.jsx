@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabase'
 import { useTranslation } from 'react-i18next'
-import { useOffline } from './hooks/useOffline'
+import { useOffline, clearOffline } from './hooks/useOffline'
 import { useOfflineProfile, useOfflineDossier, useOfflineAppointments } from './hooks/useOfflineData'
 
 // Styles VitaPass
@@ -40,13 +40,6 @@ import EmergencyPublicPage from './pages/EmergencyPublicPage'
 import LandingScreen from './pages/LandingScreen'
 import PrivacyScreen from './pages/PrivacyScreen'
 
-// QR script CDN (chargé une seule fois)
-if (!document.querySelector('script[src*="qrcodejs"]')) {
-  const qrScript = document.createElement('script')
-  qrScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
-  document.head.appendChild(qrScript)
-}
-
 export default function App() {
   const { t } = useTranslation()
   const { isOffline } = useOffline()
@@ -64,6 +57,8 @@ export default function App() {
   const [emergencyToken, setEmergencyToken] = useState(null)
   const [isRecovery] = useState(() => window.location.hash.includes('type=recovery'))
   const [userId, setUserId] = useState(null)
+  const [pro, setPro] = useState(null)
+  const currentUid = useRef(null)
 
   const { profile: offlineProfile } = useOfflineProfile(userId)
   const { dossier: offlineDossier } = useOfflineDossier(userId)
@@ -92,25 +87,32 @@ export default function App() {
     }
     if (isRecovery) { setLoading(false); return }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Un seul point d'entrée : INITIAL_SESSION au chargement, SIGNED_IN à la connexion.
+    // Les rafraîchissements de jeton (TOKEN_REFRESHED) ne rechargent plus toute l'application.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
-      if (session) { setUserId(session.user.id); loadUserData(session.user.id) }
-      else setLoading(false)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSession(session)
-      if (session) {
-        setUserId(session.user.id)
-        setSplash(true)
-        loadUserData(session.user.id)
-        setTimeout(() => setSplash(false), 2000)
-      } else {
-        setProfile(null); setDossier(null); setUserId(null); setLoading(false)
+      if (event === 'PASSWORD_RECOVERY') { setLoading(false); return }
+      if (!session) {
+        currentUid.current = null
+        setProfile(null); setDossier(null); setPro(null); setUserId(null)
+        setScreen('home'); setNavParams({})
+        setLoading(false)
+        return
       }
+      if (currentUid.current === session.user.id) return
+      currentUid.current = session.user.id
+      setUserId(session.user.id)
+      // Les requêtes Supabase ne doivent pas être lancées dans le callback lui-même
+      setTimeout(() => {
+        if (event === 'SIGNED_IN') {
+          setSplash(true)
+          setTimeout(() => setSplash(false), 1800)
+        }
+        loadUserData(session.user.id)
+      }, 0)
     })
     return () => subscription.unsubscribe()
-  }, [isRecovery])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Données hors ligne ────────────────────────────────────────────────────
   useEffect(() => {
@@ -132,9 +134,10 @@ export default function App() {
       if (prof?.role === 'doctor') {
         const { data: proData } = await supabase
           .from('professionals')
-          .select('fname,specialite,wilaya')
+          .select('*')
           .eq('id', uid)
           .maybeSingle()
+        setPro(proData)
         const profilComplet = proData?.fname && proData?.specialite && proData?.wilaya
         setScreen(profilComplet ? 'pro-dashboard' : 'pro-onboarding')
       }
@@ -172,10 +175,24 @@ export default function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    // Téléphone partagé : on efface les copies locales des données médicales
+    try { if ('caches' in window) await caches.delete('supabase-api-cache') } catch { /* ignore */ }
+    try { ['profile', 'dossier', 'appointments', 'professionals'].forEach(s => clearOffline(s)) } catch { /* ignore */ }
     setScreen('home')
   }
+  const reloadDossier = async () => {
+    if (!session) return
+    const { data } = await supabase.from('dossiers').select('*').eq('patient_id', session.user.id).maybeSingle()
+    if (data) setDossier(data)
+  }
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
-  const nav = (s, params = {}) => { setScreen(s); setNavParams(params) }
+  // Anciens noms d'écran médecin → noms actuels (évite toute page blanche)
+  const ALIAS = { doctor: 'pro-patients', 'doctor-patient': 'pro-patient', 'doctor-appointments': 'pro-agenda', 'doctor-schedule': 'pro-schedule', 'doctor-onboarding': 'pro-onboarding' }
+  const nav = (s, params = {}) => {
+    const target = ALIAS[s] || s
+    setScreen(target); setNavParams(params)
+    if (profile?.role === 'doctor') window.scrollTo(0, 0)
+  }
 
   const navItems = [
     { id: 'home', icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />, label: t('nav.home') },
@@ -203,22 +220,37 @@ export default function App() {
   )
   if (!session) return <LandingScreen />
 
-  // ── Interface Médecin ─────────────────────────────────────────────────────
-  if (profile?.role === 'doctor') return (
-    <>
-      {screen === 'pro-onboarding' && <ProfessionalOnboarding nav={nav} />}
-      {screen === 'pro-dashboard' && <ProfessionalDashboard nav={nav} showToast={showToast} />}
-      {screen === 'pro-schedule' && <ProfessionalSchedule nav={nav} showToast={showToast} />}
-      {screen === 'doctor' && <DoctorDashboard nav={nav} showToast={showToast} />}
-      {screen === 'doctor-patient' && <PatientRecord nav={nav} showToast={showToast} patientId={navParams?.patientId} />}
-      {screen === 'doctor-appointments' && <DoctorAppointments nav={nav} showToast={showToast} />}
-      {toast && (
-        <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', background: 'rgba(13,21,38,.95)', border: '1px solid rgba(0,201,141,.3)', color: '#EFF3FF', padding: '10px 20px', borderRadius: 20, zIndex: 999, fontSize: 13, fontWeight: 600, fontFamily: "'Syne',sans-serif" }}>
-          {toast}
-        </div>
-      )}
-    </>
+  // Session ouverte mais profil introuvable (réseau coupé, compte incomplet) : on n'affiche pas une app vide
+  if (session && !profile && !isOffline) return (
+    <div className="phone" style={{ alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center' }}>
+      <div style={{ fontSize: 40 }}>{"⚠️"}</div>
+      <div style={{ color: 'var(--white)', fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>Impossible de charger votre compte</div>
+      <div style={{ color: 'var(--dim)', fontSize: 13 }}>Vérifiez votre connexion puis réessayez.</div>
+      <button className="btn-submit" style={{ maxWidth: 260 }} onClick={() => loadUserData(session.user.id)}>Réessayer</button>
+      <button className="btn-cancel" style={{ maxWidth: 260 }} onClick={handleLogout}>Se déconnecter</button>
+    </div>
   )
+
+  // ── Interface Professionnel de santé ──────────────────────────────────────
+  if (profile?.role === 'doctor') {
+    const common = { nav, showToast, pro, setPro, userId: session.user.id }
+    const proScreen = (() => {
+      switch (screen) {
+        case 'pro-onboarding': return <ProfessionalOnboarding {...common} />
+        case 'pro-schedule': return <ProfessionalSchedule {...common} />
+        case 'pro-agenda': return <DoctorAppointments {...common} />
+        case 'pro-patients': return <DoctorDashboard {...common} />
+        case 'pro-patient': return <PatientRecord {...common} patientId={navParams?.patientId} />
+        default: return <ProfessionalDashboard {...common} />
+      }
+    })()
+    return (
+      <>
+        {proScreen}
+        {toast && <div className="pro-toast">{toast}</div>}
+      </>
+    )
+  }
 
   // ── Interface Patient ─────────────────────────────────────────────────────
   return (
@@ -262,7 +294,7 @@ export default function App() {
       {/* Écrans */}
       <div className="screens">
         {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} isOffline={isOffline} />}
-        {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossierData={dossier} />}
+        {screen === 'qr' && <QRScreen nav={nav} profile={profile} dossierData={dossier} onDossierChange={reloadDossier} />}
         {screen === 'search' && <SearchScreen nav={nav} />}
         {screen === 'pro-profile' && <ProProfileScreen nav={nav} navParams={navParams} />}
         {screen === 'booking' && <BookingScreen nav={nav} navParams={navParams} showToast={showToast} />}

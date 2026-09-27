@@ -1,329 +1,226 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../../supabase";
-import { useOffline } from "../../hooks/useOffline";
-import OfflineBanner from "../../components/OfflineBanner";
-import { openDocument, hasDocumentFile } from "../../services/documents";
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../../supabase'
+import { useOffline } from '../../hooks/useOffline'
+import { openDocument, hasDocumentFile } from '../../services/documents'
+import { formatDate } from '../../utils/formatters'
+import DoctorShell, { Loader, fullName, ageOf } from './DoctorShell'
 
-export default function PatientRecord({ nav, showToast, patientId }) {
+const arr = (v) => (Array.isArray(v) ? v : [])
+const label = (x) => (typeof x === 'string' ? x : x?.name || '')
+
+export default function PatientRecord({ nav, showToast, patientId, pro, userId }) {
   const { isOffline } = useOffline()
-  const [patient, setPatient] = useState(null);
-  const [dossier, setDossier] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("dossier");
-  const [showNoteModal, setShowNoteModal] = useState(false);
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteContent, setNoteContent] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [accessLevel, setAccessLevel] = useState(null);
+  const [state, setState] = useState('loading') // loading | ok | denied | offline
+  const [patient, setPatient] = useState(null)
+  const [dossier, setDossier] = useState(null)
+  const [documents, setDocuments] = useState([])
+  const [tab, setTab] = useState('dossier')
+  const [showNote, setShowNote] = useState(false)
+  const [noteTitle, setNoteTitle] = useState('')
+  const [noteContent, setNoteContent] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (patientId) fetchAll();
-  }, [patientId]);
-
-  async function fetchAll() {
-    setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return nav("home");
-
-    if (isOffline) {
-      // Mode hors ligne : charger depuis IndexedDB si dispo
-      try {
-        const { getFromDB } = await import("../../hooks/useOffline");
-        const cached = await getFromDB?.(`patient_record_${patientId}`);
-        if (cached) {
-          setPatient(cached.patient);
-          setDossier(cached.dossier);
-          setDocuments(cached.documents || []);
-          setAccessLevel(cached.accessLevel);
-        }
-      } catch (e) {
-        // pas de cache disponible
-      }
-      setLoading(false);
-      return;
-    }
-
+  const fetchAll = useCallback(async () => {
+    if (!patientId || !userId) return
+    if (isOffline) { setState('offline'); return }
+    setState('loading')
     const { data: access } = await supabase
-      .from("doctor_access")
-      .select("access_level")
-      .eq("doctor_id", user.id)
-      .eq("patient_id", patientId)
-      .maybeSingle();
+      .from('doctor_access')
+      .select('id')
+      .eq('doctor_id', userId)
+      .eq('patient_id', patientId)
+      .eq('status', 'active')
+      .limit(1)
+    if (!access || access.length === 0) { setState('denied'); return }
 
-    if (!access) {
-      showToast && showToast("Accès non autorisé");
-      return nav("doctor");
-    }
-    setAccessLevel(access.access_level);
+    const [{ data: prof }, { data: dos }, { data: docs }] = await Promise.all([
+      supabase.from('profiles').select('id, fname, lname, dob, gender, blood, wilaya, cnas, emergency').eq('id', patientId).maybeSingle(),
+      supabase.from('dossiers').select('meds, allergies, antecedents, vaccins, glyc, bp, weight, updated_at').eq('patient_id', patientId).maybeSingle(),
+      supabase.from('documents').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }),
+    ])
+    setPatient(prof)
+    setDossier(dos)
+    setDocuments(docs || [])
+    setState(dos || prof ? 'ok' : 'denied')
+  }, [patientId, userId, isOffline])
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", patientId)
-      .maybeSingle();
-    setPatient(profile);
+  useEffect(() => { fetchAll() }, [fetchAll])
 
-    const { data: dos } = await supabase
-      .from("dossiers")
-      .select("*")
-      .eq("patient_id", patientId)
-      .maybeSingle();
-    setDossier(dos);
-
-    const { data: docs } = await supabase
-      .from("documents")
-      .select("*")
-      .eq("patient_id", patientId)
-      .order("created_at", { ascending: false });
-    setDocuments(docs || []);
-
-    setLoading(false);
-  }
-
-  async function saveNote() {
-    if (!noteTitle.trim() || !noteContent.trim()) return;
-    if (isOffline) {
-      showToast && showToast("Impossible en mode hors ligne");
-      return;
-    }
-    setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    const { error } = await supabase.from("documents").insert({
+  const saveNote = async () => {
+    if (!noteTitle.trim() || !noteContent.trim()) { showToast('Titre et contenu requis'); return }
+    setSaving(true)
+    const { error } = await supabase.from('documents').insert({
       patient_id: patientId,
-      title: noteTitle,
-      content: noteContent,
-      type: "note_medecin",
-      created_by: user.id,
-    });
-
-    if (error) {
-      showToast && showToast("Erreur lors de l'enregistrement");
-    } else {
-      showToast && showToast("Note ajoutée ✓");
-      setNoteTitle("");
-      setNoteContent("");
-      setShowNoteModal(false);
-      fetchAll();
-    }
-    setSaving(false);
+      title: noteTitle.trim(),
+      content: noteContent.trim(),
+      type: 'note_medecin',
+      medecin: pro?.fname ? `${pro.fname} ${pro.lname || ''}`.trim() : null,
+      date: new Date().toISOString().slice(0, 10),
+      created_by: userId,
+    })
+    setSaving(false)
+    if (error) { showToast('❌ ' + error.message); return }
+    showToast('✅ Note ajoutée au dossier')
+    setNoteTitle(''); setNoteContent(''); setShowNote(false)
+    fetchAll()
   }
 
-  function getFullName(p) {
-    if (!p) return "–";
-    return `${p.fname || ""} ${p.lname || ""}`.trim() || "–";
-  }
+  const who = pro?.fname ? `Dr. ${pro.fname} ${pro.lname || ''}` : ''
+  const back = (
+    <button className="pro-btn ghost" style={{ marginBottom: 14 }} onClick={() => nav('pro-patients')}>← Mes patients</button>
+  )
 
-  function getInitials(p) {
-    if (!p) return "?";
-    return `${p.fname?.[0] || ""}${p.lname?.[0] || ""}`.toUpperCase() || "?";
-  }
+  if (state === 'loading') return <DoctorShell nav={nav} active="pro-patients" who={who}>{back}<Loader label="Chargement du dossier…" /></DoctorShell>
+  if (state === 'offline') return (
+    <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
+      <div className="pro-card pro-empty"><div className="e">{"📴"}</div>Dossier indisponible hors connexion.</div>
+    </DoctorShell>
+  )
+  if (state === 'denied') return (
+    <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
+      <div className="pro-card pro-empty">
+        <div className="e">{"🔒"}</div>
+        Ce patient ne vous a pas (ou plus) donné accès à son dossier.
+        <div style={{ marginTop: 8 }}>Il peut vous l'accorder depuis son application, menu « Mes médecins ».</div>
+      </div>
+    </DoctorShell>
+  )
 
-  function getAge(dob) {
-    if (!dob) return "–";
-    return Math.floor((Date.now() - new Date(dob)) / (1000 * 60 * 60 * 24 * 365.25)) + " ans";
-  }
-
-  function formatDate(ts) {
-    if (!ts) return "–";
-    return new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-  }
-
-  if (loading) return <div style={styles.loadingPage}><p>Chargement du dossier…</p></div>;
+  const age = ageOf(patient?.dob)
+  const meds = arr(dossier?.meds)
+  const allergies = arr(dossier?.allergies)
+  const antecedents = arr(dossier?.antecedents)
+  const vaccins = arr(dossier?.vaccins)
+  const glyc = arr(dossier?.glyc)
+  const bp = arr(dossier?.bp)
+  const weight = arr(dossier?.weight)
+  const last = (a) => (a.length ? a[a.length - 1] : null)
 
   return (
-    <div style={styles.page}>
-      <OfflineBanner />
+    <DoctorShell nav={nav} active="pro-patients" who={who}>
+      {back}
 
-      <header style={styles.header}>
-        <button style={styles.backBtn} onClick={() => nav("doctor")}>← Retour</button>
-        {isOffline ? (
-          <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
-            📴 Mode hors ligne
-          </span>
-        ) : (
-          <button style={styles.noteBtn} onClick={() => setShowNoteModal(true)}>+ Ajouter une note</button>
-        )}
-      </header>
-
-      <div style={styles.content}>
-        <div style={styles.patientCard}>
-          <div style={styles.patientAvatar}>{getInitials(patient)}</div>
-          <div style={styles.patientInfo}>
-            <h1 style={styles.patientName}>{getFullName(patient)}</h1>
-            <div style={styles.patientMeta}>
-              <span>🎂 {getAge(patient?.dob)}</span>
-              {patient?.blood && <span style={styles.bloodBadge}>🩸 {patient.blood}</span>}
-              {accessLevel && <span style={styles.accessBadge}>Accès : {accessLevel}</span>}
-            </div>
+      <div className="pro-card pro-row">
+        <div style={{ width: 54, height: 54, borderRadius: '50%', background: 'rgba(0,201,141,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
+          {patient?.gender === 'Féminin' ? '👩' : '👨'}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 19, fontWeight: 800 }}>{fullName(patient)}</div>
+          <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {age !== null && <span>{"🎂"} {age} ans</span>}
+            {patient?.wilaya && <span>{"📍"} {patient.wilaya}</span>}
+            {patient?.cnas && <span>CNAS {patient.cnas}</span>}
           </div>
         </div>
-
-        <div style={styles.tabs}>
-          {["dossier", "documents"].map((tab) => (
-            <button
-              key={tab}
-              style={{ ...styles.tab, ...(activeTab === tab ? styles.tabActive : {}) }}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab === "dossier" ? "📋 Dossier médical" : `📄 Documents (${documents.length})`}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === "dossier" && (
-          <div style={styles.grid}>
-            <Section title="Informations médicales">
-              <Row label="Groupe sanguin" value={dossier?.blood || patient?.blood} />
-              <Row label="Taille" value={dossier?.height ? `${dossier.height} cm` : null} />
-              <Row label="Poids" value={dossier?.weight ? `${dossier.weight} kg` : null} />
-              <Row label="Fumeur" value={dossier?.smoker === true ? "Oui" : dossier?.smoker === false ? "Non" : null} />
-            </Section>
-            <Section title="Antécédents médicaux">
-              <TextBlock value={dossier?.medical_history} />
-            </Section>
-            <Section title="Allergies">
-              <TextBlock value={dossier?.allergies} />
-            </Section>
-            <Section title="Traitements en cours">
-              <TextBlock value={dossier?.current_treatments} />
-            </Section>
-            <Section title="Maladies chroniques">
-              <TextBlock value={dossier?.chronic_diseases} />
-            </Section>
-            <Section title="Chirurgies">
-              <TextBlock value={dossier?.surgeries} />
-            </Section>
-          </div>
-        )}
-
-        {activeTab === "documents" && (
-          <div style={styles.docsList}>
-            {documents.length === 0 ? (
-              <div style={styles.empty}>Aucun document pour ce patient.</div>
-            ) : (
-              documents.map((doc) => (
-                <div key={doc.id} style={styles.docCard}>
-                  <div style={styles.docHeader}>
-                    <div>
-                      <div style={styles.docTitle}>{doc.title}</div>
-                      <div style={styles.docMeta}>
-                        {doc.type === "note_medecin" ? "📝 Note médecin" : "📄 " + (doc.type || "Document")}
-                        {" · "}{formatDate(doc.created_at)}
-                      </div>
-                    </div>
-                    {doc.type === "note_medecin" && <span style={styles.noteBadge}>Note</span>}
-                  </div>
-                  {doc.content && <p style={styles.docContent}>{doc.content}</p>}
-                  {hasDocumentFile(doc) && (
-                    <button
-                      type="button"
-                      onClick={() => openDocument(doc, (msg) => showToast && showToast(msg))}
-                      style={{ ...styles.docLink, background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                    >
-                      Voir le fichier →
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        {patient?.blood && <span className="badge badge-r" style={{ fontSize: 13 }}>{"🩸"} {patient.blood}</span>}
       </div>
 
-      {showNoteModal && (
-        <div style={styles.overlay} onClick={() => setShowNoteModal(false)}>
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>Ajouter une note médicale</h2>
-            <input
-              style={styles.modalInput}
-              placeholder="Titre de la note"
-              value={noteTitle}
-              onChange={(e) => setNoteTitle(e.target.value)}
-            />
-            <textarea
-              style={styles.modalTextarea}
-              placeholder="Observations, prescriptions, compte-rendu…"
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              rows={6}
-            />
-            <div style={styles.modalActions}>
-              <button style={styles.cancelBtn} onClick={() => setShowNoteModal(false)}>Annuler</button>
-              <button style={styles.saveBtn} onClick={saveNote} disabled={saving}>
-                {saving ? "Enregistrement…" : "Enregistrer"}
-              </button>
+      {patient?.emergency && (
+        <div className="pro-banner info">{"📞"} Contact d'urgence : <b>{patient.emergency}</b></div>
+      )}
+
+      <div className="pro-seg">
+        <button className={tab === 'dossier' ? 'on' : ''} onClick={() => setTab('dossier')}>{"📋"} Dossier</button>
+        <button className={tab === 'docs' ? 'on' : ''} onClick={() => setTab('docs')}>{"📄"} Documents ({documents.length})</button>
+      </div>
+
+      {tab === 'dossier' && (
+        <>
+          <Block title="⚠️ Allergies" empty="Aucune allergie déclarée" items={allergies.map(a => label(a))} danger />
+          <Block title="💊 Traitements en cours" empty="Aucun traitement déclaré"
+            items={meds.map(m => [label(m), m?.dose, m?.reason].filter(Boolean).join(' · '))} />
+          <Block title="🩺 Antécédents" empty="Aucun antécédent déclaré"
+            items={antecedents.map(a => [label(a), a?.type, a?.year].filter(Boolean).join(' · '))} />
+          <Block title="💉 Vaccins" empty="Aucun vaccin renseigné"
+            items={vaccins.map(v => `${label(v)} — ${v?.status === 'pending' ? 'à faire' : v?.date ? formatDate(v.date) : 'fait'}`)} />
+          <div className="pro-card">
+            <div style={{ fontWeight: 700, marginBottom: 10 }}>{"📊"} Suivi</div>
+            <Metric name="Glycémie (HbA1c)" value={last(glyc)} unit="%" history={glyc} />
+            <Metric name="Tension" value={last(bp) ? `${last(bp).s}/${last(bp).d}` : null} unit="mmHg" history={bp.map(x => `${x.s}/${x.d}`)} />
+            <Metric name="Poids" value={last(weight)} unit="kg" history={weight} />
+          </div>
+          {dossier?.updated_at && (
+            <div style={{ fontSize: 11, color: 'var(--dim)', textAlign: 'center' }}>Dossier mis à jour le {formatDate(dossier.updated_at)}</div>
+          )}
+        </>
+      )}
+
+      {tab === 'docs' && (
+        <>
+          <button className="pro-btn g" style={{ width: '100%', marginBottom: 12 }} onClick={() => setShowNote(true)}>
+            ＋ Ajouter une note médicale
+          </button>
+          {documents.length === 0 ? (
+            <div className="pro-card pro-empty"><div className="e">{"📂"}</div>Aucun document pour ce patient.</div>
+          ) : documents.map(doc => (
+            <div key={doc.id} className="pro-card">
+              <div className="pro-row" style={{ alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700 }}>{doc.title}</div>
+                  <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>
+                    {doc.type === 'note_medecin' ? '📝 Note médecin' : '📄 ' + (doc.type || 'Document')}
+                    {' · '}{formatDate(doc.date || doc.created_at)}{doc.medecin ? ` · Dr. ${doc.medecin}` : ''}
+                  </div>
+                </div>
+                {hasDocumentFile(doc) && (
+                  <button className="pro-btn blue" onClick={() => openDocument(doc, (m) => showToast('❌ ' + m))}>Ouvrir</button>
+                )}
+              </div>
+              {doc.content && <p style={{ fontSize: 13, lineHeight: 1.6, marginTop: 10, whiteSpace: 'pre-wrap', color: 'rgba(239,243,255,.85)' }}>{doc.content}</p>}
             </div>
+          ))}
+        </>
+      )}
+
+      {showNote && (
+        <div className="modal-overlay" style={{ position: 'fixed', zIndex: 200 }} onClick={e => e.target === e.currentTarget && setShowNote(false)}>
+          <div className="modal" style={{ maxWidth: 520, margin: '0 auto' }}>
+            <div className="modal-handle" />
+            <div className="modal-title">Note médicale</div>
+            <div className="form-group">
+              <label className="form-label">Titre</label>
+              <input className="form-input" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} placeholder="Consultation du jour" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Contenu</label>
+              <textarea className="form-input" rows={6} value={noteContent} onChange={e => setNoteContent(e.target.value)}
+                placeholder="Observations, prescription, conduite à tenir…" style={{ resize: 'vertical', lineHeight: 1.5 }} />
+            </div>
+            <button className="btn-submit" onClick={saveNote} disabled={saving}>{saving ? '⏳ Enregistrement…' : 'Enregistrer la note'}</button>
+            <button className="btn-cancel" onClick={() => setShowNote(false)}>Annuler</button>
           </div>
         </div>
       )}
-    </div>
-  );
+    </DoctorShell>
+  )
 }
 
-function Section({ title, children }) {
+function Block({ title, items, empty, danger }) {
+  const list = items.filter(Boolean)
   return (
-    <div style={styles.section}>
-      <h3 style={styles.sectionTitle}>{title}</h3>
-      {children}
+    <div className="pro-card">
+      <div style={{ fontWeight: 700, marginBottom: 8 }}>{title}</div>
+      {list.length === 0 ? (
+        <div style={{ fontSize: 13, color: 'var(--dim)' }}>{empty}</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {list.map((t, i) => (
+            <div key={i} style={{ fontSize: 13, padding: '8px 10px', borderRadius: 8, background: danger ? 'rgba(255,90,90,.08)' : 'rgba(255,255,255,.03)', color: danger ? '#FF8A8A' : 'var(--white)' }}>{t}</div>
+          ))}
+        </div>
+      )}
     </div>
-  );
+  )
 }
 
-function Row({ label, value }) {
+function Metric({ name, value, unit, history }) {
   return (
-    <div style={styles.row}>
-      <span style={styles.rowLabel}>{label}</span>
-      <span style={styles.rowValue}>{value || <em style={{ color: "#cbd5e1" }}>Non renseigné</em>}</span>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', gap: 10 }}>
+      <span style={{ fontSize: 13, color: 'var(--dim)' }}>{name}</span>
+      <span style={{ fontSize: 13, textAlign: 'right' }}>
+        {value !== null && value !== undefined ? <b>{value} {unit}</b> : <span style={{ color: 'var(--dim)' }}>—</span>}
+        {history.length > 1 && <span style={{ display: 'block', fontSize: 10, color: 'var(--dim)' }}>Historique : {history.slice(-5).join(' → ')}</span>}
+      </span>
     </div>
-  );
+  )
 }
-
-function TextBlock({ value }) {
-  if (!value) return <em style={{ color: "#cbd5e1", fontSize: 13 }}>Non renseigné</em>;
-  return <p style={styles.textBlock}>{value}</p>;
-}
-
-const styles = {
-  page: { minHeight: "100vh", background: "#f0f4f8", fontFamily: "'Segoe UI', system-ui, sans-serif" },
-  loadingPage: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#64748b" },
-  header: { background: "#fff", padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", position: "sticky", top: 0, zIndex: 10 },
-  backBtn: { background: "none", border: "none", color: "#0a2540", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  noteBtn: { background: "#0a2540", color: "#fff", border: "none", borderRadius: 10, padding: "9px 18px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-  content: { maxWidth: 960, margin: "0 auto", padding: "24px 16px" },
-  patientCard: { background: "#fff", borderRadius: 16, padding: 20, display: "flex", alignItems: "center", gap: 16, marginBottom: 24, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", flexWrap: "wrap" },
-  patientAvatar: { width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg, #0a2540, #1e4d7b)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 20, flexShrink: 0 },
-  patientInfo: { flex: 1, minWidth: 0 },
-  patientName: { fontSize: 20, fontWeight: 700, color: "#0a2540", margin: "0 0 8px" },
-  patientMeta: { display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", fontSize: 13, color: "#64748b" },
-  bloodBadge: { background: "#fff1f2", color: "#e11d48", borderRadius: 6, padding: "2px 8px", fontWeight: 600 },
-  accessBadge: { background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 },
-  tabs: { display: "flex", gap: 4, marginBottom: 20, flexWrap: "wrap" },
-  tab: { background: "transparent", border: "none", padding: "10px 16px", borderRadius: 10, fontSize: 14, fontWeight: 500, color: "#64748b", cursor: "pointer" },
-  tabActive: { background: "#fff", color: "#0a2540", fontWeight: 700, boxShadow: "0 1px 4px rgba(0,0,0,0.08)" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 },
-  section: { background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
-  sectionTitle: { fontSize: 13, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: 1, margin: "0 0 14px" },
-  row: { display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f8fafc" },
-  rowLabel: { fontSize: 13, color: "#64748b" },
-  rowValue: { fontSize: 13, fontWeight: 600, color: "#0a2540" },
-  textBlock: { fontSize: 14, color: "#334155", lineHeight: 1.6, margin: 0 },
-  docsList: { display: "flex", flexDirection: "column", gap: 12 },
-  docCard: { background: "#fff", borderRadius: 14, padding: 20, boxShadow: "0 1px 4px rgba(0,0,0,0.05)" },
-  docHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 },
-  docTitle: { fontSize: 15, fontWeight: 700, color: "#0a2540" },
-  docMeta: { fontSize: 12, color: "#94a3b8", marginTop: 2 },
-  noteBadge: { background: "#fef3c7", color: "#d97706", borderRadius: 20, padding: "2px 10px", fontSize: 11, fontWeight: 600 },
-  docContent: { fontSize: 14, color: "#334155", lineHeight: 1.6, margin: 0 },
-  docLink: { color: "#2563eb", fontSize: 13, textDecoration: "none", fontWeight: 600 },
-  empty: { textAlign: "center", color: "#94a3b8", padding: 40, fontSize: 14 },
-  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: "0 16px" },
-  modal: { background: "#fff", borderRadius: 20, padding: 28, width: "100%", maxWidth: 480, display: "flex", flexDirection: "column", gap: 16 },
-  modalTitle: { fontSize: 18, fontWeight: 700, color: "#0a2540", margin: 0 },
-  modalInput: { border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 14, outline: "none" },
-  modalTextarea: { border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 14px", fontSize: 14, outline: "none", resize: "vertical", fontFamily: "inherit" },
-  modalActions: { display: "flex", gap: 12, justifyContent: "flex-end" },
-  cancelBtn: { background: "#f1f5f9", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer", color: "#64748b" },
-  saveBtn: { background: "#0a2540", color: "#fff", border: "none", borderRadius: 10, padding: "10px 20px", fontSize: 14, fontWeight: 600, cursor: "pointer" },
-};

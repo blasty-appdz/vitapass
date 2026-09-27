@@ -8,6 +8,18 @@ import { WILAYAS } from '../../data'
  * Écran d'authentification (connexion / inscription)
  * @param {string} initialTab - 'login' | 'signup'
  */
+// Messages Supabase (anglais) → français compréhensible
+function authError(msg = '') {
+  const m = msg.toLowerCase()
+  if (m.includes('invalid login')) return 'E-mail ou mot de passe incorrect'
+  if (m.includes('email not confirmed')) return 'Confirmez d\'abord votre adresse e-mail (lien reçu par e-mail)'
+  if (m.includes('already registered') || m.includes('already been registered')) return 'Un compte existe déjà avec cet e-mail'
+  if (m.includes('rate limit') || m.includes('security purposes')) return 'Trop de tentatives, réessayez dans quelques minutes'
+  if (m.includes('password should be')) return 'Mot de passe trop court (6 caractères minimum)'
+  if (m.includes('fetch') || m.includes('network')) return 'Connexion impossible, vérifiez votre réseau'
+  return msg
+}
+
 export default function AuthScreen({ initialTab = 'login' }) {
   const { t, i18n } = useTranslation()
   const [tab, setTab] = useState(initialTab)
@@ -39,7 +51,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
     setLoading(true)
     clearErrors()
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    if (error) setError(error.message)
+    if (error) setError(authError(error.message))
     setLoading(false)
   }
 
@@ -62,7 +74,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
       password,
       options: { data: { role, fname: fname.trim(), lname: lname.trim(), numero_ordre: numeroOrdre } },
     })
-    if (error) setError(error.message)
+    if (error) setError(authError(error.message))
     else setError('✅ ' + t('auth.account_created'))
     setLoading(false)
   }
@@ -73,9 +85,9 @@ export default function AuthScreen({ initialTab = 'login' }) {
     setLoading(true)
     clearErrors()
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: 'https://www.vitapass.app/auth/callback',
+      redirectTo: `${window.location.origin}/auth/callback`,
     })
-    if (error) setError(error.message)
+    if (error) setError(authError(error.message))
     else setError('✅ ' + t('auth.reset_sent'))
     setLoading(false)
   }

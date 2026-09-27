@@ -14,49 +14,34 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webp}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // Gestion des notifications push (sinon le service worker généré les ignore)
+        importScripts: ['/sw-push.js'],
         runtimeCaching: [
           {
+            // Données Supabase : toujours la version fraîche quand il y a du réseau,
+            // copie locale seulement hors connexion (avant : l'app affichait d'anciennes données après modification)
             urlPattern: /^https:\/\/qklhzepfbhihtlgqbweo\.supabase\.co\/rest\/.*/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'NetworkFirst',
+            method: 'GET',
             options: {
               cacheName: 'supabase-api-cache',
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 7 * 24 * 60 * 60,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
+              networkTimeoutSeconds: 8,
+              expiration: { maxEntries: 60, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {
-            urlPattern: /^https:\/\/qklhzepfbhihtlgqbweo\.supabase\.co\/storage\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'supabase-storage-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60,
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
+              expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
             },
           },
         ],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/urgence\//, /^\/auth\//],
+        navigateFallbackDenylist: [/^\/auth\//],
         skipWaiting: true,
         clientsClaim: true,
       },
@@ -64,33 +49,24 @@ export default defineConfig({
         name: 'VitaPass',
         short_name: 'VitaPass',
         description: 'Votre dossier médical toujours avec vous',
-        theme_color: '#2563EB',
-        background_color: '#ffffff',
+        theme_color: '#080E1E',
+        background_color: '#080E1E',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
         icons: [
           {
-            src: '/icons/icon-192.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
           {
-            src: '/icons/icon-512.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
-        screenshots: [
-          {
-            src: '/screenshots/screen1.png',
-            sizes: '390x844',
-            type: 'image/png',
-            form_factor: 'narrow',
-            label: 'Dossier médical VitaPass',
+            purpose: 'any',
           },
         ],
       },

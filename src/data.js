@@ -68,3 +68,43 @@ export function formatDate(dob) {
   const [y, m, d] = dob.split('-');
   return `${d}/${m}/${y}`;
 }
+// ── Référentiels partagés (une seule source pour patient ET médecin) ──
+// Adresse publique de l'application (le domaine vitapass.app sert la page de présentation).
+export const APP_URL = 'https://app.vitapass.app'
+
+// Même nomenclature que la table Supabase « specialites ».
+export const SPECIALITES = [
+  'Médecin généraliste', 'Cardiologue', 'Pédiatre', 'Gynécologue', 'Dermatologue',
+  'Ophtalmologue', 'ORL', 'Orthopédiste', 'Neurologue', 'Psychiatre', 'Pneumologue',
+  'Gastro-entérologue', 'Endocrinologue', 'Néphrologue', 'Rhumatologue', 'Urologue',
+  'Oncologue', 'Diabétologue', 'Dentiste', 'Sage-femme', 'Kinésithérapeute',
+  'Nutritionniste', 'Psychologue', 'Radiologue', 'Biologiste médical',
+]
+
+export const SPECIALITE_ICONS = {
+  'Médecin généraliste': '🏥', 'Cardiologue': '❤️', 'Pédiatre': '👶',
+  'Gynécologue': '🌸', 'Dermatologue': '🔬', 'Ophtalmologue': '👁️',
+  'ORL': '👂', 'Orthopédiste': '🦴', 'Neurologue': '🧠',
+  'Psychiatre': '🧩', 'Pneumologue': '🫁', 'Gastro-entérologue': '🩺',
+  'Endocrinologue': '⚗️', 'Néphrologue': '💧', 'Rhumatologue': '🦴',
+  'Urologue': '💧', 'Oncologue': '🎗️', 'Diabétologue': '🩸',
+  'Dentiste': '🦷', 'Sage-femme': '🤱', 'Kinésithérapeute': '💪',
+  'Nutritionniste': '🥗', 'Psychologue': '🧘', 'Radiologue': '🩻',
+  'Biologiste médical': '🧪',
+}
+
+// Langues : code enregistré en base → libellé affiché
+export const LANGUES = [
+  { code: 'ar', label: 'Arabe' },
+  { code: 'fr', label: 'Français' },
+  { code: 'kab', label: 'Tamazight' },
+  { code: 'en', label: 'Anglais' },
+]
+export const langueLabel = (code) => LANGUES.find(l => l.code === code)?.label || code
+
+export const RDV_STATUS = {
+  pending: { label: 'En attente', color: 'var(--yellow)', bg: 'rgba(255,209,102,.12)' },
+  confirmed: { label: 'Confirmé', color: 'var(--g)', bg: 'rgba(0,201,141,.12)' },
+  cancelled: { label: 'Annulé', color: '#FF8A8A', bg: 'rgba(255,90,90,.12)' },
+  completed: { label: 'Terminé', color: 'var(--blue)', bg: 'rgba(77,159,236,.12)' },
+}

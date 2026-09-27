@@ -1,40 +1,23 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import QRCode from 'qrcode'
 import { supabase } from '../../supabase'
-
-// ─── Helper : extrait l'image du QR canvas ───────────────────────────────────
-function getQRDataUrl(qrRef) {
-  return new Promise(resolve => {
-    const img = qrRef.current?.querySelector('img')
-    const canvas = qrRef.current?.querySelector('canvas')
-    if (img?.src) { resolve(img.src); return }
-    if (canvas) { resolve(canvas.toDataURL('image/png')); return }
-    resolve(null)
-  })
-}
+import { APP_URL } from '../../data'
 
 // ─── Toggle d'accès urgence ──────────────────────────────────────────────────
-function UrgenceToggle({ dossier, userId, onToggle }) {
+function UrgenceToggle({ dossier, userId, onToggle, onError }) {
   const [active, setActive] = useState(dossier?.urgence_public || false)
   const [loading, setLoading] = useState(false)
 
   const toggle = async () => {
     setLoading(true)
     const newVal = !active
-    if (newVal && !dossier?.urgence_token) {
-      const token = crypto.randomUUID()
-      const { error } = await supabase
-        .from('dossiers')
-        .update({ urgence_public: true, urgence_token: token })
-        .eq('patient_id', userId)
-      if (!error) { setActive(true); if (onToggle) onToggle(true) }
-    } else {
-      const { error } = await supabase
-        .from('dossiers')
-        .update({ urgence_public: newVal })
-        .eq('patient_id', userId)
-      if (!error) { setActive(newVal); if (onToggle) onToggle(newVal) }
-    }
+    const update = newVal && !dossier?.urgence_token
+      ? { urgence_public: true, urgence_token: crypto.randomUUID() }
+      : { urgence_public: newVal }
+    const { error } = await supabase.from('dossiers').update(update).eq('patient_id', userId)
+    if (error) onError?.(error.message)
+    else { setActive(newVal); onToggle?.(newVal) }
     setLoading(false)
   }
 
@@ -61,10 +44,9 @@ function UrgenceToggle({ dossier, userId, onToggle }) {
 }
 
 // ─── Écran QR Pass ───────────────────────────────────────────────────────────
-export default function QRScreen({ nav, profile, dossierData }) {
+export default function QRScreen({ nav, profile, dossierData, onDossierChange }) {
   const { t } = useTranslation()
-  const qrRef = useRef(null)
-  const qrInstance = useRef(null)
+  const [qrDataUrl, setQrDataUrl] = useState(null)
   const [urgenceActive, setUrgenceActive] = useState(dossierData?.urgence_public === true)
   const [genWallpaper, setGenWallpaper] = useState(false)
   const [genCard, setGenCard] = useState(false)
@@ -75,34 +57,38 @@ export default function QRScreen({ nav, profile, dossierData }) {
     setTimeout(() => setToastMsg(null), 3000)
   }
 
-  const qrText = dossierData?.urgence_token && dossierData?.urgence_public
-    ? `https://vitapass.app/urgence/${dossierData.urgence_token}`
-    : JSON.stringify({
-        id: profile?.id,
-        name: `${profile?.fname} ${profile?.lname}`,
-        blood: profile?.blood,
-        emergency: profile?.emergency,
-      })
+  // Le QR n'est généré que lorsque l'accès urgence est actif : il contient alors le lien public sécurisé.
+  const qrText = urgenceActive && dossierData?.urgence_token
+    ? `${APP_URL}/urgence/${dossierData.urgence_token}`
+    : null
 
   useEffect(() => {
-    if (!qrRef.current || !profile) return
-    if (qrInstance.current) {
-      qrInstance.current.clear()
-      qrInstance.current.makeCode(qrText)
-    } else if (window.QRCode) {
-      qrInstance.current = new window.QRCode(qrRef.current, {
-        text: qrText, width: 180, height: 180,
-        colorDark: '#000', colorLight: '#fff',
-      })
-    }
-  }, [profile, dossierData, qrText])
+    let cancelled = false
+    if (!qrText) { setQrDataUrl(null); return }
+    QRCode.toDataURL(qrText, { width: 480, margin: 1, errorCorrectionLevel: 'M' })
+      .then(url => { if (!cancelled) setQrDataUrl(url) })
+      .catch(() => { if (!cancelled) setQrDataUrl(null) })
+    return () => { cancelled = true }
+  }, [qrText])
+
+  const onToggle = async (val) => {
+    setUrgenceActive(val)
+    await onDossierChange?.()
+  }
+
+  const shareLink = async () => {
+    if (!qrText) return
+    try {
+      if (navigator.share) await navigator.share({ title: 'VitaPass — urgence', url: qrText })
+      else { await navigator.clipboard.writeText(qrText); showLocalToast('✅ Lien copié') }
+    } catch { /* partage annulé */ }
+  }
 
   // ── Génération fond d'écran 1080×1920 ────────────────────────────────────
   const downloadWallpaper = async () => {
     setGenWallpaper(true)
     try {
       await new Promise(r => setTimeout(r, 300))
-      const qrDataUrl = await getQRDataUrl(qrRef)
       if (!qrDataUrl) {
         showLocalToast("QR non disponible — activez le QR Pass d'abord")
         setGenWallpaper(false)
@@ -177,7 +163,7 @@ export default function QRScreen({ nav, profile, dossierData }) {
       ctx.fillStyle = 'rgba(255,255,255,0.45)'
       ctx.font = '36px Arial, sans-serif'
       ctx.fillText("Scannez en cas d'urgence", canvas.width / 2, qrY + qrSize + 80)
-      ctx.fillText('Aucune connexion requise', canvas.width / 2, qrY + qrSize + 130)
+      ctx.fillText('Sans application ni compte', canvas.width / 2, qrY + qrSize + 130)
 
       ctx.fillStyle = 'rgba(0,201,141,0.4)'
       ctx.font = '28px Arial, sans-serif'
@@ -201,7 +187,6 @@ export default function QRScreen({ nav, profile, dossierData }) {
     setGenCard(true)
     try {
       await new Promise(r => setTimeout(r, 300))
-      const qrDataUrl = await getQRDataUrl(qrRef)
       if (!qrDataUrl) {
         showLocalToast("QR non disponible — activez le QR Pass d'abord")
         setGenCard(false)
@@ -274,7 +259,7 @@ export default function QRScreen({ nav, profile, dossierData }) {
 
       ctx.fillStyle = 'rgba(255,255,255,0.4)'
       ctx.font = '20px Arial, sans-serif'
-      ctx.fillText('Scannez le QR sans connexion', 24, canvas.height - 58)
+      ctx.fillText('Scannez avec un téléphone', 24, canvas.height - 58)
       ctx.fillText('vitapass.app', 24, canvas.height - 28)
 
       const qrSize = 286
@@ -338,16 +323,22 @@ export default function QRScreen({ nav, profile, dossierData }) {
             </div>
             <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>
               {urgenceActive
-                ? 'QR lisible sans connexion par les secouristes'
+                ? 'QR lisible par les secouristes, sans application ni compte'
                 : 'Activer pour rendre le QR accessible aux secouristes'}
             </div>
           </div>
-          <UrgenceToggle dossier={dossierData} userId={profile?.id} onToggle={setUrgenceActive} />
+          <UrgenceToggle dossier={dossierData} userId={profile?.id} onToggle={onToggle} onError={(m) => showLocalToast('❌ ' + m)} />
         </div>
 
         <div className="qr-card">
           <div className="qr-tag">URGENCE MÉDICALE</div>
-          <div className="qr-box" ref={qrRef} />
+          <div className="qr-box">
+            {qrDataUrl
+              ? <img src={qrDataUrl} alt="QR code urgence" width={180} height={180} style={{ display: 'block' }} />
+              : <div style={{ width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 12, color: '#5A6A85', padding: 16 }}>
+                  {urgenceActive ? 'Génération du QR…' : 'Activez l\'accès urgence pour générer votre QR'}
+                </div>}
+          </div>
           <div className="qr-pname">{profile?.fname} {profile?.lname}</div>
           <div className="qr-pinfo">{profile?.wilaya} · {profile?.cnas}</div>
           <div className="qr-chips">
@@ -356,6 +347,13 @@ export default function QRScreen({ nav, profile, dossierData }) {
             {urgenceActive && <span className="badge badge-g">{"✅"} Public</span>}
           </div>
         </div>
+
+        {urgenceActive && qrText && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <a href={qrText} target="_blank" rel="noreferrer" className="btn-cancel" style={{ flex: 1, textAlign: 'center', textDecoration: 'none', margin: 0, fontSize: 12, padding: '10px 0' }}>{"👁"} Voir ce que voit le secouriste</a>
+            <button className="btn-cancel" onClick={shareLink} style={{ flex: 1, margin: 0, fontSize: 12, padding: '10px 0' }}>{"🔗"} Partager le lien</button>
+          </div>
+        )}
 
         {urgenceActive && (
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>

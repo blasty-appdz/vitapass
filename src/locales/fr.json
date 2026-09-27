@@ -1,7 +1,6 @@
 {
   "app_name": "VitaPass",
   "tagline": "Carnet de santé digital algérien",
-
   "nav": {
     "home": "Accueil",
     "qr": "QR Pass",
@@ -11,7 +10,6 @@
     "rdv": "Rendez-vous",
     "search": "Recherche"
   },
-
   "auth": {
     "login": "Connexion",
     "signup": "Inscription",
@@ -35,7 +33,6 @@
     "reset_sent": "Email envoyé ! Vérifie ta boîte mail.",
     "enter_email_first": "Entre ton email d'abord"
   },
-
   "home": {
     "greeting": "Bonjour 👋",
     "health_summary": "Mon résumé santé",
@@ -54,7 +51,6 @@
     "rdv_title": "Prendre RDV",
     "rdv_sub": "Trouver un professionnel de santé"
   },
-
   "search": {
     "title": "Trouver un professionnel",
     "placeholder": "Spécialité, médecin...",
@@ -72,7 +68,6 @@
     "da": "DA",
     "min": "min"
   },
-
   "booking": {
     "title": "Prendre rendez-vous",
     "choose_date": "Choisir une date",
@@ -86,7 +81,6 @@
     "success": "Rendez-vous confirmé !",
     "error": "Erreur lors de la réservation"
   },
-
   "appointments": {
     "title": "Mes rendez-vous",
     "upcoming": "À venir",
@@ -101,7 +95,6 @@
     "cancel_confirm": "Annuler ce rendez-vous ?",
     "add_btn": "Prendre un rendez-vous"
   },
-
   "pro_profile": {
     "book_btn": "Prendre rendez-vous",
     "specialite": "Spécialité",
@@ -113,7 +106,6 @@
     "da": "DA",
     "min": "min"
   },
-
   "dossier": {
     "title": "Mon Dossier",
     "meds": "Médic.",
@@ -134,7 +126,6 @@
     "surgery": "Chirurgie",
     "other": "Autre"
   },
-
   "profile": {
     "title": "Mon Profil",
     "edit": "Modifier mon profil",
@@ -152,13 +143,11 @@
     "male": "Masculin",
     "female": "Féminin"
   },
-
   "doctor": {
     "pending_title": "Compte en attente",
     "pending_body": "Votre compte médecin est en cours de validation. Vous recevrez un accès sous 24h.",
     "ordre_label": "N° Ordre"
   },
-
   "common": {
     "loading": "Chargement...",
     "save": "Enregistrer",
@@ -175,7 +164,6 @@
     "lang_fr": "Français",
     "lang_ar": "العربية"
   },
-
   "landing": {
     "available": "Urgence · Gratuit · Oran",
     "hero_title": "En urgence,",
@@ -194,5 +182,16 @@
     "cta_sub": "Des milliers d'Algériens ont déjà créé leur VitaPass. En cas d'urgence, c'est trop tard pour commencer.",
     "contact": "Nous contacter",
     "footer_free": "Gratuit · Sans publicité · Conçu à Oran 🇩🇿"
+  },
+  "rdv": {
+    "title": "Mes rendez-vous",
+    "upcoming": "À venir",
+    "past": "Historique",
+    "none": "Aucun rendez-vous à venir",
+    "no_history": "Aucun rendez-vous passé",
+    "book": "Prendre un rendez-vous",
+    "cancel": "Annuler",
+    "cancel_confirm": "Annuler ce rendez-vous ?",
+    "cancelled": "Rendez-vous annulé"
   }
 }

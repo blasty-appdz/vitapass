@@ -55,11 +55,11 @@ export function useOfflineAppointments(userId) {
     })
     supabase
       .from('appointments')
-      .select('id, appointment_date, status, notes, professional_id, patient_id')
+      .select('id, start_at, end_at, status, motif, notes, professional_id, patient_id')
       .eq('patient_id', userId)
-      .order('appointment_date', { ascending: false })
-      .then(({ data }) => {
-        if (data && data.length > 0) {
+      .order('start_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
           setAppointments(data)
           saveOffline('appointments', data)
         }
