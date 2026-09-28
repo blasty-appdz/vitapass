@@ -4,6 +4,7 @@ import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import { formatDate } from '../../utils/formatters'
 import { openDocument, hasDocumentFile } from '../../services/documents'
+import Icon from '../../components/common/Icon'
 
 const DOC_TYPES = {
   ordonnance: { label: 'Ordonnance', icon: '💊' },
@@ -151,30 +152,30 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
   }
 
   const tabs = [
-    { id: 'med', label: '💊 ' + t('dossier.meds') },
-    { id: 'allergy', label: '⚠️ ' + t('dossier.allergies') },
-    { id: 'ant', label: '🩺 ' + t('dossier.antecedents') },
-    { id: 'vacc', label: '💉 ' + t('dossier.vaccins') },
-    { id: 'docs', label: '📄 ' + t('dossier.docs') },
+    { id: 'med', icon: 'pill', label: t('dossier.meds') },
+    { id: 'allergy', icon: 'alert', label: t('dossier.allergies') },
+    { id: 'ant', icon: 'clipboard', label: t('dossier.antecedents') },
+    { id: 'vacc', icon: 'syringe', label: t('dossier.vaccins') },
+    { id: 'docs', icon: 'folder', label: t('dossier.docs') },
   ]
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">{t('dossier.title')}</div>
       </div>
 
       {isOffline && (
-        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 12, color: 'var(--yellow)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {"📴"} <span>Mode hors ligne — lecture seule</span>
+        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 13, color: 'var(--yellow)', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon e="📴" /> <span>Mode hors ligne — lecture seule</span>
         </div>
       )}
 
       <div className="tabs">
         {tabs.map(t2 => (
           <div key={t2.id} className={`tab${activeTab === t2.id ? ' active' : ''}`} onClick={() => setActiveTab(t2.id)}>
-            {t2.label}
+            <Icon name={t2.icon} size={15} />{t2.label}
           </div>
         ))}
       </div>
@@ -184,11 +185,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
         <>
           <div className="dsect-title">{t('dossier.meds')}</div>
           {meds.length === 0
-            ? <div className="empty-state"><div className="empty-icon">{"💊"}</div><p>{t('dossier.no_meds')}</p></div>
+            ? <div className="empty-state"><div className="empty-icon"><Icon e="💊" /></div><p>{t('dossier.no_meds')}</p></div>
             : meds.map(m => (
               <div key={m.id} className="card">
                 <div className="card-row">
-                  <div className="card-icon" style={{ background: 'rgba(77,159,236,.1)' }}>{"💊"}</div>
+                  <div className="card-icon" style={{ background: 'rgba(77,159,236,.1)' }}><Icon e="💊" /></div>
                   <div className="card-info">
                     <div className="card-name">{m.name}</div>
                     <div className="card-sub">{m.dose}{m.reason ? ' · ' + m.reason : ''}</div>
@@ -209,7 +210,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
           <div className="dsect-title">{t('dossier.allergies')}</div>
           <div className="allergy-wrap">
             {allergies.length === 0
-              ? <div className="empty-state"><div className="empty-icon">{"⚠️"}</div><p>{t('dossier.no_allergies')}</p></div>
+              ? <div className="empty-state"><div className="empty-icon"><Icon e="⚠️" /></div><p>{t('dossier.no_allergies')}</p></div>
               : allergies.map(a => (
                 <div key={a.id} className="achip">
                   {a.name}
@@ -227,11 +228,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
         <>
           <div className="dsect-title">{t('dossier.antecedents')}</div>
           {antecedents.length === 0
-            ? <div className="empty-state"><div className="empty-icon">{"📋"}</div><p>{t('dossier.no_antecedents')}</p></div>
+            ? <div className="empty-state"><div className="empty-icon"><Icon e="📋" /></div><p>{t('dossier.no_antecedents')}</p></div>
             : antecedents.map(a => (
               <div key={a.id} className="card">
                 <div className="card-row">
-                  <div className="card-icon" style={{ background: 'rgba(255,209,102,.1)' }}>{"🩺"}</div>
+                  <div className="card-icon" style={{ background: 'rgba(255,209,102,.1)' }}><Icon e="🩺" /></div>
                   <div className="card-info">
                     <div className="card-name">{a.name}</div>
                     <div className="card-sub">{a.type}{a.year ? ' · ' + a.year : ''}</div>
@@ -250,7 +251,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
       {activeTab === 'vacc' && (
         <>
           <div className="dsect-title">{t('dossier.vaccins')}</div>
-          {vaccins.length === 0 && <div className="empty-state"><div className="empty-icon">{"💉"}</div><p>Aucun vaccin renseigné</p></div>}
+          {vaccins.length === 0 && <div className="empty-state"><div className="empty-icon"><Icon e="💉" /></div><p>Aucun vaccin renseigné</p></div>}
           {vaccins.map(v => (
             <div key={v.id} className="vacc-row">
               <div>
@@ -259,7 +260,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div className="vacc-ico" style={{ background: v.status === 'done' ? 'rgba(0,201,141,.15)' : 'rgba(255,209,102,.15)' }}>
-                  {v.status === 'done' ? '✅' : '⏳'}
+                  <Icon e={v.status === 'done' ? '✅' : '⏳'} size={18} />
                 </div>
                 {!isOffline && <span className="achip-rm" style={{ cursor: 'pointer' }} onClick={() => removeItem('vaccins', vaccins, v)}>✕</span>}
               </div>
@@ -274,7 +275,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
       {activeTab === 'docs' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontWeight: 600, color: 'var(--white)' }}>{"📄"} {t('dossier.docs')} ({patientDocs.length})</span>
+            <span style={{ fontWeight: 600, color: 'var(--white)' }}><Icon e="📄" /> {t('dossier.docs')} ({patientDocs.length})</span>
             {!isOffline && (
               <div className="add-btn" style={{ margin: 0, padding: '6px 12px' }} onClick={() => setShowUploadModal(true)}>
                 + {t('common.add')}
@@ -287,14 +288,14 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
             : patientDocs.length === 0
               ? (
                 <div style={{ textAlign: 'center', padding: 32, color: 'var(--dim)' }}>
-                  <div style={{ fontSize: 40 }}>{"📂"}</div>
+                  <div style={{ fontSize: 40 }}><Icon e="📂" /></div>
                   <div>{isOffline ? 'Documents non disponibles hors ligne' : 'Aucun document. Ajoutez vos ordonnances, analyses et radios.'}</div>
                 </div>
               )
               : patientDocs.map(doc => (
                 <div key={doc.id} className="doc-card">
                   <div className="doc-top">
-                    <span style={{ fontSize: 20 }}>{doc.type === 'note_medecin' ? '📝' : DOC_TYPES[doc.type]?.icon || '📄'}</span>
+                    <Icon e={doc.type === 'note_medecin' ? '📝' : DOC_TYPES[doc.type]?.icon || '📄'} size={20} />
                     <div style={{ flex: 1, marginLeft: 8 }}>
                       <div className="doc-name">{doc.title}</div>
                       <div className="doc-spec">
@@ -302,13 +303,13 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                         {(doc.date || doc.created_at) ? ' · ' + formatDate(doc.date || doc.created_at) : ''}
                       </div>
                       {doc.medecin && <div className="doc-loc">Dr. {doc.medecin}</div>}
-                      {doc.content && <div style={{ fontSize: 12, color: 'rgba(239,243,255,.8)', marginTop: 6, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{doc.content}</div>}
+                      {doc.content && <div style={{ fontSize: 13, color: 'rgba(239,243,255,.8)', marginTop: 6, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{doc.content}</div>}
                     </div>
                     {hasDocumentFile(doc) && (
-                      <button className="doc-btn" style={{ background: 'rgba(77,159,236,.1)', color: 'var(--blue)' }} onClick={() => handleOpenDoc(doc)}>{"👁"}</button>
+                      <button className="doc-btn" style={{ background: 'rgba(77,159,236,.1)', color: 'var(--blue)' }} onClick={() => handleOpenDoc(doc)}><Icon e="👁" /></button>
                     )}
                     {!isOffline && doc.type !== 'note_medecin' && (
-                      <button className="doc-btn" style={{ marginLeft: 4, background: 'rgba(255,90,90,.1)', color: '#FF8A8A' }} onClick={() => handleDeleteDoc(doc)}>{"🗑"}</button>
+                      <button className="doc-btn" style={{ marginLeft: 4, background: 'rgba(255,90,90,.1)', color: '#FF8A8A' }} onClick={() => handleDeleteDoc(doc)}><Icon e="🗑" /></button>
                     )}
                   </div>
                 </div>
@@ -336,8 +337,8 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                       }}
                     />
                     {docFile
-                      ? <span style={{ color: 'var(--g)' }}>{"✅"} {docFile.name}</span>
-                      : <span style={{ color: 'var(--dim)' }}>{"📂"} Choisir un fichier</span>}
+                      ? <span style={{ color: 'var(--g)' }}><Icon e="✅" /> {docFile.name}</span>
+                      : <span style={{ color: 'var(--dim)' }}><Icon e="📂" /> Choisir un fichier</span>}
                   </div>
                 </div>
                 <div className="form-group">
@@ -348,7 +349,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                   <label className="form-label">Type</label>
                   <select className="form-select" value={docForm.type} onChange={e => setDocForm(p => ({ ...p, type: e.target.value }))}>
                     {Object.entries(DOC_TYPES).map(([k, v]) => (
-                      <option key={k} value={k}>{v.icon} {v.label}</option>
+                      <option key={k} value={k}>{v.label}</option>
                     ))}
                   </select>
                 </div>
@@ -360,9 +361,9 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                   <label className="form-label">Médecin</label>
                   <input className="form-input" value={docForm.medecin} onChange={e => setDocForm(p => ({ ...p, medecin: e.target.value }))} />
                 </div>
-                {docError && <div style={{ color: '#FF8A8A', fontSize: 13 }}>{"⚠️"} {docError}</div>}
+                {docError && <div style={{ color: '#FF8A8A', fontSize: 13 }}><Icon e="⚠️" /> {docError}</div>}
                 <button className="btn-submit" onClick={handleUpload} disabled={uploadingDoc}>
-                  {uploadingDoc ? '⏳...' : '⬆️ ' + t('common.save')}
+                  {uploadingDoc ? '…' : t('common.save')}
                 </button>
               </div>
             </div>
@@ -387,7 +388,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
               <input className="form-input" placeholder="Diabète" onChange={e => setForm({ ...form, reason: e.target.value })} />
             </div>
           </div>
-          <button className="btn-submit" onClick={addMed} disabled={saving}>{saving ? '⏳...' : t('common.save')}</button>
+          <button className="btn-submit" onClick={addMed} disabled={saving}>{saving ? '…' : t('common.save')}</button>
           <button className="btn-cancel" onClick={() => setModal(null)}>{t('common.cancel')}</button>
         </Modal>
       )}
@@ -397,7 +398,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
             <label className="form-label">Allergie</label>
             <input className="form-input" placeholder="Pénicilline" onChange={e => setForm({ ...form, name: e.target.value })} />
           </div>
-          <button className="btn-submit" onClick={addAllergy} disabled={saving}>{saving ? '⏳...' : t('common.save')}</button>
+          <button className="btn-submit" onClick={addAllergy} disabled={saving}>{saving ? '…' : t('common.save')}</button>
           <button className="btn-cancel" onClick={() => setModal(null)}>{t('common.cancel')}</button>
         </Modal>
       )}
@@ -421,7 +422,7 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
               </select>
             </div>
           </div>
-          <button className="btn-submit" onClick={addAnt} disabled={saving}>{saving ? '⏳...' : t('common.save')}</button>
+          <button className="btn-submit" onClick={addAnt} disabled={saving}>{saving ? '…' : t('common.save')}</button>
           <button className="btn-cancel" onClick={() => setModal(null)}>{t('common.cancel')}</button>
         </Modal>
       )}
@@ -439,12 +440,12 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
             <div className="form-group">
               <label className="form-label">Statut</label>
               <select className="form-select" onChange={e => setForm({ ...form, status: e.target.value })}>
-                <option value="done">{"✅"} Fait</option>
-                <option value="pending">{"⏳"} À faire</option>
+                <option value="done"><Icon e="✅" /> Fait</option>
+                <option value="pending"><Icon e="⏳" /> À faire</option>
               </select>
             </div>
           </div>
-          <button className="btn-submit" onClick={addVacc} disabled={saving}>{saving ? '⏳...' : t('common.save')}</button>
+          <button className="btn-submit" onClick={addVacc} disabled={saving}>{saving ? '…' : t('common.save')}</button>
           <button className="btn-cancel" onClick={() => setModal(null)}>{t('common.cancel')}</button>
         </Modal>
       )}

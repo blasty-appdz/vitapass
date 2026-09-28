@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../../supabase'
 import { WILAYAS, SPECIALITES, LANGUES } from '../../data'
 import DoctorShell from './DoctorShell'
-
+import Icon, { IconText } from '../../components/common/Icon'
 // Profil professionnel : création (première connexion) et modification ensuite.
 export default function ProfessionalOnboarding({ nav, showToast, pro, setPro, userId }) {
   const firstTime = !pro?.fname || !pro?.specialite || !pro?.wilaya
@@ -86,7 +86,7 @@ export default function ProfessionalOnboarding({ nav, showToast, pro, setPro, us
 
       {pro && (
         <div className={`pro-banner ${pro.validated ? 'info' : 'warn'}`}>
-          {pro.validated ? '✅ Profil validé par VitaPass' : '⏳ Profil en attente de validation par l\'équipe VitaPass'}
+          <IconText>{pro.validated ? '✅ Profil validé par VitaPass' : '⏳ Profil en attente de validation par l\'équipe VitaPass'}</IconText>
         </div>
       )}
 
@@ -125,7 +125,7 @@ export default function ProfessionalOnboarding({ nav, showToast, pro, setPro, us
               const on = form.langues.includes(l.code)
               return (
                 <button key={l.code} type="button" className={`pro-btn ${on ? 'g' : 'ghost'}`} onClick={() => toggleLangue(l.code)}>
-                  {on ? '✓ ' : ''}{l.label}
+                  {on && <Icon name="check" size={14} />}{l.label}
                 </button>
               )
             })}
@@ -156,9 +156,9 @@ export default function ProfessionalOnboarding({ nav, showToast, pro, setPro, us
         </Field>
       </div>
 
-      {error && <div className="error-msg">{"⚠️"} {error}</div>}
+      {error && <div className="error-msg"><Icon e="⚠️" /> {error}</div>}
       <button className="btn-submit" onClick={save} disabled={saving}>
-        {saving ? '⏳ Enregistrement…' : firstTime ? 'Enregistrer et ouvrir mes créneaux →' : 'Enregistrer'}
+        {saving ? 'Enregistrement…' : firstTime ? 'Enregistrer et ouvrir mes créneaux' : 'Enregistrer'}
       </button>
     </DoctorShell>
   )

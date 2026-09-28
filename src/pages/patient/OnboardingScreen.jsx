@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import { WILAYAS } from '../../data'
-
+import Icon, { IconText } from '../../components/common/Icon'
 export default function OnboardingScreen({ profile, setProfile, userId, showToast }) {
   const { t } = useTranslation()
   const [form, setForm] = useState({
@@ -34,7 +34,7 @@ export default function OnboardingScreen({ profile, setProfile, userId, showToas
   return (
     <div className="auth-screen" style={{ justifyContent: 'flex-start', paddingTop: 40, overflowY: 'auto' }}>
       <div className="auth-logo" style={{ marginBottom: 8 }}>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>
+        <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--white)' }}>
           Complète ton <span style={{ color: 'var(--g)' }}>profil</span>
         </div>
         <div style={{ fontSize: 13, color: 'var(--dim)', textAlign: 'center' }}>
@@ -43,7 +43,7 @@ export default function OnboardingScreen({ profile, setProfile, userId, showToas
       </div>
 
       <div className="auth-card" style={{ width: '100%' }}>
-        {error && <div className="error-msg">{error}</div>}
+        {error && <div className="error-msg"><IconText>{error}</IconText></div>}
 
         <div className="form-group">
           <label className="form-label">{t('profile.dob')} *</label>
@@ -85,9 +85,9 @@ export default function OnboardingScreen({ profile, setProfile, userId, showToas
           <input className="form-input" type="tel" placeholder="Nom · 0550 12 34 56" value={form.emergency} onChange={e => setForm({ ...form, emergency: e.target.value })} />
         </div>
         <button className="btn-submit" onClick={save} disabled={saving}>
-          {saving ? '⏳...' : '✅ ' + t('common.confirm')}
+          {saving ? '…' : t('common.confirm')}
         </button>
-        <button className="btn-cancel" onClick={() => supabase.auth.signOut()}>{"🚪"} {t('profile.logout')}</button>
+        <button className="btn-cancel" onClick={() => supabase.auth.signOut()}><Icon e="🚪" /> {t('profile.logout')}</button>
       </div>
     </div>
   )

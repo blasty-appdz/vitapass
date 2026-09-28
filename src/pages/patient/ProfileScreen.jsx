@@ -4,8 +4,9 @@ import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import PushNotificationToggle from '../../components/PushNotificationToggle'
 import LanguageSwitcher from '../../components/LanguageSwitcher'
-import { formatDate, getAvatarEmoji } from '../../utils/formatters'
+import { formatDate } from '../../utils/formatters'
 import { WILAYAS } from '../../data'
+import Icon from '../../components/common/Icon'
 
 export default function ProfileScreen({ nav, profile, setProfile, onLogout, showToast, isOffline }) {
   const { t } = useTranslation()
@@ -48,21 +49,21 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
     <div className="screen" style={{ display: 'flex' }}>
       <div className="profile-hero">
         <div className="p-av-wrap">
-          <div className="p-av">{getAvatarEmoji(profile?.gender, 'patient')}</div>
-          <div className="p-badge">{"✅"}</div>
+          <div className="p-av" style={{ fontSize: 28, fontWeight: 700 }}>{`${(profile?.fname || '').charAt(0)}${(profile?.lname || '').charAt(0)}`.toUpperCase() || <Icon name="user" />}</div>
+          <div className="p-badge"><Icon e="✅" /></div>
         </div>
         <div className="p-name">{profile?.fname} {profile?.lname}</div>
         <div className="p-id">VP-DZ-{profile?.id?.slice(0, 8)?.toUpperCase()}</div>
         <div className="p-chips">
-          <span className="pchip">{"🩸"} {profile?.blood || 'N/A'}</span>
-          <span className="pchip">{"📍"} {profile?.wilaya || 'N/A'}</span>
+          <span className="pchip"><Icon e="🩸" /> {profile?.blood || 'N/A'}</span>
+          <span className="pchip"><Icon e="📍" /> {profile?.wilaya || 'N/A'}</span>
           {age !== null && <span className="pchip">{age} ans</span>}
         </div>
       </div>
 
       {isOffline && (
-        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 12, color: 'var(--yellow)', margin: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {"📴"} <span>Mode hors ligne — modification désactivée</span>
+        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 13, color: 'var(--yellow)', margin: '8px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Icon e="📴" /> <span>Mode hors ligne — modification désactivée</span>
         </div>
       )}
 
@@ -88,28 +89,28 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
 
       {!isOffline && (
         <div className="add-btn" onClick={() => { setForm(profile || {}); setModal(true) }}>
-          {"✏️"} {t('profile.edit')}
+          <Icon e="✏️" /> {t('profile.edit')}
         </div>
       )}
 
       <div className="dsect-title">Paramètres</div>
       <PushNotificationToggle />
       <div className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span className="pi-key">{"🌐"} Langue / اللغة</span>
+        <span className="pi-key"><Icon e="🌐" /> Langue / اللغة</span>
         <LanguageSwitcher />
       </div>
       <div className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, cursor: 'pointer' }} onClick={() => nav('doctors')}>
-        <span className="pi-key">{"👨‍⚕️"} Médecins ayant accès à mon dossier</span>
+        <span className="pi-key"><Icon e="👨‍⚕️" /> Médecins ayant accès à mon dossier</span>
         <span className="pi-val">›</span>
       </div>
       <a href="/privacy" className="pinfo-row" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 14px', marginTop: 10, textDecoration: 'none', display: 'flex', justifyContent: 'space-between' }}>
-        <span className="pi-key">{"🔒"} Politique de confidentialité</span>
+        <span className="pi-key"><Icon e="🔒" /> Politique de confidentialité</span>
         <span className="pi-val">›</span>
       </a>
       <div style={{ height: 12 }} />
 
       <div className="logout-btn" onClick={onLogout}>
-        {"🚪"} {t('profile.logout')}
+        <Icon e="🚪" /> {t('profile.logout')}
       </div>
 
       {modal && (
@@ -158,7 +159,7 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
             <input className="form-input" placeholder="+213 XXX XXX XXX" defaultValue={profile?.emergency} onChange={e => setForm({ ...form, emergency: e.target.value })} />
           </div>
           <button className="btn-submit" onClick={save} disabled={saving}>
-            {saving ? '⏳...' : t('profile.save')}
+            {saving ? '…' : t('profile.save')}
           </button>
           <button className="btn-cancel" onClick={() => setModal(false)}>{t('profile.cancel')}</button>
         </Modal>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../supabase'
 import { validatePassword } from '../../utils/validators'
+import Icon from '../../components/common/Icon'
 
 export default function ResetPasswordScreen() {
   const [pwd, setPwd] = useState('')
@@ -28,7 +29,7 @@ export default function ResetPasswordScreen() {
   const inputStyle = {
     width: '100%', maxWidth: 340, background: 'rgba(255,255,255,0.07)',
     border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12,
-    padding: '13px 16px', color: '#EFF3FF', fontSize: 14, outline: 'none',
+    padding: '13px 16px', color: 'var(--white)', fontSize: 14, outline: 'none',
   }
   const btn = (d) => ({
     width: '100%', maxWidth: 340,
@@ -36,28 +37,27 @@ export default function ResetPasswordScreen() {
     color: '#001A12', border: 'none', borderRadius: 12,
     padding: 14, fontWeight: 700, fontSize: 14,
     cursor: d ? 'not-allowed' : 'pointer',
-    fontFamily: "'Syne',sans-serif",
-  })
+    })
 
   if (done) return (
     <div style={base}>
-      <div style={{ fontSize: 56 }}>{"✅"}</div>
-      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif", textAlign: 'center' }}>
+      <div style={{ fontSize: 56 }}><Icon e="✅" /></div>
+      <div style={{ color: 'var(--white)', fontSize: 22, fontWeight: 800, textAlign: 'center' }}>
         Mot de passe modifié !
       </div>
       <button
         onClick={() => window.location.href = window.location.origin + window.location.pathname}
         style={{ ...btn(false), marginTop: 8 }}
       >
-        Se connecter →
+        Se connecter <Icon name="arrowRight" size={16} />
       </button>
     </div>
   )
 
   return (
     <div style={base}>
-      <div style={{ fontSize: 48 }}>{"🔐"}</div>
-      <div style={{ color: '#EFF3FF', fontSize: 22, fontWeight: 800, fontFamily: "'Syne',sans-serif" }}>
+      <div style={{ fontSize: 48 }}><Icon e="🔐" /></div>
+      <div style={{ color: 'var(--white)', fontSize: 22, fontWeight: 800, }}>
         Nouveau mot de passe
       </div>
       <input
@@ -69,8 +69,8 @@ export default function ResetPasswordScreen() {
         onKeyDown={e => e.key === 'Enter' && pwd.length >= 6 && handleReset()}
       />
       {err && (
-        <div style={{ color: '#FF8A8A', fontSize: 12, background: 'rgba(255,90,90,.1)', border: '1px solid rgba(255,90,90,.2)', borderRadius: 8, padding: '8px 14px', maxWidth: 340, width: '100%', textAlign: 'center' }}>
-          {"⚠️"} {err}
+        <div style={{ color: '#FF8A8A', fontSize: 13, background: 'rgba(255,90,90,.1)', border: '1px solid rgba(255,90,90,.2)', borderRadius: 8, padding: '8px 14px', maxWidth: 340, width: '100%', textAlign: 'center' }}>
+          <Icon e="⚠️" /> {err}
         </div>
       )}
       <button
@@ -78,7 +78,7 @@ export default function ResetPasswordScreen() {
         disabled={loading || pwd.length < 6}
         style={btn(loading || pwd.length < 6)}
       >
-        {loading ? '⏳...' : 'Valider'}
+        {loading ? '…' : 'Valider'}
       </button>
     </div>
   )

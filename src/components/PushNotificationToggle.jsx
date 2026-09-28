@@ -1,5 +1,6 @@
 import { usePushNotifications } from '../hooks/usePushNotifications'
 import { useTranslation } from 'react-i18next'
+import Icon from './common/Icon'
 
 export default function PushNotificationToggle() {
   const { t } = useTranslation()
@@ -17,7 +18,7 @@ export default function PushNotificationToggle() {
       alignItems: 'center',
       gap: 8,
     }}>
-      <span>🔕</span>
+      <Icon e="🔕" size={18} />
       <span>{t('push.blocked', 'Notifications bloquées — modifie les paramètres du navigateur')}</span>
     </div>
   )
@@ -33,12 +34,12 @@ export default function PushNotificationToggle() {
       border: '1px solid var(--color-border, #e2e8f0)',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 22 }}>🔔</span>
+        <span style={{ width: 40, height: 40, borderRadius: 13, background: 'var(--g-soft)', color: 'var(--g)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon e="🔔" size={20} /></span>
         <div>
           <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-text, #1e293b)' }}>
             {t('push.title', 'Notifications push')}
           </div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-muted, #64748b)', marginTop: 2 }}>
+          <div style={{ fontSize: 13, color: 'var(--color-text-muted, #64748b)', marginTop: 2 }}>
             {isSubscribed
               ? t('push.active', 'Activées — rappels RDV, messages médecin')
               : t('push.inactive', 'Désactivées')}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
 import DoctorShell, { Loader, fullName, ageOf } from './DoctorShell'
 import { formatDate } from '../../utils/formatters'
+import Icon from '../../components/common/Icon'
 
 // Liste des patients qui ont partagé leur dossier avec le médecin (accès actif uniquement)
 export default function DoctorDashboard({ nav, pro, userId }) {
@@ -41,15 +42,15 @@ export default function DoctorDashboard({ nav, pro, userId }) {
       subtitle={`${patients.length} patient${patients.length > 1 ? 's' : ''} vous ${patients.length > 1 ? 'ont' : 'a'} donné accès à son dossier`}>
 
       {!pro?.validated && (
-        <div className="pro-banner info">{"⏳"} Tant que votre profil n'est pas validé, les patients ne peuvent pas vous donner accès à leur dossier.</div>
+        <div className="pro-banner info"><Icon e="⏳" /> Tant que votre profil n'est pas validé, les patients ne peuvent pas vous donner accès à leur dossier.</div>
       )}
 
-      <input className="form-input" placeholder="🔍 Rechercher un patient…" value={search}
+      <input className="form-input" placeholder="Rechercher un patient…" value={search}
         onChange={e => setSearch(e.target.value)} style={{ marginBottom: 14 }} />
 
       {loading ? <Loader /> : filtered.length === 0 ? (
         <div className="pro-card pro-empty">
-          <div className="e">{"🏥"}</div>
+          <div className="e"><Icon e="🏥" /></div>
           {search ? 'Aucun patient trouvé' : 'Aucun patient ne vous a encore donné accès à son dossier.'}
           {!search && (
             <div style={{ marginTop: 10, lineHeight: 1.6 }}>
@@ -64,15 +65,15 @@ export default function DoctorDashboard({ nav, pro, userId }) {
           <div key={a.id} className="pro-card pro-row" style={{ cursor: 'pointer' }}
             onClick={() => nav('pro-patient', { patientId: a.patient_id })}>
             <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'rgba(0,201,141,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
-              {p?.gender === 'Féminin' ? '👩' : '👨'}
+              <Icon name="user" size={20} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700 }}>{fullName(p)}</div>
-              <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 3 }}>
+              <div style={{ fontSize: 13, color: 'var(--dim)', marginTop: 3 }}>
                 {age !== null ? `${age} ans · ` : ''}Accès depuis le {formatDate(a.granted_at)}
               </div>
             </div>
-            {p?.blood && <span className="badge badge-r">{"🩸"} {p.blood}</span>}
+            {p?.blood && <span className="badge badge-r"><Icon e="🩸" /> {p.blood}</span>}
             <span style={{ color: 'var(--dim)', fontSize: 18 }}>›</span>
           </div>
         )

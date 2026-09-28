@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Modal from '../../components/common/Modal'
 import MiniChart from '../../components/common/MiniChart'
+import Icon from '../../components/common/Icon'
 
 export default function SuiviScreen({ nav, dossier, onSave, showToast }) {
   const { t } = useTranslation()
@@ -38,14 +39,14 @@ export default function SuiviScreen({ nav, dossier, onSave, showToast }) {
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">{t('home.suivi_title')}</div>
       </div>
 
       <div className="metric-card" onClick={() => { setModal('glyc'); setForm({ date: today }) }}>
         <div className="mc-hdr">
           <div className="mc-left">
-            <span style={{ fontSize: 22 }}>{"🩸"}</span>
+            <span style={{ fontSize: 22 }}><Icon e="🩸" /></span>
             <div>
               <div className="mc-title">{"Glycémie (HbA1c)"}</div>
               <div className="mc-sub">{"+ " + t('common.add')}</div>
@@ -58,14 +59,14 @@ export default function SuiviScreen({ nav, dossier, onSave, showToast }) {
         </div>
         <MiniChart data={glyc} />
         <div className={`mc-trend${lastGlyc && lastGlyc >= 7.5 ? ' warn' : ''}`}>
-          {lastGlyc ? (lastGlyc < 7.5 ? '↓ OK' : '↗️ Élevé') : '+ ' + t('common.add')}
+          {lastGlyc ? (lastGlyc < 7.5 ? '↓ OK' : '↑ Élevé') : '+ ' + t('common.add')}
         </div>
       </div>
 
       <div className="metric-card" onClick={() => { setModal('bp'); setForm({ date: today }) }}>
         <div className="mc-hdr">
           <div className="mc-left">
-            <span style={{ fontSize: 22 }}>{"❤️"}</span>
+            <span style={{ fontSize: 22 }}><Icon e="❤️" /></span>
             <div>
               <div className="mc-title">{"Tension artérielle"}</div>
               <div className="mc-sub">mmHg</div>
@@ -78,14 +79,14 @@ export default function SuiviScreen({ nav, dossier, onSave, showToast }) {
         </div>
         <MiniChart data={bp.map(b => b.s)} />
         <div className={`mc-trend${lastBp && lastBp.s > 130 ? ' warn' : ''}`}>
-          {lastBp ? (lastBp.s > 130 ? '↗️ Élevé' : '↓ Normal') : '+ ' + t('common.add')}
+          {lastBp ? (lastBp.s > 130 ? '↑ Élevé' : '↓ Normal') : '+ ' + t('common.add')}
         </div>
       </div>
 
       <div className="metric-card" onClick={() => { setModal('weight'); setForm({ date: today }) }}>
         <div className="mc-hdr">
           <div className="mc-left">
-            <span style={{ fontSize: 22 }}>{"⚖️"}</span>
+            <span style={{ fontSize: 22 }}><Icon e="⚖️" /></span>
             <div>
               <div className="mc-title">Poids</div>
               <div className="mc-sub">kg</div>

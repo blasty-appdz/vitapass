@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import QRCode from 'qrcode'
 import { supabase } from '../../supabase'
 import { APP_URL } from '../../data'
+import Icon from '../../components/common/Icon'
 
 // ─── Toggle d'accès urgence ──────────────────────────────────────────────────
 function UrgenceToggle({ dossier, userId, onToggle, onError }) {
@@ -293,35 +294,35 @@ export default function QRScreen({ nav, profile, dossierData, onDossierChange })
     width: '100%', padding: '12px 16px', borderRadius: 12, border: 'none',
     background: disabled ? 'rgba(255,255,255,0.05)' : color,
     color: disabled ? 'var(--dim)' : (color === 'var(--g)' ? '#001A12' : '#fff'),
-    fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700,
+    fontSize: 13, fontWeight: 700,
     cursor: disabled ? 'not-allowed' : 'pointer', transition: 'all .2s',
   })
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">{t('nav.qr')}</div>
       </div>
 
       {toastMsg && (
-        <div style={{ position: 'absolute', top: 64, left: '50%', transform: 'translateX(-50%)', background: 'rgba(13,21,38,.97)', border: '1px solid rgba(0,201,141,.3)', color: '#EFF3FF', fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 600, padding: '10px 18px', borderRadius: 20, zIndex: 300, whiteSpace: 'nowrap', backdropFilter: 'blur(8px)', maxWidth: '90%', textAlign: 'center' }}>
+        <div style={{ position: 'absolute', top: 64, left: '50%', transform: 'translateX(-50%)', background: 'rgba(13,21,38,.97)', border: '1px solid rgba(0,201,141,.3)', color: 'var(--white)', fontSize: 13, fontWeight: 600, padding: '10px 18px', borderRadius: 20, zIndex: 300, whiteSpace: 'nowrap', backdropFilter: 'blur(8px)', maxWidth: '90%', textAlign: 'center' }}>
           {toastMsg}
         </div>
       )}
 
       <div className="qr-wrap">
         <div className="emergency-bar">
-          <span style={{ fontSize: 20 }}>{"🆘"}</span>
+          <span style={{ fontSize: 20 }}><Icon e="🆘" /></span>
           <div className="emg-txt">{t('home.qr_pass_sub')}</div>
         </div>
 
         <div style={{ background: 'var(--card)', border: `1px solid ${urgenceActive ? 'rgba(0,201,141,.3)' : 'var(--border)'}`, borderRadius: 14, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <div>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
-              {urgenceActive ? '🟢 Accès urgence activé' : '🔴 Accès urgence désactivé'}
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><span style={{ width: 8, height: 8, borderRadius: 99, background: urgenceActive ? 'var(--g)' : 'var(--red)', boxShadow: urgenceActive ? '0 0 0 3px rgba(0,201,141,.2)' : '0 0 0 3px rgba(255,107,107,.2)' }} />{urgenceActive ? 'Accès urgence activé' : 'Accès urgence désactivé'}</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>
+            <div style={{ fontSize: 12.5, color: 'var(--dim)', marginTop: 3 }}>
               {urgenceActive
                 ? 'QR lisible par les secouristes, sans application ni compte'
                 : 'Activer pour rendre le QR accessible aux secouristes'}
@@ -335,79 +336,79 @@ export default function QRScreen({ nav, profile, dossierData, onDossierChange })
           <div className="qr-box">
             {qrDataUrl
               ? <img src={qrDataUrl} alt="QR code urgence" width={180} height={180} style={{ display: 'block' }} />
-              : <div style={{ width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 12, color: '#5A6A85', padding: 16 }}>
+              : <div style={{ width: 180, height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: 13, color: 'var(--dim)', padding: 16 }}>
                   {urgenceActive ? 'Génération du QR…' : 'Activez l\'accès urgence pour générer votre QR'}
                 </div>}
           </div>
           <div className="qr-pname">{profile?.fname} {profile?.lname}</div>
           <div className="qr-pinfo">{profile?.wilaya} · {profile?.cnas}</div>
           <div className="qr-chips">
-            {profile?.blood && <span className="badge badge-r">{"🩸"} {profile.blood}</span>}
-            {profile?.emergency && <span className="badge badge-g">{"📞"} {profile.emergency}</span>}
-            {urgenceActive && <span className="badge badge-g">{"✅"} Public</span>}
+            {profile?.blood && <span className="badge badge-r"><Icon e="🩸" /> {profile.blood}</span>}
+            {profile?.emergency && <span className="badge badge-g"><Icon e="📞" /> {profile.emergency}</span>}
+            {urgenceActive && <span className="badge badge-g"><Icon e="✅" /> Public</span>}
           </div>
         </div>
 
         {urgenceActive && qrText && (
           <div style={{ display: 'flex', gap: 8 }}>
-            <a href={qrText} target="_blank" rel="noreferrer" className="btn-cancel" style={{ flex: 1, textAlign: 'center', textDecoration: 'none', margin: 0, fontSize: 12, padding: '10px 0' }}>{"👁"} Voir ce que voit le secouriste</a>
-            <button className="btn-cancel" onClick={shareLink} style={{ flex: 1, margin: 0, fontSize: 12, padding: '10px 0' }}>{"🔗"} Partager le lien</button>
+            <a href={qrText} target="_blank" rel="noreferrer" className="btn-cancel" style={{ flex: 1, textAlign: 'center', textDecoration: 'none', margin: 0, fontSize: 13, padding: '10px 0' }}><Icon e="👁" /> Voir ce que voit le secouriste</a>
+            <button className="btn-cancel" onClick={shareLink} style={{ flex: 1, margin: 0, fontSize: 13, padding: '10px 0' }}><Icon e="🔗" /> Partager le lien</button>
           </div>
         )}
 
         {urgenceActive && (
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 12, fontWeight: 700, color: 'var(--dim)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 2 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--white)', marginBottom: 2 }}>
               Rendre le QR accessible hors ligne
             </div>
 
             <div style={{ background: 'var(--card2)', borderRadius: 12, padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 22 }}>{"📱"}</span>
+                <span style={{ fontSize: 22 }}><Icon e="📱" /></span>
                 <div>
-                  <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
                     {"Fond d'écran verrouillage"}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--dim)', marginTop: 2 }}>
                     Visible sans déverrouiller votre téléphone
                   </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
                 {["1. Télécharger", "2. Réglages", "3. Fond d'écran"].map((s, i) => (
-                  <span key={i} style={{ background: 'rgba(0,201,141,.08)', color: 'var(--g)', border: '1px solid rgba(0,201,141,.15)', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>{s}</span>
+                  <span key={i} style={{ background: 'rgba(0,201,141,.08)', color: 'var(--g)', border: '1px solid rgba(0,201,141,.15)', borderRadius: 20, padding: '3px 10px', fontSize: 11.5, fontWeight: 700 }}>{s}</span>
                 ))}
               </div>
               <button onClick={downloadWallpaper} disabled={genWallpaper} style={btnStyle('var(--g)', genWallpaper)}>
-                {genWallpaper ? "⏳ Génération..." : "⬇ Télécharger le fond d'écran"}
+                {genWallpaper ? 'Génération…' : <><Icon name="download" size={17} /> {"Télécharger le fond d'écran"}</>}
               </button>
             </div>
 
             <div style={{ background: 'var(--card2)', borderRadius: 12, padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 22 }}>{"🪪"}</span>
+                <span style={{ fontSize: 22 }}><Icon e="🪪" /></span>
                 <div>
-                  <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--white)' }}>
                     {"Carte d'urgence"}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, color: 'var(--dim)', marginTop: 2 }}>
                     Format carte bancaire — à glisser dans le portefeuille
                   </div>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
                 {["1. Télécharger", "2. Imprimer", "3. Découper"].map((s, i) => (
-                  <span key={i} style={{ background: 'rgba(77,159,236,.08)', color: 'var(--blue)', border: '1px solid rgba(77,159,236,.15)', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>{s}</span>
+                  <span key={i} style={{ background: 'rgba(77,159,236,.08)', color: 'var(--blue)', border: '1px solid rgba(77,159,236,.15)', borderRadius: 20, padding: '3px 10px', fontSize: 11.5, fontWeight: 700 }}>{s}</span>
                 ))}
               </div>
               <button onClick={downloadCard} disabled={genCard} style={btnStyle('#1a3a5c', genCard)}>
-                {genCard ? "⏳ Génération..." : "🖨 Télécharger la carte"}
+                {genCard ? 'Génération…' : <><Icon name="printer" size={17} /> Télécharger la carte</>}
               </button>
             </div>
 
             <div style={{ background: 'rgba(255,209,102,.06)', border: '1px solid rgba(255,209,102,.15)', borderRadius: 10, padding: '10px 14px' }}>
-              <p style={{ fontSize: 11, color: 'var(--yellow)', lineHeight: 1.6, margin: 0 }}>
-                {"💡"} <strong>{"Conseil :"}</strong>{" Combinez les deux — fond d'écran sur votre téléphone + carte dans votre portefeuille pour une protection maximale."}
+              <p style={{ fontSize: 12.5, color: 'var(--yellow)', lineHeight: 1.6, margin: 0 }}>
+                <Icon e="💡" /> <strong>{"Conseil :"}</strong>{" Combinez les deux — fond d'écran sur votre téléphone + carte dans votre portefeuille pour une protection maximale."}
               </p>
             </div>
           </div>
@@ -415,7 +416,7 @@ export default function QRScreen({ nav, profile, dossierData, onDossierChange })
 
         {!urgenceActive && (
           <div style={{ background: 'rgba(255,90,90,.06)', border: '1px solid rgba(255,90,90,.15)', borderRadius: 12, padding: '12px 16px' }}>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,.5)', lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
               {"Activez l'accès urgence ci-dessus pour débloquer le fond d'écran et la carte imprimable."}
             </p>
           </div>

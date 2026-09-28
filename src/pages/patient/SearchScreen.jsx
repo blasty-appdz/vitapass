@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
 import { WILAYAS, SPECIALITES, SPECIALITE_ICONS, LANGUES, langueLabel } from '../../data'
-
+import Icon, { IconText } from '../../components/common/Icon'
 export default function SearchScreen({ nav }) {
   const [pros, setPros] = useState([])
   const [loading, setLoading] = useState(false)
@@ -42,51 +42,51 @@ export default function SearchScreen({ nav }) {
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Trouver un professionnel</div>
       </div>
 
       {/* Filtres */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
         <select className="form-select" value={specialite} onChange={e => setSpecialite(e.target.value)}>
-          <option value="">{"🔍"} Toutes les spécialités</option>
+          <option value=""><Icon e="🔍" /> Toutes les spécialités</option>
           {SPECIALITES.map(s => (
             <option key={s} value={s}>{SPECIALITE_ICONS[s]} {s}</option>
           ))}
         </select>
 
         <select className="form-select" value={wilaya} onChange={e => setWilaya(e.target.value)}>
-          <option value="">{"📍"} Toutes les wilayas</option>
+          <option value=""><Icon e="📍" /> Toutes les wilayas</option>
           {WILAYAS.map(w => (
             <option key={w} value={w}>{w}</option>
           ))}
         </select>
 
         <select className="form-select" value={langue} onChange={e => setLangue(e.target.value)}>
-          <option value="">{"🌐"} Toutes les langues</option>
+          <option value=""><Icon e="🌐" /> Toutes les langues</option>
           {LANGUES.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
 
         <button className="btn-submit" onClick={search} disabled={loading}>
-          {loading ? '⏳ Recherche...' : '🔍 Rechercher'}
+          {loading ? 'Recherche…' : <><Icon name="search" size={18} /> Rechercher</>}
         </button>
       </div>
 
-      {error && <div className="error-msg">{error}</div>}
+      {error && <div className="error-msg"><IconText>{error}</IconText></div>}
 
-      {loading && <div className="loading">{"⏳"} Chargement...</div>}
+      {loading && <div className="loading"><Icon e="⏳" /> Chargement...</div>}
 
       {!loading && searched && (
-        <div style={{ fontSize: 11, color: 'var(--dim)', marginBottom: 10, fontFamily: "'Syne',sans-serif", fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 13.5, color: 'var(--dim)', marginBottom: 10, fontWeight: 500 }}>
           {pros.length} professionnel(s) trouvé(s)
         </div>
       )}
 
       {!loading && searched && pros.length === 0 && (
         <div className="empty-state" style={{ marginTop: 24 }}>
-          <div className="empty-icon">{"🔍"}</div>
+          <div className="empty-icon"><Icon e="🔍" /></div>
           <p>Aucun professionnel trouvé</p>
-          <p style={{ marginTop: 8, fontSize: 12 }}>Essayez d'autres filtres</p>
+          <p style={{ marginTop: 8, fontSize: 13 }}>Essayez d'autres filtres</p>
         </div>
       )}
 
@@ -101,7 +101,7 @@ export default function SearchScreen({ nav }) {
 
 function ProCard({ pro, nav }) {
   const icon = SPECIALITE_ICONS[pro.specialite] || '🏥'
-  const avatar = pro.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'
+  const avatar = <Icon name="doctor" size={22} />
 
   return (
     <div
@@ -115,18 +115,18 @@ function ProCard({ pro, nav }) {
         </div>
         <div className="card-info">
           <div className="card-name">Dr. {pro.fname} {pro.lname}</div>
-          <div className="card-sub" style={{ color: 'var(--blue)' }}>{icon} {pro.specialite}</div>
+          <div className="card-sub" style={{ color: 'var(--blue)' }}><Icon e={icon} size={14} /> {pro.specialite}</div>
           {pro.wilaya && (
-            <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>
-              {"📍"} {pro.wilaya}{pro.adresse ? ` · ${pro.adresse}` : ''}
+            <div style={{ fontSize: 12.5, color: 'var(--dim)', marginTop: 3 }}>
+              <Icon e="📍" /> {pro.wilaya}{pro.adresse ? ` · ${pro.adresse}` : ''}
             </div>
           )}
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 14, fontWeight: 800, color: 'var(--g)' }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--g)' }}>
             {pro.tarif ? `${pro.tarif} DA` : '—'}
           </div>
-          <div style={{ fontSize: 10, color: 'var(--dim)', marginTop: 2 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--dim)', marginTop: 2 }}>
             {pro.duree_rdv ? `${pro.duree_rdv} min` : ''}
           </div>
         </div>
@@ -148,14 +148,14 @@ function ProCard({ pro, nav }) {
           style={{ flex: 1, padding: '10px 0', fontSize: 13 }}
           onClick={e => { e.stopPropagation(); nav('booking', { proId: pro.id }) }}
         >
-          {"📅"} Prendre RDV
+          <Icon e="📅" /> Prendre RDV
         </button>
         <button
           className="btn-cancel"
           style={{ flex: 1, padding: '10px 0', fontSize: 13 }}
           onClick={e => { e.stopPropagation(); nav('pro-profile', { proId: pro.id }) }}
         >
-          Voir le profil →
+          Voir le profil <Icon name="chevronRight" size={16} />
         </button>
       </div>
     </div>

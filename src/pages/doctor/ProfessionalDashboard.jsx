@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
 import DoctorShell, { Loader } from './DoctorShell'
 import { useProAppointments, AppointmentItem, dayStart, dayEnd } from './proData'
-
+import Icon, { IconText } from '../../components/common/Icon'
 export default function ProfessionalDashboard({ nav, showToast, pro, setPro, userId }) {
   const { appointments, loading, setStatus } = useProAppointments(userId)
   const [freeSlots, setFreeSlots] = useState(null)
@@ -61,18 +61,18 @@ export default function ProfessionalDashboard({ nav, showToast, pro, setPro, use
 
       {incomplete && (
         <div className="pro-banner warn">
-          {"⚠️"} <span style={{ flex: 1 }}>Votre profil est incomplet : les patients ne peuvent pas vous trouver.</span>
+          <Icon e="⚠️" /> <span style={{ flex: 1 }}>Votre profil est incomplet : les patients ne peuvent pas vous trouver.</span>
           <button className="pro-btn g" onClick={() => nav('pro-onboarding')}>Compléter</button>
         </div>
       )}
       {!incomplete && !pro?.validated && (
         <div className="pro-banner info">
-          {"⏳"} <span style={{ flex: 1 }}>Profil en cours de vérification par l'équipe VitaPass. Vous serez visible dans la recherche dès la validation.</span>
+          <Icon e="⏳" /> <span style={{ flex: 1 }}>Profil en cours de vérification par l'équipe VitaPass. Vous serez visible dans la recherche dès la validation.</span>
         </div>
       )}
       {pro?.validated && freeSlots === 0 && (
         <div className="pro-banner warn">
-          {"📅"} <span style={{ flex: 1 }}>Aucun créneau libre à venir : les patients ne peuvent pas réserver.</span>
+          <Icon e="📅" /> <span style={{ flex: 1 }}>Aucun créneau libre à venir : les patients ne peuvent pas réserver.</span>
           <button className="pro-btn g" onClick={() => nav('pro-schedule')}>Ajouter des créneaux</button>
         </div>
       )}
@@ -80,9 +80,9 @@ export default function ProfessionalDashboard({ nav, showToast, pro, setPro, use
       <div className="pro-card pro-row">
         <div style={{ flex: 1 }}>
           <div style={{ fontWeight: 700, fontSize: 14 }}>
-            {pro?.is_available ? '🟢 Visible dans la recherche' : '⏸️ En pause'}
+            <IconText>{pro?.is_available ? '🟢 Visible dans la recherche' : '⏸️ En pause'}</IconText>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: 'var(--dim)', marginTop: 3 }}>
             {pro?.is_available ? 'Les patients peuvent réserver vos créneaux' : 'Vous n\'apparaissez plus aux patients'}
           </div>
         </div>
@@ -99,12 +99,12 @@ export default function ProfessionalDashboard({ nav, showToast, pro, setPro, use
       </div>
 
       {pending.length > 0 && (
-        <div className="pro-banner info">{"🔔"} {pending.length} rendez-vous à confirmer</div>
+        <div className="pro-banner info"><Icon e="🔔" /> {pending.length} rendez-vous à confirmer</div>
       )}
 
       <div className="sec-label" style={{ marginTop: 6 }}>Aujourd'hui</div>
       {loading ? <Loader /> : today.length === 0 ? (
-        <div className="pro-card pro-empty"><div className="e">{"☕"}</div>Aucun rendez-vous aujourd'hui</div>
+        <div className="pro-card pro-empty"><div className="e"><Icon e="☕" /></div>Aucun rendez-vous aujourd'hui</div>
       ) : today.map(r => (
         <AppointmentItem key={r.id} rdv={r} onStatus={onStatus} onOpenPatient={(id) => nav('pro-patient', { patientId: id })} />
       ))}

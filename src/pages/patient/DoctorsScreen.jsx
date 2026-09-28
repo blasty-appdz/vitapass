@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import Modal from '../../components/common/Modal'
 import { formatDate } from '../../utils/formatters'
+import Icon from '../../components/common/Icon'
 
 export default function DoctorsScreen({ nav, showToast }) {
   const { t } = useTranslation()
@@ -113,7 +114,7 @@ export default function DoctorsScreen({ nav, showToast }) {
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">{t('home.doctors_title')}</div>
       </div>
 
@@ -122,16 +123,16 @@ export default function DoctorsScreen({ nav, showToast }) {
         : doctors.length === 0
           ? (
             <div className="empty-state" style={{ marginTop: 24 }}>
-              <div className="empty-icon">{"👨‍⚕️"}</div>
+              <div className="empty-icon"><Icon e="👨‍⚕️" /></div>
               <p>Aucun médecin autorisé</p>
-              <p style={{ fontSize: 12, marginTop: 8 }}>Ajoutez un médecin pour lui donner accès à votre dossier</p>
+              <p style={{ fontSize: 13, marginTop: 8 }}>Ajoutez un médecin pour lui donner accès à votre dossier</p>
             </div>
           )
           : doctors.map(doc => (
             <div key={doc.id} className="doctor-card">
               <div className="doctor-card-row">
                 <div className="doctor-av">
-                  {doc.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}
+                  <Icon name="doctor" size={22} />
                 </div>
                 <div className="doctor-info">
                   <div className="doctor-name">Dr. {doc.fname} {doc.lname}</div>
@@ -149,7 +150,7 @@ export default function DoctorsScreen({ nav, showToast }) {
         className="add-btn"
         onClick={() => { setShowModal(true); setEmail(''); setFoundDoctor(null); setSearchError('') }}
       >
-        ＋ Autoriser un médecin à voir mon dossier
+        <Icon name="plus" size={17} /> Autoriser un médecin à voir mon dossier
       </div>
       <div className="pad-b" />
 
@@ -168,13 +169,13 @@ export default function DoctorsScreen({ nav, showToast }) {
           {searchError && <div className="error-msg">{searchError}</div>}
           {foundDoctor && (
             <div style={{ background: 'rgba(0,201,141,.06)', border: '1px solid rgba(0,201,141,.2)', borderRadius: 12, padding: 14, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 28 }}>{foundDoctor.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}</span>
+              <span className="doctor-av"><Icon name="doctor" size={22} /></span>
               <div>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontWeight: 700, color: 'var(--white)' }}>
+                <div style={{ fontWeight: 700, color: 'var(--white)' }}>
                   Dr. {foundDoctor.fname} {foundDoctor.lname}
                 </div>
                 {foundDoctor.specialite && (
-                  <div style={{ fontSize: 12, color: 'var(--blue)', marginTop: 2 }}>{foundDoctor.specialite}</div>
+                  <div style={{ fontSize: 13, color: 'var(--blue)', marginTop: 2 }}>{foundDoctor.specialite}</div>
                 )}
               </div>
             </div>
@@ -184,7 +185,7 @@ export default function DoctorsScreen({ nav, showToast }) {
                 {searching ? t('common.loading') : t('common.search')}
               </button>
             : <button className="btn-submit" onClick={authorizeDoctor} disabled={adding}>
-                {adding ? '⏳...' : t('common.confirm')}
+                {adding ? '…' : t('common.confirm')}
               </button>}
           <button className="btn-cancel" onClick={() => setShowModal(false)}>{t('common.cancel')}</button>
         </Modal>

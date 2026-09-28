@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import DoctorShell, { Loader } from './DoctorShell'
 import { fmtHour } from './proData'
+import Icon from '../../components/common/Icon'
 
 const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 const MOIS = ['janv', 'févr', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sept', 'oct', 'nov', 'déc']
@@ -128,7 +129,7 @@ export default function ProfessionalSchedule({ nav, showToast, pro, userId }) {
       subtitle={`Ouvrez vos disponibilités : les patients réservent directement. Durée d'un RDV : ${duree} min (modifiable dans Profil).`}>
 
       {!pro?.validated && (
-        <div className="pro-banner info">{"⏳"} Vous pouvez préparer vos créneaux dès maintenant ; ils seront visibles après validation de votre profil.</div>
+        <div className="pro-banner info"><Icon e="⏳" /> Vous pouvez préparer vos créneaux dès maintenant ; ils seront visibles après validation de votre profil.</div>
       )}
 
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8, marginBottom: 12 }}>
@@ -140,11 +141,10 @@ export default function ProfessionalSchedule({ nav, showToast, pro, userId }) {
               style={{
                 flexShrink: 0, minWidth: 56, padding: '8px 6px', borderRadius: 12, cursor: 'pointer', textAlign: 'center',
                 background: on ? 'var(--g)' : 'var(--card)', border: `1px solid ${on ? 'var(--g)' : 'var(--border)'}`,
-                color: on ? '#001A12' : 'var(--white)', fontFamily: "'Syne',sans-serif",
-              }}>
-              <div style={{ fontSize: 10, fontWeight: 700, opacity: 0.8 }}>{JOURS[d.getDay()]}</div>
+                color: on ? '#001A12' : 'var(--white)', }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.8 }}>{JOURS[d.getDay()]}</div>
               <div style={{ fontSize: 17, fontWeight: 800 }}>{d.getDate()}</div>
-              <div style={{ fontSize: 9, opacity: 0.8 }}>{n > 0 ? `${n} cr.` : MOIS[d.getMonth()]}</div>
+              <div style={{ fontSize: 11, opacity: 0.8 }}>{n > 0 ? `${n} cr.` : MOIS[d.getMonth()]}</div>
             </button>
           )
         })}
@@ -179,12 +179,12 @@ export default function ProfessionalSchedule({ nav, showToast, pro, userId }) {
             <option value={4}>Le même jour pendant 4 semaines</option>
           </select>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--dim)', marginBottom: 10 }}>
+        <div style={{ fontSize: 13, color: 'var(--dim)', marginBottom: 10 }}>
           {preview.length} créneau{preview.length > 1 ? 'x' : ''} de {duree} min{repeat > 1 ? ` × ${repeat} semaines` : ''}
           {preview.length > 0 && ` (${fmtHour(preview[0].start)} → ${fmtHour(preview[preview.length - 1].end)})`}
         </div>
         <button className="btn-submit" style={{ marginBottom: 0 }} disabled={saving || preview.length === 0} onClick={apply}>
-          {saving ? '⏳ Enregistrement…' : '📅 Ouvrir ces créneaux'}
+          {saving ? 'Enregistrement…' : <><Icon name="calendar" size={17} /> Ouvrir ces créneaux</>}
         </button>
       </div>
 
@@ -193,20 +193,20 @@ export default function ProfessionalSchedule({ nav, showToast, pro, userId }) {
         {free > 0 && <button className="pro-btn red" onClick={clearDay}>Vider la journée</button>}
       </div>
       {loading ? <Loader /> : daySlots.length === 0 ? (
-        <div className="pro-card pro-empty"><div className="e">{"🗓️"}</div>Aucun créneau ce jour-là</div>
+        <div className="pro-card pro-empty"><div className="e"><Icon e="🗓️" /></div>Aucun créneau ce jour-là</div>
       ) : (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {daySlots.map(s => (
             <div key={s.id} style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10,
               background: s.is_booked ? 'rgba(0,201,141,.12)' : 'var(--card)', border: `1px solid ${s.is_booked ? 'rgba(0,201,141,.35)' : 'var(--border)'}`,
-              fontFamily: "'Syne',sans-serif", fontWeight: 700, fontSize: 13,
+              fontWeight: 700, fontSize: 13,
             }}>
               {fmtHour(s.start_at)}
               {s.is_booked
-                ? <span style={{ fontSize: 10, color: 'var(--g)' }}>réservé</span>
+                ? <span style={{ fontSize: 11.5, color: 'var(--g)' }}>réservé</span>
                 : <button onClick={() => removeSlot(s.id)} aria-label="Supprimer"
-                    style={{ background: 'none', border: 'none', color: '#FF8A8A', cursor: 'pointer', fontSize: 14 }}>✕</button>}
+                    style={{ background: 'none', border: 'none', color: '#FF8A8A', cursor: 'pointer', fontSize: 14, display: 'flex' }}><Icon name="x" size={16} /></button>}
             </div>
           ))}
         </div>

@@ -4,7 +4,7 @@ import { useOffline } from '../../hooks/useOffline'
 import { openDocument, hasDocumentFile } from '../../services/documents'
 import { formatDate } from '../../utils/formatters'
 import DoctorShell, { Loader, fullName, ageOf } from './DoctorShell'
-
+import Icon, { IconText } from '../../components/common/Icon'
 const arr = (v) => (Array.isArray(v) ? v : [])
 const label = (x) => (typeof x === 'string' ? x : x?.name || '')
 
@@ -67,19 +67,19 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
 
   const who = pro?.fname ? `Dr. ${pro.fname} ${pro.lname || ''}` : ''
   const back = (
-    <button className="pro-btn ghost" style={{ marginBottom: 14 }} onClick={() => nav('pro-patients')}>← Mes patients</button>
+    <button className="pro-btn ghost" style={{ marginBottom: 14 }} onClick={() => nav('pro-patients')}><Icon name="chevronLeft" size={16} /> Mes patients</button>
   )
 
   if (state === 'loading') return <DoctorShell nav={nav} active="pro-patients" who={who}>{back}<Loader label="Chargement du dossier…" /></DoctorShell>
   if (state === 'offline') return (
     <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
-      <div className="pro-card pro-empty"><div className="e">{"📴"}</div>Dossier indisponible hors connexion.</div>
+      <div className="pro-card pro-empty"><div className="e"><Icon e="📴" /></div>Dossier indisponible hors connexion.</div>
     </DoctorShell>
   )
   if (state === 'denied') return (
     <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
       <div className="pro-card pro-empty">
-        <div className="e">{"🔒"}</div>
+        <div className="e"><Icon e="🔒" /></div>
         Ce patient ne vous a pas (ou plus) donné accès à son dossier.
         <div style={{ marginTop: 8 }}>Il peut vous l'accorder depuis son application, menu « Mes médecins ».</div>
       </div>
@@ -102,26 +102,26 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
 
       <div className="pro-card pro-row">
         <div style={{ width: 54, height: 54, borderRadius: '50%', background: 'rgba(0,201,141,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
-          {patient?.gender === 'Féminin' ? '👩' : '👨'}
+          <Icon name="user" size={26} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 19, fontWeight: 800 }}>{fullName(patient)}</div>
-          <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {age !== null && <span>{"🎂"} {age} ans</span>}
-            {patient?.wilaya && <span>{"📍"} {patient.wilaya}</span>}
+          <div style={{ fontSize: 19, fontWeight: 800 }}>{fullName(patient)}</div>
+          <div style={{ fontSize: 13, color: 'var(--dim)', marginTop: 4, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {age !== null && <span><Icon e="🎂" /> {age} ans</span>}
+            {patient?.wilaya && <span><Icon e="📍" /> {patient.wilaya}</span>}
             {patient?.cnas && <span>CNAS {patient.cnas}</span>}
           </div>
         </div>
-        {patient?.blood && <span className="badge badge-r" style={{ fontSize: 13 }}>{"🩸"} {patient.blood}</span>}
+        {patient?.blood && <span className="badge badge-r" style={{ fontSize: 13 }}><Icon e="🩸" /> {patient.blood}</span>}
       </div>
 
       {patient?.emergency && (
-        <div className="pro-banner info">{"📞"} Contact d'urgence : <b>{patient.emergency}</b></div>
+        <div className="pro-banner info"><Icon e="📞" /> Contact d'urgence : <b>{patient.emergency}</b></div>
       )}
 
       <div className="pro-seg">
-        <button className={tab === 'dossier' ? 'on' : ''} onClick={() => setTab('dossier')}>{"📋"} Dossier</button>
-        <button className={tab === 'docs' ? 'on' : ''} onClick={() => setTab('docs')}>{"📄"} Documents ({documents.length})</button>
+        <button className={tab === 'dossier' ? 'on' : ''} onClick={() => setTab('dossier')}><Icon e="📋" /> Dossier</button>
+        <button className={tab === 'docs' ? 'on' : ''} onClick={() => setTab('docs')}><Icon e="📄" /> Documents ({documents.length})</button>
       </div>
 
       {tab === 'dossier' && (
@@ -134,13 +134,13 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
           <Block title="💉 Vaccins" empty="Aucun vaccin renseigné"
             items={vaccins.map(v => `${label(v)} — ${v?.status === 'pending' ? 'à faire' : v?.date ? formatDate(v.date) : 'fait'}`)} />
           <div className="pro-card">
-            <div style={{ fontWeight: 700, marginBottom: 10 }}>{"📊"} Suivi</div>
+            <div style={{ fontWeight: 700, marginBottom: 10 }}><Icon e="📊" /> Suivi</div>
             <Metric name="Glycémie (HbA1c)" value={last(glyc)} unit="%" history={glyc} />
             <Metric name="Tension" value={last(bp) ? `${last(bp).s}/${last(bp).d}` : null} unit="mmHg" history={bp.map(x => `${x.s}/${x.d}`)} />
             <Metric name="Poids" value={last(weight)} unit="kg" history={weight} />
           </div>
           {dossier?.updated_at && (
-            <div style={{ fontSize: 11, color: 'var(--dim)', textAlign: 'center' }}>Dossier mis à jour le {formatDate(dossier.updated_at)}</div>
+            <div style={{ fontSize: 12.5, color: 'var(--dim)', textAlign: 'center' }}>Dossier mis à jour le {formatDate(dossier.updated_at)}</div>
           )}
         </>
       )}
@@ -148,17 +148,17 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
       {tab === 'docs' && (
         <>
           <button className="pro-btn g" style={{ width: '100%', marginBottom: 12 }} onClick={() => setShowNote(true)}>
-            ＋ Ajouter une note médicale
+            <Icon name="plus" size={17} /> Ajouter une note médicale
           </button>
           {documents.length === 0 ? (
-            <div className="pro-card pro-empty"><div className="e">{"📂"}</div>Aucun document pour ce patient.</div>
+            <div className="pro-card pro-empty"><div className="e"><Icon e="📂" /></div>Aucun document pour ce patient.</div>
           ) : documents.map(doc => (
             <div key={doc.id} className="pro-card">
               <div className="pro-row" style={{ alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700 }}>{doc.title}</div>
-                  <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 3 }}>
-                    {doc.type === 'note_medecin' ? '📝 Note médecin' : '📄 ' + (doc.type || 'Document')}
+                  <div style={{ fontSize: 12.5, color: 'var(--dim)', marginTop: 3 }}>
+                    <IconText>{doc.type === 'note_medecin' ? '📝 Note médecin' : '📄 ' + (doc.type || 'Document')}</IconText>
                     {' · '}{formatDate(doc.date || doc.created_at)}{doc.medecin ? ` · Dr. ${doc.medecin}` : ''}
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
               <textarea className="form-input" rows={6} value={noteContent} onChange={e => setNoteContent(e.target.value)}
                 placeholder="Observations, prescription, conduite à tenir…" style={{ resize: 'vertical', lineHeight: 1.5 }} />
             </div>
-            <button className="btn-submit" onClick={saveNote} disabled={saving}>{saving ? '⏳ Enregistrement…' : 'Enregistrer la note'}</button>
+            <button className="btn-submit" onClick={saveNote} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la note'}</button>
             <button className="btn-cancel" onClick={() => setShowNote(false)}>Annuler</button>
           </div>
         </div>
@@ -219,7 +219,7 @@ function Metric({ name, value, unit, history }) {
       <span style={{ fontSize: 13, color: 'var(--dim)' }}>{name}</span>
       <span style={{ fontSize: 13, textAlign: 'right' }}>
         {value !== null && value !== undefined ? <b>{value} {unit}</b> : <span style={{ color: 'var(--dim)' }}>—</span>}
-        {history.length > 1 && <span style={{ display: 'block', fontSize: 10, color: 'var(--dim)' }}>Historique : {history.slice(-5).join(' → ')}</span>}
+        {history.length > 1 && <span style={{ display: 'block', fontSize: 11.5, color: 'var(--dim)' }}>Historique : {history.slice(-5).join(' → ')}</span>}
       </span>
     </div>
   )
