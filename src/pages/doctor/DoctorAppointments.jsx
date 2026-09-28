@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import DoctorShell, { Loader } from './DoctorShell'
 import { useProAppointments, AppointmentItem, dayStart, fmtDay } from './proData'
+import Icon from '../../components/common/Icon'
 
 export default function DoctorAppointments({ nav, showToast, pro, userId }) {
   const { appointments, loading, error, setStatus, reload } = useProAppointments(userId)
@@ -43,7 +44,7 @@ export default function DoctorAppointments({ nav, showToast, pro, userId }) {
 
       {loading ? <Loader /> : filtered.length === 0 ? (
         <div className="pro-card pro-empty">
-          <div className="e">{"📭"}</div>
+          <div className="e"><Icon e="📭" /></div>
           {filter === 'upcoming' ? 'Aucun rendez-vous à venir' : filter === 'past' ? 'Aucun rendez-vous passé' : 'Aucun rendez-vous annulé'}
           {filter === 'upcoming' && (
             <div style={{ marginTop: 14 }}>

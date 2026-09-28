@@ -3,6 +3,7 @@ import { supabase } from '../../supabase'
 import { useTranslation } from 'react-i18next'
 import { RDV_STATUS } from '../../data'
 import { saveOffline } from '../../hooks/useOffline'
+import Icon from '../../components/common/Icon'
 
 export default function AppointmentsScreen({ nav, user, showToast, isOffline, offlineAppointments }) {
   const { t } = useTranslation()
@@ -64,13 +65,13 @@ export default function AppointmentsScreen({ nav, user, showToast, isOffline, of
   return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('home')}>←</div>
+        <div className="back-btn" onClick={() => nav('home')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">{t('rdv.title', 'Mes rendez-vous')}</div>
       </div>
 
       {isOffline && (
-        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 12, color: 'var(--yellow)', marginBottom: 10 }}>
-          {"📴"} Mode hors ligne — données locales
+        <div style={{ background: 'rgba(255,209,102,.1)', border: '1px solid rgba(255,209,102,.25)', borderRadius: 10, padding: '8px 14px', fontSize: 13, color: 'var(--yellow)', marginBottom: 10 }}>
+          <Icon e="📴" /> Mode hors ligne — données locales
         </div>
       )}
 
@@ -83,11 +84,11 @@ export default function AppointmentsScreen({ nav, user, showToast, isOffline, of
         <div className="loading">{t('common.loading')}</div>
       ) : list.length === 0 ? (
         <div className="empty-state" style={{ marginTop: 24 }}>
-          <div className="empty-icon">{"📅"}</div>
+          <div className="empty-icon"><Icon e="📅" /></div>
           <p>{tab === 'upcoming' ? t('rdv.none', 'Aucun rendez-vous à venir') : t('rdv.no_history', 'Aucun rendez-vous passé')}</p>
           {!isOffline && tab === 'upcoming' && (
             <button className="btn-submit" style={{ marginTop: 16 }} onClick={() => nav('search')}>
-              {"📅"} {t('rdv.book', 'Prendre un rendez-vous')}
+              <Icon e="📅" /> {t('rdv.book', 'Prendre un rendez-vous')}
             </button>
           )}
         </div>
@@ -99,17 +100,17 @@ export default function AppointmentsScreen({ nav, user, showToast, isOffline, of
           <div key={rdv.id} className="card" style={{ borderLeft: `3px solid ${st.color}` }}>
             <div className="card-row" style={{ alignItems: 'flex-start' }}>
               <div style={{ textAlign: 'center', minWidth: 52 }}>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 800, color: 'var(--white)' }}>{d.getDate()}</div>
-                <div style={{ fontSize: 10, color: 'var(--dim)', textTransform: 'uppercase' }}>{d.toLocaleDateString('fr-FR', { month: 'short' })}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--white)' }}>{d.getDate()}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--dim)', textTransform: 'uppercase' }}>{d.toLocaleDateString('fr-FR', { month: 'short' })}</div>
               </div>
               <div className="card-info">
                 <div className="card-name">{rdv.pro ? `Dr. ${rdv.pro.fname || ''} ${rdv.pro.lname || ''}` : 'Médecin'}</div>
                 {rdv.pro?.specialite && <div className="card-sub" style={{ color: 'var(--blue)' }}>{rdv.pro.specialite}</div>}
                 <div className="card-sub" style={{ textTransform: 'capitalize' }}>
-                  {"🕐"} {d.toLocaleDateString('fr-FR', { weekday: 'long' })} {d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  <Icon e="🕐" /> {d.toLocaleDateString('fr-FR', { weekday: 'long' })} {d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                 </div>
-                {rdv.pro?.adresse && <div className="card-sub">{"📍"} {rdv.pro.adresse}{rdv.pro.wilaya ? `, ${rdv.pro.wilaya}` : ''}</div>}
-                {rdv.motif && <div className="card-sub">{"💬"} {rdv.motif}</div>}
+                {rdv.pro?.adresse && <div className="card-sub"><Icon e="📍" /> {rdv.pro.adresse}{rdv.pro.wilaya ? `, ${rdv.pro.wilaya}` : ''}</div>}
+                {rdv.motif && <div className="card-sub"><Icon e="💬" /> {rdv.motif}</div>}
               </div>
               <span className="badge" style={{ color: st.color, background: st.bg }}>{st.label}</span>
             </div>
@@ -117,14 +118,14 @@ export default function AppointmentsScreen({ nav, user, showToast, isOffline, of
               <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                 {rdv.pro?.telephone && tab === 'upcoming' && (
                   <a href={`tel:${rdv.pro.telephone.replace(/\s/g, '')}`} className="btn-cancel"
-                    style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '9px 0', fontSize: 12, margin: 0 }}>
-                    {"📞"} Appeler le cabinet
+                    style={{ flex: 1, textAlign: 'center', textDecoration: 'none', padding: '9px 0', fontSize: 13, margin: 0 }}>
+                    <Icon e="📞" /> Appeler le cabinet
                   </a>
                 )}
                 {canCancel && (
                   <button className="btn-cancel" disabled={busy === rdv.id} onClick={() => cancel(rdv)}
-                    style={{ flex: 1, padding: '9px 0', fontSize: 12, color: '#FF8A8A', margin: 0 }}>
-                    {busy === rdv.id ? '⏳' : t('rdv.cancel', 'Annuler')}
+                    style={{ flex: 1, padding: '9px 0', fontSize: 13, color: '#FF8A8A', margin: 0 }}>
+                    {busy === rdv.id ? '…' : t('rdv.cancel', 'Annuler')}
                   </button>
                 )}
               </div>

@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase'
+import Icon from '../../components/common/Icon'
 
 // Cadre commun de l'espace professionnel : en-tête, contenu, navigation du bas.
 const ITEMS = [
@@ -19,10 +20,10 @@ export default function DoctorShell({ nav, active, title, subtitle, who, childre
     <div className="pro-app">
       <header className="pro-top">
         <div className="pro-top-in">
-          <div className="pro-logo">Vita<span>Pass</span><small>Pro</small></div>
+          <div className="pro-logo"><i><Icon name="heart" size={15} stroke={2.2} /></i>Vita<span>Pass</span><small>Pro</small></div>
           {who && <div className="pro-who">{who}</div>}
-          <button className="pro-logout" onClick={logout} style={who ? undefined : { marginLeft: 'auto' }}>
-            {"🚪"} Déconnexion
+          <button className="pro-logout" onClick={logout} aria-label="Déconnexion" style={who ? undefined : { marginLeft: 'auto' }}>
+            <Icon e="🚪" /> <span className="pro-logout-t">Déconnexion</span>
           </button>
         </div>
       </header>
@@ -41,8 +42,9 @@ export default function DoctorShell({ nav, active, title, subtitle, who, childre
                 key={it.id}
                 className={`pro-ni${active === it.id ? ' active' : ''}`}
                 onClick={() => nav(it.id)}
+                aria-label={it.label}
               >
-                <span className="ico">{it.icon}</span>
+                <span className="ico"><Icon e={it.icon} size={21} /></span>
                 <span>{it.label}</span>
               </button>
             ))}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
 import { SPECIALITE_ICONS, langueLabel } from '../../data'
+import Icon from '../../components/common/Icon'
 
 export default function ProProfileScreen({ nav, navParams }) {
   const [pro, setPro] = useState(null)
@@ -24,35 +25,35 @@ export default function ProProfileScreen({ nav, navParams }) {
   if (loading) return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('search')}>←</div>
+        <div className="back-btn" onClick={() => nav('search')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Profil</div>
       </div>
-      <div className="loading">⏳ Chargement...</div>
+      <div className="loading"><div className="spin" />Chargement…</div>
     </div>
   )
 
   if (!pro) return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('search')}>←</div>
+        <div className="back-btn" onClick={() => nav('search')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Profil</div>
       </div>
       <div className="empty-state">
-        <div className="empty-icon">❌</div>
+        <div className="empty-icon"><Icon name="xCircle" /></div>
         <p>Professionnel introuvable</p>
       </div>
     </div>
   )
 
   const icon = SPECIALITE_ICONS[pro.specialite] || '🏥'
-  const avatar = pro.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'
+  const avatar = <Icon name="doctor" size={30} />
 
   return (
     <div className="screen" style={{ display: 'flex' }}>
 
       {/* HEADER */}
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('search')}>←</div>
+        <div className="back-btn" onClick={() => nav('search')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Profil du médecin</div>
       </div>
 
@@ -70,22 +71,22 @@ export default function ProProfileScreen({ nav, navParams }) {
         }}>
           {avatar}
         </div>
-        <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 800, color: 'var(--white)', textAlign: 'center' }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--white)', textAlign: 'center' }}>
           Dr. {pro.fname} {pro.lname}
         </div>
         <div style={{ fontSize: 14, color: 'var(--blue)', fontWeight: 600 }}>
-          {icon} {pro.specialite}
+          <Icon e={icon} size={15} /> {pro.specialite}
         </div>
         {pro.wilaya && (
-          <div style={{ fontSize: 12, color: 'var(--dim)' }}>
-            📍 {pro.wilaya}{pro.adresse ? ` · ${pro.adresse}` : ''}
+          <div style={{ fontSize: 13, color: 'var(--dim)' }}>
+            <Icon name="pin" size={14} /> {pro.wilaya}{pro.adresse ? ` · ${pro.adresse}` : ''}
           </div>
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
           <span style={{
             background: 'rgba(0,201,141,.12)', color: 'var(--g)',
             border: '1px solid rgba(0,201,141,.2)',
-            fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700,
+            fontSize: 13, fontWeight: 700,
             padding: '4px 14px', borderRadius: 20
           }}>
             {pro.tarif ? `${pro.tarif} DA` : 'Tarif N/A'}
@@ -93,7 +94,7 @@ export default function ProProfileScreen({ nav, navParams }) {
           <span style={{
             background: 'rgba(77,159,236,.12)', color: 'var(--blue)',
             border: '1px solid rgba(77,159,236,.2)',
-            fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700,
+            fontSize: 13, fontWeight: 700,
             padding: '4px 14px', borderRadius: 20
           }}>
             {pro.duree_rdv ? `${pro.duree_rdv} min` : '30 min'}
@@ -121,7 +122,7 @@ export default function ProProfileScreen({ nav, navParams }) {
         {pro.specialite && (
           <div className="pinfo-row">
             <span className="pi-key">Spécialité</span>
-            <span className="pi-val">{icon} {pro.specialite}</span>
+            <span className="pi-val">{pro.specialite}</span>
           </div>
         )}
         {pro.wilaya && (
@@ -168,7 +169,7 @@ export default function ProProfileScreen({ nav, navParams }) {
           <div className="dsect-title">Langues parlées</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             {pro.langues.map(l => (
-              <span key={l} className="badge badge-g" style={{ padding: '6px 14px', fontSize: 12 }}>
+              <span key={l} className="badge badge-g" style={{ padding: '6px 14px', fontSize: 13 }}>
                 {langueLabel(l)}
               </span>
             ))}
@@ -182,13 +183,13 @@ export default function ProProfileScreen({ nav, navParams }) {
         style={{ fontSize: 15, padding: 16, marginBottom: 8 }}
         onClick={() => nav('booking', { proId: pro.id })}
       >
-        📅 Prendre rendez-vous
+        <Icon name="calendar" size={18} /> Prendre rendez-vous
       </button>
       <button
         className="btn-cancel"
         onClick={() => nav('search')}
       >
-        ← Retour à la recherche
+        <Icon name="chevronLeft" size={16} /> Retour à la recherche
       </button>
 
       <div className="pad-b" />

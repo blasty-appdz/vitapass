@@ -1,14 +1,15 @@
+import Icon from '../components/common/Icon'
 export default function PrivacyScreen() {
   return (
     <div style={{ minHeight: '100vh', background: '#080E1E', color: '#F9FAFB', fontFamily: "'Inter',Arial,sans-serif" }}>
 
       {/* Navbar */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(8,14,30,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <a href="/" style={{ textDecoration: 'none', fontFamily: "'Syne',sans-serif", fontSize: 19, fontWeight: 800, color: '#F9FAFB' }}>
+        <a href="/" style={{ textDecoration: 'none', fontSize: 19, fontWeight: 800, color: '#F9FAFB' }}>
           Vita<span style={{ color: '#00C98D' }}>Pass</span>
         </a>
         <a href="/" style={{ fontSize: 13, color: '#9CA3AF', textDecoration: 'none' }}>
-          ← Retour
+          <Icon name="chevronLeft" size={16} /> Retour
         </a>
       </nav>
 
@@ -17,10 +18,10 @@ export default function PrivacyScreen() {
 
         {/* En-tête */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ display: 'inline-block', background: 'rgba(0,201,141,0.1)', border: '1px solid rgba(0,201,141,0.25)', borderRadius: 20, padding: '6px 16px', fontSize: 12, fontWeight: 600, color: '#00C98D', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 20 }}>
+          <div style={{ display: 'inline-block', background: 'rgba(0,201,141,0.1)', border: '1px solid rgba(0,201,141,0.25)', borderRadius: 20, padding: '6px 16px', fontSize: 13, fontWeight: 600, color: '#00C98D', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 20 }}>
             Dernière mise à jour : juin 2026
           </div>
-          <h1 style={{ fontFamily: "'Syne',sans-serif", fontSize: 40, fontWeight: 800, color: '#F9FAFB', lineHeight: 1.15, margin: '0 0 16px' }}>
+          <h1 style={{ fontSize: 40, fontWeight: 800, color: '#F9FAFB', lineHeight: 1.15, margin: '0 0 16px' }}>
             Politique de<br /><span style={{ color: '#00C98D' }}>confidentialité</span>
           </h1>
           <p style={{ fontSize: 16, color: '#9CA3AF', lineHeight: 1.7, margin: 0 }}>
@@ -145,8 +146,8 @@ export default function PrivacyScreen() {
         ].map(({ num, title, content }) => (
           <div key={num} style={{ marginBottom: 48, paddingBottom: 48, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 16 }}>
-              <span style={{ fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700, color: '#00C98D', minWidth: 28, paddingTop: 4 }}>{num}</span>
-              <h2 style={{ fontFamily: "'Syne',sans-serif", fontSize: 20, fontWeight: 700, color: '#F9FAFB', margin: 0 }}>{title}</h2>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#00C98D', minWidth: 28, paddingTop: 4 }}>{num}</span>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: '#F9FAFB', margin: 0 }}>{title}</h2>
             </div>
             <div style={{ paddingLeft: 48, fontSize: 15, color: '#9CA3AF', lineHeight: 1.8 }}>
               {content}

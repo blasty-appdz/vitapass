@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import Icon from '../components/common/Icon'
 
 // Les données viennent de la fonction Supabase get_emergency_pass(token) :
 // elle ne renvoie que les infos d'urgence du patient dont le lien QR correspond,
@@ -78,10 +79,10 @@ export default function EmergencyPublicPage({ token }) {
   if (error) return (
     <div style={styles.center}>
       <div style={styles.errorBox}>
-        <span style={{ fontSize: 48 }}>{"🚫"}</span>
+        <span style={{ fontSize: 48 }}><Icon e="🚫" /></span>
         <h2 style={{ color: '#ef4444', margin: '12px 0 8px' }}>Accès impossible</h2>
         <p style={{ color: '#94a3b8', textAlign: 'center', fontSize: 14 }}>{error}</p>
-        <p style={{ color: '#64748b', fontSize: 12, marginTop: 12 }}>
+        <p style={{ color: '#64748b', fontSize: 13, marginTop: 12 }}>
           Le patient doit activer le partage urgence dans son application VitaPass.
         </p>
       </div>
@@ -91,13 +92,13 @@ export default function EmergencyPublicPage({ token }) {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <div style={styles.badge}>{"🚨"} URGENCE MÉDICALE</div>
+        <div style={styles.badge}><Icon e="🚨" /> URGENCE MÉDICALE</div>
         <p style={styles.headerSub}>Données de santé critiques — Accès secouriste</p>
       </div>
 
       <div style={styles.card}>
         <div style={styles.patientRow}>
-          <div style={styles.avatarPlaceholder}>{"👤"}</div>
+          <div style={styles.avatarPlaceholder}><Icon e="👤" /></div>
           <div>
             <div style={styles.patientName}>{fullName}</div>
             {pass?.dob && (
@@ -144,7 +145,7 @@ function DataCard({ section, critical }) {
   return (
     <div style={{ ...styles.card, ...(critical ? styles.cardCritical : {}) }}>
       <div style={styles.cardHeader}>
-        <span style={styles.cardIcon}>{section.icon}</span>
+        <span style={styles.cardIcon}><Icon e={section.icon} size={20} /></span>
         <span style={styles.cardLabel}>{section.label}</span>
         {critical && <span style={styles.criticalBadge}>CRITIQUE</span>}
       </div>
@@ -227,7 +228,7 @@ const styles = {
   criticalBadge: {
     background: '#ef44441a',
     color: '#ef4444',
-    fontSize: 10, fontWeight: 700,
+    fontSize: 11.5, fontWeight: 700,
     padding: '2px 8px', borderRadius: 20,
     border: '1px solid #ef444430',
     letterSpacing: 0.5,
@@ -250,14 +251,14 @@ const styles = {
   },
   patientName: { color: '#f1f5f9', fontSize: 20, fontWeight: 700 },
   patientAge:  { color: '#94a3b8', fontSize: 14, marginTop: 2 },
-  dob: { color: '#64748b', fontSize: 12 },
+  dob: { color: '#64748b', fontSize: 13 },
   separator: {
     display: 'flex', alignItems: 'center',
     margin: '20px 16px 4px',
     gap: 10,
   },
   separatorText: {
-    color: '#475569', fontSize: 11,
+    color: '#475569', fontSize: 12.5,
     fontWeight: 600, letterSpacing: 1,
     textTransform: 'uppercase', whiteSpace: 'nowrap',
   },
@@ -270,6 +271,6 @@ const styles = {
     textAlign: 'center',
   },
   footerText:  { color: '#64748b', fontSize: 13, margin: '0 0 4px' },
-  footerSub:   { color: '#475569', fontSize: 11, margin: '0 0 8px' },
-  footerTime:  { color: '#334155', fontSize: 11, margin: 0 },
+  footerSub:   { color: '#475569', fontSize: 12.5, margin: '0 0 8px' },
+  footerTime:  { color: '#334155', fontSize: 12.5, margin: 0 },
 }

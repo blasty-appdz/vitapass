@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { supabase } from '../../supabase'
 import { validateEmail, validatePassword, validateRequired } from '../../utils/validators'
 import { WILAYAS } from '../../data'
-
+import Icon, { IconText } from '../../components/common/Icon'
 /**
  * Écran d'authentification (connexion / inscription)
  * @param {string} initialTab - 'login' | 'signup'
@@ -103,12 +103,12 @@ export default function AuthScreen({ initialTab = 'login' }) {
           }}
           style={{
             background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.15)',
-            borderRadius: 20, padding: '6px 16px', color: '#EFF3FF',
-            fontFamily: "'Syne',sans-serif", fontSize: 13, fontWeight: 700,
+            borderRadius: 20, padding: '6px 16px', color: 'var(--white)',
+            fontSize: 13, fontWeight: 700,
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
           }}
         >
-          {"🌐"} {i18n.language === 'fr' ? 'العربية' : 'Français'}
+          <Icon e="🌐" /> {i18n.language === 'fr' ? 'العربية' : 'Français'}
         </button>
       </div>
 
@@ -144,7 +144,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
           </div>
         </div>
 
-        {error && <div className="error-msg">{error}</div>}
+        {error && <div className="error-msg" style={error.startsWith('✅') ? { background: 'var(--g-soft)', borderColor: 'rgba(0,201,141,.3)', color: 'var(--g)' } : undefined}><IconText>{error}</IconText></div>}
 
         {tab === 'signup' && (
           <>
@@ -152,7 +152,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
             <div className="role-select">
               {roles.map(r => (
                 <div key={r.id} className={`role-btn${role === r.id ? ' selected' : ''}`} onClick={() => setRole(r.id)}>
-                  <span className="role-icon">{r.icon}</span>
+                  <span className="role-icon"><Icon e={r.icon} size={20} /></span>
                   <div>
                     <div className="role-label">{r.label}</div>
                     <div className="role-sub">{r.sub}</div>
@@ -221,7 +221,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
               onKeyDown={e => e.key === 'Enter' && tab === 'login' && handleLogin()}
             />
             <span className="pwd-eye" onClick={() => setShowPwd(!showPwd)}>
-              {showPwd ? '🙈' : '👁️'}
+              <Icon name={showPwd ? 'eyeOff' : 'eye'} size={19} />
             </span>
           </div>
           {fieldErrors.password && <span className="field-error">{fieldErrors.password}</span>}
@@ -235,8 +235,8 @@ export default function AuthScreen({ initialTab = 'login' }) {
           {loading
             ? t('auth.loading')
             : tab === 'login'
-              ? '🔐 ' + t('auth.login_btn')
-              : '✨ ' + t('auth.signup_btn')}
+              ? t('auth.login_btn')
+              : t('auth.signup_btn')}
         </button>
 
         {tab === 'login' && (

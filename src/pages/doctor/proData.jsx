@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import { RDV_STATUS } from '../../data'
 import { fullName } from './DoctorShell'
+import Icon from '../../components/common/Icon'
 
 // Rendez-vous du professionnel connecté + nom des patients (fonction sécurisée côté base).
 export function useProAppointments(proId) {
@@ -68,23 +69,23 @@ export function AppointmentItem({ rdv, onStatus, onOpenPatient, showDay = false 
     <div className="pro-card" style={{ opacity: rdv.status === 'cancelled' ? 0.6 : 1 }}>
       <div className="pro-row" style={{ alignItems: 'flex-start' }}>
         <div style={{ minWidth: 58, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 800, color: 'var(--g)' }}>{fmtHour(rdv.start_at)}</div>
-          {rdv.end_at && <div style={{ fontSize: 10, color: 'var(--dim)' }}>→ {fmtHour(rdv.end_at)}</div>}
+          <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--g)' }}>{fmtHour(rdv.start_at)}</div>
+          {rdv.end_at && <div style={{ fontSize: 11.5, color: 'var(--dim)' }}>→ {fmtHour(rdv.end_at)}</div>}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {showDay && <div style={{ fontSize: 11, color: 'var(--dim)', textTransform: 'capitalize', marginBottom: 2 }}>{fmtDay(rdv.start_at)}</div>}
+          {showDay && <div style={{ fontSize: 12.5, color: 'var(--dim)', textTransform: 'capitalize', marginBottom: 2 }}>{fmtDay(rdv.start_at)}</div>}
           <div style={{ fontWeight: 700, fontSize: 15 }}>{fullName(rdv.patient)}</div>
-          {rdv.motif && <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 3 }}>{"💬"} {rdv.motif}</div>}
+          {rdv.motif && <div style={{ fontSize: 13, color: 'var(--dim)', marginTop: 3 }}><Icon e="💬" /> {rdv.motif}</div>}
           <div style={{ marginTop: 6 }}><StatusPill status={rdv.status} /></div>
         </div>
       </div>
       {rdv.status !== 'cancelled' && rdv.status !== 'completed' && (
         <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           {rdv.status === 'pending' && (
-            <button className="pro-btn g" disabled={busy} onClick={() => act('confirmed')}>{"✓"} Confirmer</button>
+            <button className="pro-btn g" disabled={busy} onClick={() => act('confirmed')}><Icon e="✓" /> Confirmer</button>
           )}
           {!future && (
-            <button className="pro-btn blue" disabled={busy} onClick={() => act('completed')}>{"✓"} Consultation faite</button>
+            <button className="pro-btn blue" disabled={busy} onClick={() => act('completed')}><Icon e="✓" /> Consultation faite</button>
           )}
           {onOpenPatient && (
             <button className="pro-btn ghost" disabled={busy} onClick={() => onOpenPatient(rdv.patient_id)}>Dossier</button>

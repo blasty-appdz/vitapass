@@ -39,6 +39,7 @@ import ProfessionalDashboard from './pages/doctor/ProfessionalDashboard'
 import EmergencyPublicPage from './pages/EmergencyPublicPage'
 import LandingScreen from './pages/LandingScreen'
 import PrivacyScreen from './pages/PrivacyScreen'
+import Icon from './components/common/Icon'
 
 export default function App() {
   const { t } = useTranslation()
@@ -51,7 +52,6 @@ export default function App() {
   const [splash, setSplash] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState(null)
-  const [clock, setClock] = useState('')
   const [doctorCount, setDoctorCount] = useState(0)
   const [notifs, setNotifs] = useState([])
   const [emergencyToken, setEmergencyToken] = useState(null)
@@ -63,17 +63,6 @@ export default function App() {
   const { profile: offlineProfile } = useOfflineProfile(userId)
   const { dossier: offlineDossier } = useOfflineDossier(userId)
   const { appointments: offlineAppointments } = useOfflineAppointments(userId)
-
-  // ── Horloge ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const tick = () => {
-      const n = new Date()
-      setClock(`${n.getHours()}:${String(n.getMinutes()).padStart(2, '0')}`)
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
 
   // ── Auth + routing initial ────────────────────────────────────────────────
   useEffect(() => {
@@ -195,11 +184,11 @@ export default function App() {
   }
 
   const navItems = [
-    { id: 'home', icon: <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />, label: t('nav.home') },
-    { id: 'search', icon: <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />, label: t('nav.search') },
-    { id: 'appointments', icon: <path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z" />, label: t('nav.rdv') },
-    { id: 'dossier', icon: <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15h8v2H8v-2zm0-4h8v2H8v-2z" />, label: t('nav.dossier') },
-    { id: 'profile', icon: <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />, label: t('nav.profile') },
+    { id: 'home', icon: 'home', label: t('nav.home') },
+    { id: 'search', icon: 'search', label: t('nav.search') },
+    { id: 'qr', icon: 'qr', label: t('nav.qr'), center: true },
+    { id: 'appointments', icon: 'calendar', label: t('nav.rdv') },
+    { id: 'dossier', icon: 'file', label: t('nav.dossier') },
   ]
 
   // ── Cas spéciaux ─────────────────────────────────────────────────────────
@@ -208,7 +197,7 @@ export default function App() {
   if (isRecovery) return <ResetPasswordScreen />
   if (loading) return (
     <div className="phone" style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <div className="loading">{t('common.loading')}</div>
+      <div className="loading"><div className="spin" />{t('common.loading')}</div>
     </div>
   )
 
@@ -223,8 +212,8 @@ export default function App() {
   // Session ouverte mais profil introuvable (réseau coupé, compte incomplet) : on n'affiche pas une app vide
   if (session && !profile && !isOffline) return (
     <div className="phone" style={{ alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center' }}>
-      <div style={{ fontSize: 40 }}>{"⚠️"}</div>
-      <div style={{ color: 'var(--white)', fontFamily: "'Syne',sans-serif", fontWeight: 700 }}>Impossible de charger votre compte</div>
+      <div className="empty-icon" style={{ color: 'var(--yellow)' }}><Icon e="⚠️" /></div>
+      <div style={{ color: 'var(--white)', fontWeight: 600, fontSize: 17 }}>Impossible de charger votre compte</div>
       <div style={{ color: 'var(--dim)', fontSize: 13 }}>Vérifiez votre connexion puis réessayez.</div>
       <button className="btn-submit" style={{ maxWidth: 260 }} onClick={() => loadUserData(session.user.id)}>Réessayer</button>
       <button className="btn-cancel" style={{ maxWidth: 260 }} onClick={handleLogout}>Se déconnecter</button>
@@ -247,7 +236,7 @@ export default function App() {
     return (
       <>
         {proScreen}
-        {toast && <div className="pro-toast">{toast}</div>}
+        {toast && <Toast msg={toast} className="pro-toast" />}
       </>
     )
   }
@@ -278,19 +267,6 @@ export default function App() {
         </div>
       )}
 
-      {/* Status bar */}
-      <div className="sbar">
-        <span className="sbar-time">{clock}</span>
-        <div className="sbar-right">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-            <path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 00-6 0zm-4-4l2 2a7.074 7.074 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
-          </svg>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
-            <path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z" />
-          </svg>
-        </div>
-      </div>
-
       {/* Écrans */}
       <div className="screens">
         {screen === 'home' && <HomeScreen nav={nav} profile={profile} dossier={dossier} doctorCount={doctorCount} notifs={notifs} isOffline={isOffline} />}
@@ -306,23 +282,25 @@ export default function App() {
       </div>
 
       {/* Navigation bas */}
-      <div className="bnav">
-        {navItems.map(item => (
-          <div
-            key={item.id}
-            className={`ni${
-              screen === item.id ||
-              (item.id === 'dossier' && screen === 'suivi') ||
-              (item.id === 'search' && (screen === 'pro-profile' || screen === 'booking'))
-                ? ' active' : ''
-            }`}
-            onClick={() => nav(item.id)}
-          >
-            <svg viewBox="0 0 24 24">{item.icon}</svg>
-            <span>{item.label}</span>
-          </div>
-        ))}
-      </div>
+      <nav className="bnav">
+        {navItems.map(item => {
+          const active = screen === item.id ||
+            (item.id === 'dossier' && screen === 'suivi') ||
+            (item.id === 'search' && (screen === 'pro-profile' || screen === 'booking'))
+          return (
+            <div
+              key={item.id}
+              className={`ni${item.center ? ' ni-qr' : ''}${active ? ' active' : ''}`}
+              onClick={() => nav(item.id)}
+              role="button"
+              aria-label={item.label}
+            >
+              <Icon name={item.icon} size={item.center ? 26 : 22} stroke={item.center ? 2.1 : 1.8} />
+              {!item.center && <span>{item.label}</span>}
+            </div>
+          )
+        })}
+      </nav>
 
       {toast && <Toast msg={toast} />}
     </div>

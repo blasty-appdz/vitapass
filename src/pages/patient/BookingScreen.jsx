@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../supabase'
+import Icon from '../../components/common/Icon'
 
 const JOURS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
 const MOIS = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc']
@@ -116,10 +117,10 @@ export default function BookingScreen({ nav, navParams, showToast }) {
   if (loading) return (
     <div className="screen" style={{ display: 'flex' }}>
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => nav('search')}>←</div>
+        <div className="back-btn" onClick={() => nav('search')}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Prendre RDV</div>
       </div>
-      <div className="loading">⏳ Chargement des créneaux...</div>
+      <div className="loading"><div className="spin" />Chargement des créneaux…</div>
     </div>
   )
 
@@ -128,7 +129,7 @@ export default function BookingScreen({ nav, navParams, showToast }) {
 
       {/* HEADER */}
       <div className="screen-hdr">
-        <div className="back-btn" onClick={() => step === 2 ? setStep(1) : nav('pro-profile', { proId: navParams?.proId })}>←</div>
+        <div className="back-btn" onClick={() => step === 2 ? setStep(1) : nav('pro-profile', { proId: navParams?.proId })}><Icon name="chevronLeft" size={20} /></div>
         <div className="shdr-title">Prendre RDV</div>
       </div>
 
@@ -144,16 +145,16 @@ export default function BookingScreen({ nav, navParams, showToast }) {
             background: 'rgba(77,159,236,.1)', border: '1px solid rgba(77,159,236,.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22
           }}>
-            {pro.gender === 'Féminin' ? '👩‍⚕️' : '👨‍⚕️'}
+            <Icon name="doctor" size={24} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 14, fontWeight: 700, color: 'var(--white)' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--white)' }}>
               Dr. {pro.fname} {pro.lname}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--blue)', marginTop: 2 }}>{pro.specialite}</div>
+            <div style={{ fontSize: 13, color: 'var(--blue)', marginTop: 2 }}>{pro.specialite}</div>
           </div>
           {pro.tarif && (
-            <div style={{ fontFamily: "'Syne',sans-serif", fontSize: 15, fontWeight: 800, color: 'var(--g)' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--g)' }}>
               {pro.tarif} DA
             </div>
           )}
@@ -165,9 +166,9 @@ export default function BookingScreen({ nav, navParams, showToast }) {
         <>
           {slots.length === 0 ? (
             <div className="empty-state" style={{ marginTop: 24 }}>
-              <div className="empty-icon">📅</div>
+              <div className="empty-icon"><Icon name="calendar" /></div>
               <p>Aucun créneau disponible</p>
-              <p style={{ marginTop: 8, fontSize: 12 }}>Ce médecin n'a pas encore ajouté de disponibilités</p>
+              <p style={{ marginTop: 8, fontSize: 13 }}>Ce médecin n'a pas encore ajouté de disponibilités</p>
             </div>
           ) : (
             <>
@@ -189,20 +190,20 @@ export default function BookingScreen({ nav, navParams, showToast }) {
                       }}
                     >
                       <div style={{
-                        fontFamily: "'Syne',sans-serif", fontSize: 11, fontWeight: 700,
+                        fontSize: 12.5, fontWeight: 700,
                         color: isSelected ? '#001A12' : 'var(--dim)',
                         textTransform: 'uppercase', letterSpacing: 1
                       }}>
                         {JOURS[day.getDay()]}
                       </div>
                       <div style={{
-                        fontFamily: "'Syne',sans-serif", fontSize: 18, fontWeight: 800,
+                        fontSize: 18, fontWeight: 800,
                         color: isSelected ? '#001A12' : 'var(--white)', marginTop: 2
                       }}>
                         {day.getDate()}
                       </div>
                       <div style={{
-                        fontSize: 10, color: isSelected ? '#001A12' : 'var(--dim)', marginTop: 2
+                        fontSize: 11.5, color: isSelected ? '#001A12' : 'var(--dim)', marginTop: 2
                       }}>
                         {MOIS[day.getMonth()]}
                       </div>
@@ -228,7 +229,7 @@ export default function BookingScreen({ nav, navParams, showToast }) {
                             background: isSelected ? 'var(--g)' : 'var(--card)',
                             border: `1px solid ${isSelected ? 'var(--g)' : 'var(--border)'}`,
                             borderRadius: 10, padding: '8px 16px',
-                            fontFamily: "'Syne',sans-serif", fontSize: 14, fontWeight: 700,
+                            fontSize: 14, fontWeight: 700,
                             color: isSelected ? '#001A12' : 'var(--white)',
                             cursor: 'pointer'
                           }}
@@ -247,7 +248,7 @@ export default function BookingScreen({ nav, navParams, showToast }) {
                 onClick={() => setStep(2)}
                 style={{ opacity: selectedSlot ? 1 : 0.4 }}
               >
-                Continuer →
+                Continuer <Icon name="arrowRight" size={17} />
               </button>
             </>
           )}
@@ -297,10 +298,10 @@ export default function BookingScreen({ nav, navParams, showToast }) {
             disabled={booking}
             style={{ fontSize: 15, padding: 16, marginBottom: 8 }}
           >
-            {booking ? '⏳ Confirmation...' : '✅ Confirmer le rendez-vous'}
+            {booking ? 'Confirmation…' : <><Icon name="check" size={18} /> Confirmer le rendez-vous</>}
           </button>
           <button className="btn-cancel" onClick={() => setStep(1)}>
-            ← Changer de créneau
+            <Icon name="chevronLeft" size={16} /> Changer de créneau
           </button>
         </>
       )}
