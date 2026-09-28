@@ -195,11 +195,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                     <div className="card-sub">{m.dose}{m.reason ? ' · ' + m.reason : ''}</div>
                   </div>
                   <span className="badge badge-g">{t('dossier.active')}</span>
-                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('meds', meds, m)}>✕</span>}
+                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('meds', meds, m)}><Icon name="x" size={15} /></span>}
                 </div>
               </div>
             ))}
-          {!isOffline && <div className="add-btn" onClick={() => { setModal('med'); setForm({}) }}>＋ {t('dossier.add_med')}</div>}
+          {!isOffline && <div className="add-btn" onClick={() => { setModal('med'); setForm({}) }}><Icon name="plus" size={17} /> {t('dossier.add_med')}</div>}
           <div className="pad-b" />
         </>
       )}
@@ -214,11 +214,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
               : allergies.map(a => (
                 <div key={a.id} className="achip">
                   {a.name}
-                  {!isOffline && <span className="achip-rm" onClick={() => removeAllergy(a.id)}>✕</span>}
+                  {!isOffline && <span className="achip-rm" onClick={() => removeAllergy(a.id)}><Icon name="x" size={15} /></span>}
                 </div>
               ))}
           </div>
-          {!isOffline && <div className="add-btn" onClick={() => { setModal('allergy'); setForm({}) }}>＋ {t('dossier.add_allergy')}</div>}
+          {!isOffline && <div className="add-btn" onClick={() => { setModal('allergy'); setForm({}) }}><Icon name="plus" size={17} /> {t('dossier.add_allergy')}</div>}
           <div className="pad-b" />
         </>
       )}
@@ -238,11 +238,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                     <div className="card-sub">{a.type}{a.year ? ' · ' + a.year : ''}</div>
                   </div>
                   <span className="badge badge-r">{a.type}</span>
-                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('antecedents', antecedents, a)}>✕</span>}
+                  {!isOffline && <span className="achip-rm" style={{ marginLeft: 8, cursor: 'pointer' }} onClick={() => removeItem('antecedents', antecedents, a)}><Icon name="x" size={15} /></span>}
                 </div>
               </div>
             ))}
-          {!isOffline && <div className="add-btn" onClick={() => { setModal('ant'); setForm({ type: t('dossier.chronic') }) }}>＋ {t('dossier.add_antecedent')}</div>}
+          {!isOffline && <div className="add-btn" onClick={() => { setModal('ant'); setForm({ type: t('dossier.chronic') }) }}><Icon name="plus" size={17} /> {t('dossier.add_antecedent')}</div>}
           <div className="pad-b" />
         </>
       )}
@@ -262,11 +262,11 @@ export default function DossierScreen({ nav, dossier, onSave, showToast, isOffli
                 <div className="vacc-ico" style={{ background: v.status === 'done' ? 'rgba(0,201,141,.15)' : 'rgba(255,209,102,.15)' }}>
                   <Icon e={v.status === 'done' ? '✅' : '⏳'} size={18} />
                 </div>
-                {!isOffline && <span className="achip-rm" style={{ cursor: 'pointer' }} onClick={() => removeItem('vaccins', vaccins, v)}>✕</span>}
+                {!isOffline && <span className="achip-rm" style={{ cursor: 'pointer' }} onClick={() => removeItem('vaccins', vaccins, v)}><Icon name="x" size={15} /></span>}
               </div>
             </div>
           ))}
-          {!isOffline && <div className="add-btn" onClick={() => { setModal('vacc'); setForm({ status: 'done' }) }}>＋ {t('dossier.add_vaccin')}</div>}
+          {!isOffline && <div className="add-btn" onClick={() => { setModal('vacc'); setForm({ status: 'done' }) }}><Icon name="plus" size={17} /> {t('dossier.add_vaccin')}</div>}
           <div className="pad-b" />
         </>
       )}
