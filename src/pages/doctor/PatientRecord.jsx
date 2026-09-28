@@ -4,7 +4,7 @@ import { useOffline } from '../../hooks/useOffline'
 import { openDocument, hasDocumentFile } from '../../services/documents'
 import { formatDate } from '../../utils/formatters'
 import DoctorShell, { Loader, fullName, ageOf } from './DoctorShell'
-import Icon, { IconText } from '../../components/common/Icon'
+import Icon, { IconText, splitLeadingEmoji } from '../../components/common/Icon'
 const arr = (v) => (Array.isArray(v) ? v : [])
 const label = (x) => (typeof x === 'string' ? x : x?.name || '')
 
@@ -199,7 +199,7 @@ function Block({ title, items, empty, danger }) {
   const list = items.filter(Boolean)
   return (
     <div className="pro-card">
-      <div style={{ fontWeight: 700, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8, color: danger ? '#FF9A9A' : 'var(--white)' }}><span style={{ color: danger ? 'var(--red)' : 'var(--g)', display: 'flex' }}><Icon e={splitLeadingEmoji(title).emoji} size={18} /></span>{splitLeadingEmoji(title).text}</div>
       {list.length === 0 ? (
         <div style={{ fontSize: 13, color: 'var(--dim)' }}>{empty}</div>
       ) : (
