@@ -140,7 +140,7 @@ export default function ProProfileScreen({ nav, navParams }) {
         {pro.telephone && (
           <div className="pinfo-row">
             <span className="pi-key">Téléphone</span>
-            <span className="pi-val">{pro.telephone}</span>
+            <a className="pi-val" href={`tel:${String(pro.telephone).replace(/[^\d+]/g, '')}`} style={{ color: 'var(--g)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Icon name="phone" size={15} /> {pro.telephone}</a>
           </div>
         )}
         {pro.tarif && (

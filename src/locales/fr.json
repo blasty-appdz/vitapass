@@ -138,6 +138,8 @@
     "blood": "Groupe sanguin",
     "cnas": "N° CNAS",
     "emergency": "Contact urgence",
+    "phone": "Mon téléphone",
+    "phone_hint": "Facultatif. Visible uniquement par les médecins à qui vous donnez accès, pour vous appeler.",
     "save": "Enregistrer",
     "cancel": "Annuler",
     "male": "Masculin",

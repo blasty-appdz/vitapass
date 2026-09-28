@@ -7,6 +7,13 @@ import DoctorShell, { Loader, fullName, ageOf } from './DoctorShell'
 import Icon, { IconText, splitLeadingEmoji } from '../../components/common/Icon'
 const arr = (v) => (Array.isArray(v) ? v : [])
 const label = (x) => (typeof x === 'string' ? x : x?.name || '')
+const telHref = (p) => 'tel:' + String(p).replace(/[^\d+]/g, '')
+const waHref = (p) => {
+  let d = String(p).replace(/\D/g, '')
+  if (d.startsWith('00')) d = d.slice(2)
+  else if (d.startsWith('0')) d = '213' + d.slice(1)
+  return 'https://wa.me/' + d
+}
 
 export default function PatientRecord({ nav, showToast, patientId, pro, userId }) {
   const { isOffline } = useOffline()
@@ -34,7 +41,7 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
     if (!access || access.length === 0) { setState('denied'); return }
 
     const [{ data: prof }, { data: dos }, { data: docs }] = await Promise.all([
-      supabase.from('profiles').select('id, fname, lname, dob, gender, blood, wilaya, cnas, emergency').eq('id', patientId).maybeSingle(),
+      supabase.from('profiles').select('id, fname, lname, dob, gender, blood, wilaya, cnas, emergency, phone').eq('id', patientId).maybeSingle(),
       supabase.from('dossiers').select('meds, allergies, antecedents, vaccins, glyc, bp, weight, updated_at').eq('patient_id', patientId).maybeSingle(),
       supabase.from('documents').select('*').eq('patient_id', patientId).order('created_at', { ascending: false }),
     ])
@@ -115,8 +122,14 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
         {patient?.blood && <span className="badge badge-r" style={{ fontSize: 13 }}><Icon e="🩸" /> {patient.blood}</span>}
       </div>
 
+      {patient?.phone && (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+          <a href={telHref(patient.phone)} className="pro-btn g" style={{ flex: 1, textDecoration: 'none', padding: '12px 14px' }}><Icon name="phone" size={17} /> Appeler</a>
+          <a href={waHref(patient.phone)} target="_blank" rel="noreferrer" className="pro-btn ghost" style={{ flex: 1, textDecoration: 'none', padding: '12px 14px' }}><Icon name="message" size={17} /> WhatsApp</a>
+        </div>
+      )}
       {patient?.emergency && (
-        <div className="pro-banner info"><Icon e="📞" /> Contact d'urgence : <b>{patient.emergency}</b></div>
+        <a href={telHref(patient.emergency)} className="pro-banner info" style={{ textDecoration: 'none', flexWrap: 'nowrap' }}><Icon e="📞" /><span style={{ minWidth: 0 }}>Urgence : <b>{patient.emergency}</b></span><span style={{ marginLeft: 'auto', fontWeight: 600, flexShrink: 0 }}>Appeler</span></a>
       )}
 
       <div className="pro-seg">
