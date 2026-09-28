@@ -51,7 +51,7 @@ export default function SearchScreen({ nav }) {
         <select className="form-select" value={specialite} onChange={e => setSpecialite(e.target.value)}>
           <option value=""><Icon e="🔍" /> Toutes les spécialités</option>
           {SPECIALITES.map(s => (
-            <option key={s} value={s}>{SPECIALITE_ICONS[s]} {s}</option>
+            <option key={s} value={s}>{s}</option>
           ))}
         </select>
 
