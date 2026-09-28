@@ -323,3 +323,9 @@ html[dir="rtl"] .back-btn svg{transform:scaleX(-1)}
 .pro-empty .e{width:56px;height:56px;border-radius:18px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px;color:var(--t3)}
 .pro-main .form-input,.pro-main .form-select{width:100%}
 
+
+/* Barres de défilement discrètes (ordinateur) */
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
+*::-webkit-scrollbar{width:8px;height:6px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:99px}
