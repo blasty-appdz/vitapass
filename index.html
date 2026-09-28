@@ -29,6 +29,10 @@
       @keyframes vpHeart{to{opacity:1;transform:scale(1)}}
       @keyframes vpBeat{0%,100%{transform:scale(1)}15%{transform:scale(1.08)}30%{transform:scale(1)}45%{transform:scale(1.05)}}
       @keyframes vpUp{to{opacity:1;transform:none}}
+      #vp-intro{cursor:default}
+      #vp-intro .enter{margin-top:26px;font-family:'Inter',system-ui,sans-serif;font-size:16px;font-weight:600;color:#00150E;background:#00C98D;border:none;border-radius:16px;padding:15px 44px;cursor:pointer;box-shadow:0 12px 30px rgba(0,201,141,.35);opacity:0;transform:translateY(10px);animation:vpUp .6s ease 1.7s forwards;transition:background .2s,transform .15s}
+      #vp-intro .enter:hover{background:#00E09E}
+      #vp-intro .enter:active{transform:scale(.97)}
       @media (prefers-reduced-motion:reduce){#vp-intro *{animation-duration:.01s!important;animation-delay:0s!important}}
     </style>
   </head>
@@ -45,6 +49,7 @@
       </div>
       <div class="name">Vita<span>Pass</span></div>
       <div class="tag">Votre santé, toujours avec vous</div>
+      <button type="button" class="enter">Entrer</button>
     </div>
     <script>
       (function () {
@@ -58,8 +63,9 @@
         try { if (localStorage.getItem('vitapass_lang') === 'ar') el.querySelector('.tag').textContent = 'صحتك معك دائماً' } catch (e) {}
         var done = false
         function hide() { if (done) return; done = true; el.classList.add('out'); setTimeout(function () { el.remove() }, 500) }
-        el.addEventListener('click', hide)
-        setTimeout(hide, 1900)
+        var btn = el.querySelector('.enter')
+        try { if (localStorage.getItem('vitapass_lang') === 'ar') btn.textContent = 'دخول' } catch (e) {}
+        btn.addEventListener('click', hide)
       })()
     </script>
     <div id="root"></div>
