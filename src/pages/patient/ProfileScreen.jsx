@@ -30,6 +30,7 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
       blood: form.blood,
       cnas: form.cnas,
       emergency: form.emergency,
+      phone: form.phone?.trim() || null,
     }).eq('id', profile.id)
     if (!error) {
       setProfile({ ...profile, ...form })
@@ -78,6 +79,7 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
           [t('profile.wilaya'), profile?.wilaya],
           [t('profile.blood'), profile?.blood],
           [t('profile.cnas'), profile?.cnas],
+          [t('profile.phone'), profile?.phone],
           [t('profile.emergency'), profile?.emergency],
         ].map(([k, v], i) => (
           <div key={i} className="pinfo-row">
@@ -153,6 +155,11 @@ export default function ProfileScreen({ nav, profile, setProfile, onLogout, show
           <div className="form-group">
             <label className="form-label">{t('profile.cnas')}</label>
             <input className="form-input" defaultValue={profile?.cnas} onChange={e => setForm({ ...form, cnas: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">{t('profile.phone')}</label>
+            <input className="form-input" type="tel" inputMode="tel" placeholder="0550 12 34 56" defaultValue={profile?.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+            <span style={{ fontSize: 12, color: 'var(--dim)' }}>{t('profile.phone_hint')}</span>
           </div>
           <div className="form-group">
             <label className="form-label">{t('profile.emergency')}</label>
