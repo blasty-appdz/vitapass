@@ -10,7 +10,7 @@ const ITEMS = [
   { id: 'pro-onboarding', icon: '👤', label: 'Profil' },
 ]
 
-export default function DoctorShell({ nav, active, title, subtitle, who, children, hideNav = false }) {
+export default function DoctorShell({ nav, active, title, subtitle, who, children, hideNav = false, items = ITEMS, badge = 'Pro' }) {
   const logout = async () => {
     await supabase.auth.signOut()
     try { if ('caches' in window) await caches.delete('supabase-api-cache') } catch { /* ignore */ }
@@ -20,7 +20,7 @@ export default function DoctorShell({ nav, active, title, subtitle, who, childre
     <div className="pro-app">
       <header className="pro-top">
         <div className="pro-top-in">
-          <div className="pro-logo"><i><Icon name="heart" size={15} stroke={2.2} /></i>Vita<span>Pass</span><small>Pro</small></div>
+          <div className="pro-logo"><i><Icon name="heart" size={15} stroke={2.2} /></i>Vita<span>Pass</span><small>{badge}</small></div>
           {who && <div className="pro-who">{who}</div>}
           <button className="pro-logout" onClick={logout} aria-label="Déconnexion" style={who ? undefined : { marginLeft: 'auto' }}>
             <Icon e="🚪" /> <span className="pro-logout-t">Déconnexion</span>
@@ -37,7 +37,7 @@ export default function DoctorShell({ nav, active, title, subtitle, who, childre
       {!hideNav && (
         <nav className="pro-nav">
           <div className="pro-nav-in">
-            {ITEMS.map(it => (
+            {items.map(it => (
               <button
                 key={it.id}
                 className={`pro-ni${active === it.id ? ' active' : ''}`}

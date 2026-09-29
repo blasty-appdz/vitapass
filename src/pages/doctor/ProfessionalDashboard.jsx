@@ -91,6 +91,17 @@ export default function ProfessionalDashboard({ nav, showToast, pro, setPro, use
         </button>
       </div>
 
+      <div className="pro-card pro-row" style={{ cursor: 'pointer' }} onClick={() => nav('pro-secretaries')}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(0,201,141,.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon e="📋" size={19} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>Mon secrétariat</div>
+          <div style={{ fontSize: 13, color: 'var(--dim)', marginTop: 3 }}>Donnez à vos secrétaires l'accès aux dossiers de votre choix</div>
+        </div>
+        <span style={{ color: 'var(--dim)', fontSize: 18 }}>›</span>
+      </div>
+
       <div className="pro-grid">
         <div className="pro-stat"><b>{today.length}</b><span>RDV aujourd'hui</span></div>
         <div className="pro-stat"><b>{upcoming.length}</b><span>RDV à venir</span></div>

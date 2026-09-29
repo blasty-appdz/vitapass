@@ -15,7 +15,10 @@ const waHref = (p) => {
   return 'https://wa.me/' + d
 }
 
-export default function PatientRecord({ nav, showToast, patientId, pro, userId }) {
+// mode 'doctor' : espace médecin (notes + gestion du secrétariat)
+// mode 'secretary' : lecture seule, accès contrôlé côté base (RLS)
+export default function PatientRecord({ nav, showToast, patientId, pro, userId, mode = 'doctor', shell = {}, backTo = 'pro-patients', backLabel = 'Mes patients' }) {
+  const isSecretary = mode === 'secretary'
   const { isOffline } = useOffline()
   const [state, setState] = useState('loading') // loading | ok | denied | offline
   const [patient, setPatient] = useState(null)
@@ -26,19 +29,25 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
   const [noteTitle, setNoteTitle] = useState('')
   const [noteContent, setNoteContent] = useState('')
   const [saving, setSaving] = useState(false)
+  const [secretaries, setSecretaries] = useState([])
+  const [secGrants, setSecGrants] = useState([])
+  const [secBusy, setSecBusy] = useState('')
 
   const fetchAll = useCallback(async () => {
     if (!patientId || !userId) return
     if (isOffline) { setState('offline'); return }
     setState('loading')
-    const { data: access } = await supabase
-      .from('doctor_access')
-      .select('id')
-      .eq('doctor_id', userId)
-      .eq('patient_id', patientId)
-      .eq('status', 'active')
-      .limit(1)
-    if (!access || access.length === 0) { setState('denied'); return }
+    if (!isSecretary) {
+      const { data: access } = await supabase
+        .from('doctor_access')
+        .select('id')
+        .eq('doctor_id', userId)
+        .eq('patient_id', patientId)
+        .eq('status', 'active')
+        .limit(1)
+      if (!access || access.length === 0) { setState('denied'); return }
+      loadSecretariat()
+    }
 
     const [{ data: prof }, { data: dos }, { data: docs }] = await Promise.all([
       supabase.from('profiles').select('id, fname, lname, dob, gender, blood, wilaya, cnas, emergency, phone').eq('id', patientId).maybeSingle(),
@@ -49,7 +58,35 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
     setDossier(dos)
     setDocuments(docs || [])
     setState(dos || prof ? 'ok' : 'denied')
-  }, [patientId, userId, isOffline])
+  }, [patientId, userId, isOffline, isSecretary]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Secrétaires du médecin et celles qui ont accès à CE dossier
+  const loadSecretariat = async () => {
+    const [{ data: links }, { data: spa }] = await Promise.all([
+      supabase.from('doctor_secretaries').select('secretary_id').eq('doctor_id', userId).eq('status', 'active'),
+      supabase.from('secretary_patient_access').select('secretary_id').eq('doctor_id', userId).eq('patient_id', patientId),
+    ])
+    const ids = (links || []).map(l => l.secretary_id)
+    let profs = []
+    if (ids.length > 0) {
+      const { data } = await supabase.from('profiles').select('id, fname, lname').in('id', ids)
+      profs = data || []
+    }
+    setSecretaries(ids.map(id => profs.find(p => p.id === id) || { id }))
+    setSecGrants((spa || []).map(g => g.secretary_id))
+  }
+
+  const toggleSecretary = async (secId) => {
+    setSecBusy(secId)
+    const on = secGrants.includes(secId)
+    const { error } = on
+      ? await supabase.from('secretary_patient_access').delete().eq('doctor_id', userId).eq('secretary_id', secId).eq('patient_id', patientId)
+      : await supabase.from('secretary_patient_access').insert({ doctor_id: userId, secretary_id: secId, patient_id: patientId })
+    setSecBusy('')
+    if (error) { showToast('❌ ' + error.message); return }
+    showToast(on ? 'Accès secrétaire retiré' : '✅ Accès secrétaire accordé')
+    loadSecretariat()
+  }
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
@@ -72,23 +109,24 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
     fetchAll()
   }
 
-  const who = pro?.fname ? `Dr. ${pro.fname} ${pro.lname || ''}` : ''
+  const who = shell.who !== undefined ? shell.who : (pro?.fname ? `Dr. ${pro.fname} ${pro.lname || ''}` : '')
+  const shellProps = { nav, active: shell.active || 'pro-patients', who, items: shell.items, badge: shell.badge, hideNav: !!shell.hideNav }
   const back = (
-    <button className="pro-btn ghost" style={{ marginBottom: 14 }} onClick={() => nav('pro-patients')}><Icon name="chevronLeft" size={16} /> Mes patients</button>
+    <button className="pro-btn ghost" style={{ marginBottom: 14 }} onClick={() => nav(backTo)}><Icon name="chevronLeft" size={16} /> {backLabel}</button>
   )
 
-  if (state === 'loading') return <DoctorShell nav={nav} active="pro-patients" who={who}>{back}<Loader label="Chargement du dossier…" /></DoctorShell>
+  if (state === 'loading') return <DoctorShell {...shellProps}>{back}<Loader label="Chargement du dossier…" /></DoctorShell>
   if (state === 'offline') return (
-    <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
+    <DoctorShell {...shellProps}>{back}
       <div className="pro-card pro-empty"><div className="e"><Icon e="📴" /></div>Dossier indisponible hors connexion.</div>
     </DoctorShell>
   )
   if (state === 'denied') return (
-    <DoctorShell nav={nav} active="pro-patients" who={who}>{back}
+    <DoctorShell {...shellProps}>{back}
       <div className="pro-card pro-empty">
         <div className="e"><Icon e="🔒" /></div>
-        Ce patient ne vous a pas (ou plus) donné accès à son dossier.
-        <div style={{ marginTop: 8 }}>Il peut vous l'accorder depuis son application, menu « Mes médecins ».</div>
+        {isSecretary ? 'Ce dossier ne vous est pas (ou plus) confié par le médecin.' : 'Ce patient ne vous a pas (ou plus) donné accès à son dossier.'}
+        {!isSecretary && <div style={{ marginTop: 8 }}>Il peut vous l'accorder depuis son application, menu « Mes médecins ».</div>}
       </div>
     </DoctorShell>
   )
@@ -104,7 +142,7 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
   const last = (a) => (a.length ? a[a.length - 1] : null)
 
   return (
-    <DoctorShell nav={nav} active="pro-patients" who={who}>
+    <DoctorShell {...shellProps}>
       {back}
 
       <div className="pro-card pro-row">
@@ -130,6 +168,24 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
       )}
       {patient?.emergency && (
         <a href={telHref(patient.emergency)} className="pro-banner info" style={{ textDecoration: 'none', flexWrap: 'nowrap' }}><Icon e="📞" /><span style={{ minWidth: 0 }}>Urgence : <b>{patient.emergency}</b></span><span style={{ marginLeft: 'auto', fontWeight: 600, flexShrink: 0 }}>Appeler</span></a>
+      )}
+
+      {isSecretary && (
+        <div className="pro-banner info"><Icon e="🔒" /> Consultation seule — dossier confié par le médecin.</div>
+      )}
+
+      {!isSecretary && secretaries.length > 0 && (
+        <div className="pro-card">
+          <div style={{ fontWeight: 700, marginBottom: 4 }}><Icon e="📋" /> Accès secrétariat</div>
+          <div style={{ fontSize: 12.5, color: 'var(--dim)', marginBottom: 8 }}>Cochez les secrétaires qui peuvent consulter ce dossier.</div>
+          {secretaries.map(sec => (
+            <label key={sec.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 2px', cursor: 'pointer', opacity: secBusy === sec.id ? 0.5 : 1 }}>
+              <input type="checkbox" checked={secGrants.includes(sec.id)} disabled={!!secBusy} onChange={() => toggleSecretary(sec.id)}
+                style={{ width: 18, height: 18, accentColor: 'var(--g)' }} />
+              <span style={{ fontSize: 14 }}>{fullName(sec)}</span>
+            </label>
+          ))}
+        </div>
       )}
 
       <div className="pro-seg">
@@ -160,9 +216,11 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
 
       {tab === 'docs' && (
         <>
-          <button className="pro-btn g" style={{ width: '100%', marginBottom: 12 }} onClick={() => setShowNote(true)}>
-            <Icon name="plus" size={17} /> Ajouter une note médicale
-          </button>
+          {!isSecretary && (
+            <button className="pro-btn g" style={{ width: '100%', marginBottom: 12 }} onClick={() => setShowNote(true)}>
+              <Icon name="plus" size={17} /> Ajouter une note médicale
+            </button>
+          )}
           {documents.length === 0 ? (
             <div className="pro-card pro-empty"><div className="e"><Icon e="📂" /></div>Aucun document pour ce patient.</div>
           ) : documents.map(doc => (
@@ -185,7 +243,7 @@ export default function PatientRecord({ nav, showToast, patientId, pro, userId }
         </>
       )}
 
-      {showNote && (
+      {showNote && !isSecretary && (
         <div className="modal-overlay" style={{ position: 'fixed', zIndex: 200 }} onClick={e => e.target === e.currentTarget && setShowNote(false)}>
           <div className="modal" style={{ maxWidth: 520, margin: '0 auto' }}>
             <div className="modal-handle" />

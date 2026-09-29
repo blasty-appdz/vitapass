@@ -31,15 +31,18 @@ export default function DoctorsScreen({ nav, showToast }) {
       if (!accesses || accesses.length === 0) { setDoctors([]); setLoading(false); return }
 
       const ids = accesses.map(a => a.doctor_id)
-      const [{ data: pros }, { data: profs }] = await Promise.all([
+      const [{ data: pros }, { data: profs }, { data: secs }] = await Promise.all([
         supabase.from('professionals').select('id,fname,lname,gender,specialite,wilaya').in('id', ids),
         supabase.from('profiles').select('id,fname,lname,gender,specialite,numero_ordre').in('id', ids),
+        // Transparence : secrétaires que chaque médecin a autorisées sur ce dossier
+        supabase.rpc('patient_dossier_secretaries'),
       ])
       setDoctors(accesses.map(access => {
         const pr = (pros || []).find(p => p.id === access.doctor_id)
         const pf = (profs || []).find(p => p.id === access.doctor_id)
         const base = pr?.fname ? pr : (pf || { id: access.doctor_id })
-        return { ...base, specialite: pr?.specialite || pf?.specialite, access_id: access.id, since: access.granted_at }
+        const secretaries = (secs || []).filter(x => x.doctor_id === access.doctor_id).map(x => `${x.fname || ''} ${x.lname || ''}`.trim()).filter(Boolean)
+        return { ...base, specialite: pr?.specialite || pf?.specialite, access_id: access.id, since: access.granted_at, secretaries }
       }))
     } catch (e) {
       console.error(e)
@@ -138,6 +141,11 @@ export default function DoctorsScreen({ nav, showToast }) {
                   <div className="doctor-name">Dr. {doc.fname} {doc.lname}</div>
                   {doc.specialite && <div className="doctor-spec">{doc.specialite}</div>}
                   <div className="doctor-email">Depuis {formatDate(doc.since)}</div>
+                  {doc.secretaries?.length > 0 && (
+                    <div className="doctor-email" style={{ marginTop: 4 }}>
+                      <Icon e="📋" size={13} /> Secrétariat : {doc.secretaries.join(', ')}
+                    </div>
+                  )}
                 </div>
                 <div className="revoke-btn" onClick={() => revokeDoctor(doc.access_id)}>
                   Révoquer

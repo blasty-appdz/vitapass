@@ -34,6 +34,11 @@ import DoctorAppointments from './pages/doctor/DoctorAppointments'
 import ProfessionalOnboarding from './pages/doctor/ProfessionalOnboarding'
 import ProfessionalSchedule from './pages/doctor/ProfessionalSchedule'
 import ProfessionalDashboard from './pages/doctor/ProfessionalDashboard'
+import ProfessionalSecretaries from './pages/doctor/ProfessionalSecretaries'
+
+// Pages Secrétaire
+import SecretaryHome from './pages/secretary/SecretaryHome'
+import { SECRETARY_ITEMS } from './pages/secretary/secretaryItems'
 
 // Autres pages
 import EmergencyPublicPage from './pages/EmergencyPublicPage'
@@ -130,6 +135,7 @@ export default function App() {
         const profilComplet = proData?.fname && proData?.specialite && proData?.wilaya
         setScreen(profilComplet ? 'pro-dashboard' : 'pro-onboarding')
       }
+      if (prof?.role === 'secretary') setScreen('sec-home')
       setDossier(dos)
       setDoctorCount(docCount || 0)
       if (prof?.role === 'patient') buildNotifs(dos, docCount || 0)
@@ -180,7 +186,7 @@ export default function App() {
   const nav = (s, params = {}) => {
     const target = ALIAS[s] || s
     setScreen(target); setNavParams(params)
-    if (profile?.role === 'doctor') window.scrollTo(0, 0)
+    if (profile?.role === 'doctor' || profile?.role === 'secretary') window.scrollTo(0, 0)
   }
 
   const navItems = [
@@ -201,7 +207,7 @@ export default function App() {
     </div>
   )
 
-  const profileIncomplete = session && profile && !profile.blood && profile.role !== 'doctor'
+  const profileIncomplete = session && profile && !profile.blood && profile.role !== 'doctor' && profile.role !== 'secretary'
   if (profileIncomplete) return (
     <div className="phone">
       <OnboardingScreen profile={profile} setProfile={setProfile} userId={session.user.id} showToast={showToast} />
@@ -230,12 +236,29 @@ export default function App() {
         case 'pro-agenda': return <DoctorAppointments {...common} />
         case 'pro-patients': return <DoctorDashboard {...common} />
         case 'pro-patient': return <PatientRecord {...common} patientId={navParams?.patientId} />
+        case 'pro-secretaries': return <ProfessionalSecretaries {...common} />
         default: return <ProfessionalDashboard {...common} />
       }
     })()
     return (
       <>
         {proScreen}
+        {toast && <Toast msg={toast} className="pro-toast" />}
+      </>
+    )
+  }
+
+  // ── Interface Secrétaire médicale (lecture seule) ─────────────────────────
+  if (profile?.role === 'secretary') {
+    const secName = profile?.fname ? `${profile.fname} ${profile.lname || ''}`.trim() : ''
+    const secScreen = screen === 'sec-patient' && navParams?.patientId
+      ? <PatientRecord nav={nav} showToast={showToast} userId={session.user.id} patientId={navParams.patientId}
+          mode="secretary" backTo="sec-home" backLabel="Dossiers confiés"
+          shell={{ active: 'sec-home', who: secName, items: SECRETARY_ITEMS, badge: 'Secrétariat', hideNav: true }} />
+      : <SecretaryHome nav={nav} profile={profile} userId={session.user.id} />
+    return (
+      <>
+        {secScreen}
         {toast && <Toast msg={toast} className="pro-toast" />}
       </>
     )

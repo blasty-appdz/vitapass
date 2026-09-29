@@ -31,7 +31,9 @@
     "password_min": "Mot de passe minimum 6 caractères",
     "account_created": "Compte créé ! Vérifiez votre email.",
     "reset_sent": "Email envoyé ! Vérifie ta boîte mail.",
-    "enter_email_first": "Entre ton email d'abord"
+    "enter_email_first": "Entre ton email d'abord",
+    "role_secretary": "Secrétaire médicale",
+    "role_secretary_sub": "Consulter les dossiers confiés par mon médecin"
   },
   "home": {
     "greeting": "Bonjour 👋",

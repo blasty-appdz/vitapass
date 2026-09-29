@@ -37,6 +37,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
   const roles = [
     { id: 'patient', icon: '🧑‍💼', label: t('auth.role_patient'), sub: t('auth.role_patient_sub') },
     { id: 'doctor', icon: '👨‍⚕️', label: t('auth.role_doctor'), sub: t('auth.role_doctor_sub') },
+    { id: 'secretary', icon: '📋', label: t('auth.role_secretary'), sub: t('auth.role_secretary_sub') },
   ]
 
   const clearErrors = () => { setError(''); setFieldErrors({}) }
@@ -72,7 +73,7 @@ export default function AuthScreen({ initialTab = 'login' }) {
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { role, fname: fname.trim(), lname: lname.trim(), numero_ordre: numeroOrdre } },
+      options: { data: { role, fname: fname.trim(), lname: lname.trim(), numero_ordre: role === 'doctor' ? numeroOrdre : '' } },
     })
     if (error) setError(authError(error.message))
     else setError('✅ ' + t('auth.account_created'))
