@@ -19,7 +19,7 @@ export default function PrivacyScreen() {
         {/* En-tête */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ display: 'inline-block', background: 'rgba(0,201,141,0.1)', border: '1px solid rgba(0,201,141,0.25)', borderRadius: 20, padding: '6px 16px', fontSize: 13, fontWeight: 600, color: '#00C98D', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 20 }}>
-            Dernière mise à jour : juin 2026
+            Dernière mise à jour : septembre 2026
           </div>
           <h1 style={{ fontSize: 40, fontWeight: 800, color: '#F9FAFB', lineHeight: 1.15, margin: '0 0 16px' }}>
             Politique de<br /><span style={{ color: '#00C98D' }}>confidentialité</span>
@@ -94,8 +94,10 @@ export default function PrivacyScreen() {
             title: 'Qui peut accéder à vos données ?',
             content: (
               <>
-                <p><strong style={{ color: '#F9FAFB' }}>Vous</strong> — vous êtes le seul à avoir accès à votre dossier complet via votre compte VitaPass.</p>
+                <p><strong style={{ color: '#F9FAFB' }}>Vous</strong> — vous avez accès à votre dossier complet via votre compte VitaPass et décidez qui peut le consulter.</p>
                 <p><strong style={{ color: '#F9FAFB' }}>Un médecin via QR code</strong> — lorsqu'un professionnel de santé scanne votre QR Pass, il accède uniquement aux informations d'urgence essentielles que vous avez choisies de rendre visibles : groupe sanguin, allergies, médicaments, antécédents. Cet accès est temporaire et limité.</p>
+                <p><strong style={{ color: '#F9FAFB' }}>Les médecins que vous autorisez</strong> — depuis le menu « Mes médecins », vous pouvez donner à un médecin validé l'accès à votre dossier. Il peut le consulter et y ajouter des notes médicales. Vous pouvez retirer cet accès à tout moment.</p>
+                <p><strong style={{ color: '#F9FAFB' }}>Le secrétariat de votre médecin</strong> — un médecin que vous avez autorisé peut permettre à sa secrétaire médicale de consulter votre dossier, en lecture seule, pour l'organisation de vos soins. Il la désigne dossier par dossier, sous sa responsabilité et dans le respect du secret professionnel. Les noms des secrétaires ayant accès à votre dossier sont affichés dans « Mes médecins ». Cet accès prend fin automatiquement dès que le médecin le retire ou que vous retirez l'accès de ce médecin.</p>
                 <p><strong style={{ color: '#F9FAFB' }}>L'équipe VitaPass</strong> — nos administrateurs peuvent accéder aux données dans le cadre d'interventions techniques (maintenance, support). Cet accès est tracé et limité au strict nécessaire.</p>
                 <p>Aucun autre tiers n'a accès à vos données de santé.</p>
               </>
